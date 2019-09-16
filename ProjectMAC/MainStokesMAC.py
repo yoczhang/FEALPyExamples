@@ -11,7 +11,16 @@
 
 
 import numpy as np
-from .StokesMACData import StokesMACData
+from PDEdata import StokesMACData
+from Smoothers_2D import DGS_smoother
+
+pde = StokesMACData()
+
+uh, vh, ph = DGS_smoother(pde)
+
+print("test end")
+
+
 
 
 
