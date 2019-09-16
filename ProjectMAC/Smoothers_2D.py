@@ -13,7 +13,7 @@
 import numpy as np
 
 
-class DGS_smoother():
+class DGS_smoother:
     def __init__(self, pde):
         self.pde = pde
 
@@ -178,8 +178,8 @@ class DGS_smoother():
         p_row = np.arange(1, pNrow - 1)
         p_col = np.arange(1, pNcol - 1)
         ph[p_row, p_col] = ph[p_row, p_col] - (
-                    4 * dp[p_row, p_col] - dp[p_row - 1, p_col] - dp[p_row + 1, p_col] - dp[p_row, p_col - 1] - dp[
-                p_row, p_col + 1]) / (h ** 2)
+                4 * dp[p_row, p_col] - dp[p_row - 1, p_col] - dp[p_row + 1, p_col] - dp[p_row, p_col - 1]
+                - dp[p_row, p_col + 1]) / (h ** 2)
 
         # boundary nodes but not corner nodes
         ph[p_row, 0] = ph[p_row, 0] - (3 * dp[p_row, 0] - dp[p_row + 1, 0] - dp[p_row - 1, 0] - dp[p_row, 1]) / (h ** 2)
