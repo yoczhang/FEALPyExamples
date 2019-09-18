@@ -54,6 +54,8 @@ class getPDEBasicData:
             return ux, uy
         elif entity is 'v':
             return vx, vy
+        elif entity is 'uv':
+            return ux, uy, vx, vy
         elif entity is 'p':
             return px, py
         else:
@@ -68,8 +70,10 @@ class getPDEBasicData:
     def get_p_shape(self):
         return self.init_coord('p')[0].shape
 
-    def interp_solution(self, p):
+    def interp_solution(self):
         # interpolation of the given solution on mesh points
+        
+        p = [0]
         return self.solutionData.solution(p)
 
     def get_u_dirichlet(self):
@@ -109,7 +113,7 @@ class getPDEBasicData:
         vNrow, vNcol = self.get_v_shape()
         pNrow, pNcol = self.get_p_shape()
 
-        ux, uy, vx, vy, px, py = self.init_coord()
+        ux, uy, vx, vy = self.init_coord('uv')
 
         uzeros = np.zeros((uNrow, uNcol), dtype=float)
         uzeros[:, 0] = 1.
