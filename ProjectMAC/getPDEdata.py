@@ -3,7 +3,7 @@
 # ---
 # @Software: PyCharm
 # @Site: 
-# @File: PDEdata.py
+# @File: getPDEdata.py
 # @Author: Yongchao Zhang
 # @E-mail: yoczhang@126.com
 # @Time: Sep 11, 2019
@@ -13,8 +13,10 @@
 import numpy as np
 
 
-class StokesMACData:
-    def __init__(self, n=4, xmin=0, xmax=1, ymin=0, ymax=1):
+class getPDEBasicData:
+    def __init__(self, solutionData, n=4, xmin=0, xmax=1, ymin=0, ymax=1):
+        self.solutionData = solutionData
+
         # TODO: if (xmax - xmin) != (ymax - ymin), but there only has one n
         self.n = n
         self.xmin = xmin
@@ -57,34 +59,8 @@ class StokesMACData:
     def get_p_shape(self):
         return self.init_coord()[4].shape
 
-    def solution(self, p):
-        """ The exact solution
-        """
-        x = p[..., 0]
-        y = p[..., 1]
-
-        uval = x ** 2 * (x - 1) ** 2 * y * (y - 1) * (2 * y - 1)
-        vval = -x * (x - 1) * (2. * x - 1) * y ** 2. * (y - 1) ** 2
-        pval = (2 * x - 1) * (2 * y - 1)
-
-        return uval, vval, pval
-
-    def source(self, p):
-        nu = 1
-        x = p[..., 0]
-        y = p[..., 1]
-
-        f1val = 2 * (2 * y - 1) * (
-                - 3 * nu * x ** 4 + 6 * nu * x ** 3 - 6 * nu * x ** 2 * y ** 2 + 6 * nu * x ** 2 * y - 3 * nu * x ** 2
-                + 6 * nu * x * y ** 2 - 6 * nu * x * y - nu * y ** 2 + nu * y + 1)
-        f2val = 2 * (2 * x - 1) * (
-                6 * nu * x ** 2 * y ** 2 - 6 * nu * x ** 2 * y + nu * x ** 2 - 6 * nu * x * y ** 2 + 6 * nu * x * y
-                - nu * x + 3 * nu * y ** 4 - 6 * nu * y ** 3 + 3 * nu * y ** 2 + 1)
-
-        return f1val, f2val
-
     def interpolation_vals(self, p):
-        return self.solution(p)
+        return self.solutionData.solution(p)
 
     def get_u_dirichlet(self):
         uNrow, uNcol = self.get_u_shape()
@@ -93,11 +69,11 @@ class StokesMACData:
         x = ux[0, :]
         y = self.ymax * np.ones((1, uNcol))
         p = np.concatenate((x.reshape((-1, 1)), y.reshape((-1, 1))), axis=1)
-        uTop = self.solution(p)[0]
+        uTop = self.solutionData.solution(p)[0]
 
         y = self.ymin * np.ones((1, uNcol))
         p = np.concatenate((x.reshape((-1, 1)), y.reshape((-1, 1))), axis=1)
-        uBot = self.solution(p)[0]
+        uBot = self.solutionData.solution(p)[0]
 
         return np.reshape(uTop, (1, -1)), np.reshape(uBot, (1, -1))
 
@@ -108,11 +84,11 @@ class StokesMACData:
         x = self.xmin * np.ones((1, vNrow))
         y = vy[:, 0]
         p = np.concatenate((x.reshape((-1, 1)), y.reshape((-1, 1))), axis=1)
-        vLef = self.solution(p)[1]
+        vLef = self.solutionData.solution(p)[1]
 
         x = self.xmax * np.ones((1, vNrow))
         p = np.concatenate((x.reshape((-1, 1)), y.reshape((-1, 1))), axis=1)
-        vRig = self.solution(p)[1]
+        vRig = self.solutionData.solution(p)[1]
 
         return np.reshape(vLef, (-1, 1)), np.reshape(vRig, (-1, 1))
 
@@ -132,11 +108,11 @@ class StokesMACData:
         vzeros[-1, :] = 1.
 
         u_p = np.concatenate((ux.reshape((-1, 1)), uy.reshape((-1, 1))), axis=1)
-        u_i = self.solution(u_p)[0]
+        u_i = self.solutionData.solution(u_p)[0]
         u_0 = np.reshape(u_i, (uNrow, uNcol)) * uzeros
 
         v_p = np.concatenate((vx.reshape((-1, 1)), vy.reshape((-1, 1))), axis=1)
-        v_i = self.solution(v_p)[1]
+        v_i = self.solutionData.solution(v_p)[1]
         v_0 = np.reshape(v_i, (vNrow, vNcol)) * vzeros
 
         p_0 = np.zeros((pNrow, pNcol), dtype=float)

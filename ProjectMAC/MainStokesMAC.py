@@ -11,10 +11,13 @@
 
 
 import numpy as np
-from PDEdata import StokesMACData
+from getPDEdata import getPDEBasicData
 from Smoothers_2D import DGS_smoother
+from solutionData import solutionStokesData
 
-pde = StokesMACData()
+StokesData = solutionStokesData()
+
+pde = getPDEBasicData(StokesData)
 
 uh, vh, ph = DGS_smoother(pde)
 
