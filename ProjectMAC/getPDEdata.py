@@ -28,7 +28,7 @@ class getPDEBasicData:
         hy = np.abs(ymax - ymin) / n
         self.h = min(hx, hy)
 
-    def init_coord(self):
+    def init_coord(self, entity='all'):
         """ generate the initial coordinate of uh, vh, ph
         """
         xmin = self.xmin
@@ -48,18 +48,28 @@ class getPDEBasicData:
         py = np.arange(ymax - h / 2, ymin, -h, dtype=np.float)
         px, py = np.meshgrid(px, py)
 
-        return ux, uy, vx, vy, px, py
+        if entity is 'all':
+            return ux, uy, vx, vy, px, py
+        elif entity is 'u':
+            return ux, uy
+        elif entity is 'v':
+            return vx, vy
+        elif entity is 'p':
+            return px, py
+        else:
+            raise ValueError("".format)
 
     def get_u_shape(self):
-        return self.init_coord()[0].shape
+        return self.init_coord('u')[0].shape
 
     def get_v_shape(self):
-        return self.init_coord()[2].shape
+        return self.init_coord('v')[0].shape
 
     def get_p_shape(self):
-        return self.init_coord()[4].shape
+        return self.init_coord('p')[0].shape
 
-    def interpolation_vals(self, p):
+    def interp_solution(self, p):
+        # interpolation of the given solution on mesh points
         return self.solutionData.solution(p)
 
     def get_u_dirichlet(self):
@@ -93,6 +103,7 @@ class getPDEBasicData:
         return np.reshape(vLef, (-1, 1)), np.reshape(vRig, (-1, 1))
 
     def get_init_vals(self):
+        # get the initial values
         # TODO: optimize this code
         uNrow, uNcol = self.get_u_shape()
         vNrow, vNcol = self.get_v_shape()
