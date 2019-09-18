@@ -1,2 +1,4 @@
 # IDE informations
 .idea/*
+.idea/*.xml
+.idea/workspace.xml

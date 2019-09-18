@@ -14,17 +14,23 @@ class solutionStokesData:
     def __init__(self):
         pass
 
-    def solution(self, p):
+    def solution(self, p, entity):
         """ The exact solution
         """
         x = p[..., 0]
         y = p[..., 1]
 
-        uval = x ** 2 * (x - 1) ** 2 * y * (y - 1) * (2 * y - 1)
-        vval = -x * (x - 1) * (2. * x - 1) * y ** 2. * (y - 1) ** 2
-        pval = (2 * x - 1) * (2 * y - 1)
-
-        return uval, vval, pval
+        if entity is 'u':
+            uval = x ** 2 * (x - 1) ** 2 * y * (y - 1) * (2 * y - 1)
+            return uval
+        elif entity is 'v':
+            vval = -x * (x - 1) * (2. * x - 1) * y ** 2. * (y - 1) ** 2
+            return vval
+        elif entity is 'p':
+            pval = (2 * x - 1) * (2 * y - 1)
+            return pval
+        else:
+            raise ValueError("".format)
 
     def source(self, p):
         nu = 1

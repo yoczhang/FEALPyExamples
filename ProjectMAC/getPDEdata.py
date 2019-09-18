@@ -72,8 +72,9 @@ class getPDEBasicData:
 
     def interp_solution(self):
         # interpolation of the given solution on mesh points
-        
-        p = [0]
+
+        ux 
+        p = np.concatenate((x.reshape((-1, 1)), y.reshape((-1, 1))), axis=1)
         return self.solutionData.solution(p)
 
     def get_u_dirichlet(self):
