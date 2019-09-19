@@ -18,17 +18,13 @@ class DGS_smoother:
         self.pde = pde
 
     def smoother(self, nstep=1):
-        uh = self.pde.uh0
-        vh = self.pde.vh0
-        ph = self.pde.ph0
-        uhTop = self.pde.uhTop
-        uhBot = self.pde.uhBot
-        vhLef = self.pde.vhLef
-        vhRig = self.pde.vhRig
-        f1h = self.pde.f1h
-        f2h = self.pde.f2h
-        gh = self.pde.gh
-        h = self.pde.mesh.h
+        uh, vh, ph = self.pde.get_init_vals()
+        uhTop, uhBot = self.pde.get_u_dirichlet()
+        vhLef, vhRig = self.pde.get_v_dirichlet()
+        f1h = self.pde.interp_f1()
+        f2h = self.pde.interp_f2()
+        gh = self.pde.interp_g()
+        h = self.pde.h
 
         (uNrow, uNcol) = uh.shape
         (vNrow, vNcol) = vh.shape
@@ -80,24 +76,24 @@ class DGS_smoother:
 
             # vh, red-black iteration
             # case1, (red points): mod(v_row + v_col, 2) == 0
-            v_row = np.arange(1, uNrow - 1, 2)
-            v_col = np.arange(1, uNcol - 1, 2)
+            v_row = np.arange(1, vNrow - 1, 2)
+            v_col = np.arange(1, vNcol - 1, 2)
             vh[v_row, v_col] = (vh[v_row - 1, v_col] + vh[v_row + 1, v_col] + vh[v_row, v_col - 1]
                                 + vh[v_row, v_col + 1] - h * (ph[v_row - 1, v_col] - ph[v_row, v_col])
                                 + h ** 2 * f2h[v_row, v_col]) / 4
-            v_row = np.arange(2, uNrow - 1, 2)
-            v_col = np.arange(2, uNcol - 1, 2)
+            v_row = np.arange(2, vNrow - 1, 2)
+            v_col = np.arange(2, vNcol - 1, 2)
             vh[v_row, v_col] = (vh[v_row - 1, v_col] + vh[v_row + 1, v_col] + vh[v_row, v_col - 1]
                                 + vh[v_row, v_col + 1] - h * (ph[v_row - 1, v_col] - ph[v_row, v_col])
                                 + h ** 2 * f2h[v_row, v_col]) / 4
             # case2, (black points): mod(v_row + v_col, 2) == 1
-            v_row = np.arange(1, uNrow - 1, 2)
-            v_col = np.arange(2, uNcol - 1, 2)
+            v_row = np.arange(1, vNrow - 1, 2)
+            v_col = np.arange(2, vNcol - 1, 2)
             vh[v_row, v_col] = (vh[v_row - 1, v_col] + vh[v_row + 1, v_col] + vh[v_row, v_col - 1]
                                 + vh[v_row, v_col + 1] - h * (ph[v_row - 1, v_col] - ph[v_row, v_col])
                                 + h ** 2 * f2h[v_row, v_col]) / 4
-            v_row = np.arange(2, uNrow - 1, 2)
-            v_col = np.arange(1, uNcol - 1, 2)
+            v_row = np.arange(2, vNrow - 1, 2)
+            v_col = np.arange(1, vNcol - 1, 2)
             vh[v_row, v_col] = (vh[v_row - 1, v_col] + vh[v_row + 1, v_col] + vh[v_row, v_col - 1]
                                 + vh[v_row, v_col + 1] - h * (ph[v_row - 1, v_col] - ph[v_row, v_col])
                                 + h ** 2 * f2h[v_row, v_col]) / 4
@@ -166,9 +162,9 @@ class DGS_smoother:
         # uh^{k+1} = uh^{k} + \partial_x dp
         # vh^{k+1} = vh^{k} + \partial_y dp
         u_row = np.arange(0, uNrow)
-        u_col = np.arange(1, uNcol - 1)
+        u_col = np.arange(1, uNcol)
         uh[u_row, u_col] = uh[u_row, u_col] + (dp[u_row, u_col] - dp[u_row, u_col - 1]) / h
-        v_row = np.arange(1, vNrow - 1)
+        v_row = np.arange(1, vNrow)
         v_col = np.arange(0, vNcol)
         vh[v_row, v_col] = vh[v_row, v_col] + (dp[v_row - 1, v_col] - dp[v_row, v_col]) / h
 

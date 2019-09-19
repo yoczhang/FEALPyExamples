@@ -59,7 +59,7 @@ class getPDEBasicData:
         elif entity is 'p':
             return px, py
         else:
-            raise ValueError("".format)
+            raise ValueError("There is no '{}' type!".format(entity))
 
     def get_u_shape(self):
         return self.init_coord('u')[0].shape
@@ -70,12 +70,44 @@ class getPDEBasicData:
     def get_p_shape(self):
         return self.init_coord('p')[0].shape
 
-    def interp_solution(self):
+    def interp_u(self):
         # interpolation of the given solution on mesh points
+        x, y = self.init_coord('u')
 
-        ux 
-        p = np.concatenate((x.reshape((-1, 1)), y.reshape((-1, 1))), axis=1)
-        return self.solutionData.solution(p)
+        # p = np.concatenate((x.reshape((-1, 1)), y.reshape((-1, 1))), axis=1)
+        p = np.append(x[..., np.newaxis], y[..., np.newaxis], axis=2)
+        return self.solutionData.solution(p, 'u')
+
+    def interp_v(self):
+        # interpolation of the given solution on mesh points
+        x, y = self.init_coord('v')
+
+        # p = np.concatenate((x.reshape((-1, 1)), y.reshape((-1, 1))), axis=1)
+        p = np.append(x[..., np.newaxis], y[..., np.newaxis], axis=2)
+        return self.solutionData.solution(p, 'v')
+
+    def interp_p(self):
+        # interpolation of the given solution on mesh points
+        x, y = self.init_coord('p')
+
+        # p = np.concatenate((x.reshape((-1, 1)), y.reshape((-1, 1))), axis=1)
+        p = np.append(x[..., np.newaxis], y[..., np.newaxis], axis=2)
+        return self.solutionData.solution(p, 'p')
+
+    def interp_f1(self):
+        x, y = self.init_coord('u')
+        p = np.append(x[..., np.newaxis], y[..., np.newaxis], axis=2)
+        return self.solutionData.source(p, 'f1')
+
+    def interp_f2(self):
+        x, y = self.init_coord('v')
+        p = np.append(x[..., np.newaxis], y[..., np.newaxis], axis=2)
+        return self.solutionData.source(p, 'f2')
+
+    def interp_g(self):
+        x, y = self.init_coord('p')
+        p = np.append(x[..., np.newaxis], y[..., np.newaxis], axis=2)
+        return self.solutionData.source(p, 'g')
 
     def get_u_dirichlet(self):
         uNrow, uNcol = self.get_u_shape()
@@ -84,11 +116,11 @@ class getPDEBasicData:
         x = ux[0, :]
         y = self.ymax * np.ones((1, uNcol))
         p = np.concatenate((x.reshape((-1, 1)), y.reshape((-1, 1))), axis=1)
-        uTop = self.solutionData.solution(p)[0]
+        uTop = self.solutionData.solution(p, 'u')
 
         y = self.ymin * np.ones((1, uNcol))
         p = np.concatenate((x.reshape((-1, 1)), y.reshape((-1, 1))), axis=1)
-        uBot = self.solutionData.solution(p)[0]
+        uBot = self.solutionData.solution(p, 'u')
 
         return np.reshape(uTop, (1, -1)), np.reshape(uBot, (1, -1))
 
@@ -99,11 +131,11 @@ class getPDEBasicData:
         x = self.xmin * np.ones((1, vNrow))
         y = vy[:, 0]
         p = np.concatenate((x.reshape((-1, 1)), y.reshape((-1, 1))), axis=1)
-        vLef = self.solutionData.solution(p)[1]
+        vLef = self.solutionData.solution(p, 'v')
 
         x = self.xmax * np.ones((1, vNrow))
         p = np.concatenate((x.reshape((-1, 1)), y.reshape((-1, 1))), axis=1)
-        vRig = self.solutionData.solution(p)[1]
+        vRig = self.solutionData.solution(p, 'v')
 
         return np.reshape(vLef, (-1, 1)), np.reshape(vRig, (-1, 1))
 
@@ -123,13 +155,13 @@ class getPDEBasicData:
         vzeros[0, :] = 1.
         vzeros[-1, :] = 1.
 
-        u_p = np.concatenate((ux.reshape((-1, 1)), uy.reshape((-1, 1))), axis=1)
-        u_i = self.solutionData.solution(u_p)[0]
-        u_0 = np.reshape(u_i, (uNrow, uNcol)) * uzeros
+        u_coord = np.concatenate((ux.reshape((-1, 1)), uy.reshape((-1, 1))), axis=1)
+        u_I = self.solutionData.solution(u_coord, 'u')
+        u_0 = np.reshape(u_I, (uNrow, uNcol)) * uzeros
 
-        v_p = np.concatenate((vx.reshape((-1, 1)), vy.reshape((-1, 1))), axis=1)
-        v_i = self.solutionData.solution(v_p)[1]
-        v_0 = np.reshape(v_i, (vNrow, vNcol)) * vzeros
+        v_coord = np.concatenate((vx.reshape((-1, 1)), vy.reshape((-1, 1))), axis=1)
+        v_I = self.solutionData.solution(v_coord, 'v')
+        v_0 = np.reshape(v_I, (vNrow, vNcol)) * vzeros
 
         p_0 = np.zeros((pNrow, pNcol), dtype=float)
 

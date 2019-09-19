@@ -19,7 +19,8 @@ StokesData = solutionStokesData()
 
 pde = getPDEBasicData(StokesData)
 
-uh, vh, ph = DGS_smoother(pde)
+DGS_obj = DGS_smoother(pde)
+uh, vh, ph = DGS_obj.smoother()
 
 print("test end")
 

@@ -4,6 +4,8 @@
     <list default="true" id="d6697517-9995-4856-b6a4-f2d5c3228b43" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ProjectMAC/MainStokesMAC.py" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectMAC/MainStokesMAC.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ProjectMAC/Smoothers_2D.py" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectMAC/Smoothers_2D.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ProjectMAC/getPDEdata.py" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectMAC/getPDEdata.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ProjectMAC/solutionData.py" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectMAC/solutionData.py" afterDir="false" />
     </list>
@@ -225,15 +227,32 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/ProjectMAC/MainStokesMAC.py</url>
-          <line>23</line>
-          <option name="timeStamp" value="9" />
+          <line>24</line>
+          <option name="timeStamp" value="15" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/ProjectMAC/MainStokesMAC.py</url>
-          <line>21</line>
-          <option name="timeStamp" value="12" />
+          <url>file://$PROJECT_DIR$/ProjectMAC/Smoothers_2D.py</url>
+          <line>80</line>
+          <option name="timeStamp" value="16" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/ProjectMAC/Smoothers_2D.py</url>
+          <line>165</line>
+          <option name="timeStamp" value="17" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/ProjectMAC/Smoothers_2D.py</url>
+          <line>35</line>
+          <option name="timeStamp" value="18" />
         </line-breakpoint>
       </breakpoints>
+      <default-breakpoints>
+        <breakpoint type="python-exception">
+          <properties notifyOnTerminate="true" exception="BaseException">
+            <option name="notifyOnTerminate" value="true" />
+          </properties>
+        </breakpoint>
+      </default-breakpoints>
     </breakpoint-manager>
   </component>
 </project>
