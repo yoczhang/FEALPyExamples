@@ -2,12 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d6697517-9995-4856-b6a4-f2d5c3228b43" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ProjectMAC/MainStokesMAC.py" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectMAC/MainStokesMAC.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ProjectMAC/Smoothers_2D.py" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectMAC/Smoothers_2D.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ProjectMAC/getPDEdata.py" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectMAC/getPDEdata.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ProjectMAC/solutionData.py" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectMAC/solutionData.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -24,17 +20,6 @@
         <option value="Python Script" />
       </list>
     </option>
-  </component>
-  <component name="FindInProjectRecents">
-    <findStrings>
-      <find>barycenter</find>
-      <find>uniform_refine</find>
-      <find>cell2cell</find>
-      <find>print</find>
-      <find>find_node</find>
-      <find>cell_to_cell</find>
-      <find>coscos</find>
-    </findStrings>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -232,18 +217,8 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/ProjectMAC/Smoothers_2D.py</url>
-          <line>80</line>
-          <option name="timeStamp" value="16" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/ProjectMAC/Smoothers_2D.py</url>
-          <line>165</line>
-          <option name="timeStamp" value="17" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/ProjectMAC/Smoothers_2D.py</url>
-          <line>35</line>
-          <option name="timeStamp" value="18" />
+          <line>166</line>
+          <option name="timeStamp" value="21" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
