@@ -3,7 +3,10 @@
   <component name="ChangeListManager">
     <list default="true" id="d6697517-9995-4856-b6a4-f2d5c3228b43" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ProjectMAC/MainStokesMAC.py" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectMAC/MainStokesMAC.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ProjectMAC/Smoothers_2D.py" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectMAC/Smoothers_2D.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ProjectMAC/getPDEdata.py" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectMAC/getPDEdata.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ProjectMAC/solutionData.py" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectMAC/solutionData.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -46,7 +49,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.MainStokesMAC">
+  <component name="RunManager" selected="Python.PoissonFEMRate">
     <configuration name="CahnHilliardRFEM" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="FEALPyExamples" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -110,7 +113,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="PoissonCVEMRate2d" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="PoissonFEMRate" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="FEALPyExamples" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -122,7 +125,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/example/PoissonCVEMRate2d.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/example/PoissonFEMRate.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -154,11 +157,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.PoissonFEMRate" />
         <item itemvalue="Python.MainStokesMAC" />
         <item itemvalue="Python.PoissonAVEMRate" />
         <item itemvalue="Python.PoissonInterfaceVEMRate" />
         <item itemvalue="Python.CahnHilliardRFEM" />
-        <item itemvalue="Python.PoissonCVEMRate2d" />
       </list>
     </recent_temporary>
   </component>
@@ -212,7 +215,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/ProjectMAC/MainStokesMAC.py</url>
-          <line>25</line>
+          <line>54</line>
           <option name="timeStamp" value="15" />
         </line-breakpoint>
       </breakpoints>

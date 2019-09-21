@@ -76,7 +76,8 @@ class getPDEBasicData:
 
         # p = np.concatenate((x.reshape((-1, 1)), y.reshape((-1, 1))), axis=1)
         p = np.append(x[..., np.newaxis], y[..., np.newaxis], axis=2)
-        return self.solutionData.solution(p, 'u')
+        uI = self.solutionData.solution(p, 'u')
+        return uI
 
     def interp_v(self):
         # interpolation of the given solution on mesh points
@@ -84,7 +85,8 @@ class getPDEBasicData:
 
         # p = np.concatenate((x.reshape((-1, 1)), y.reshape((-1, 1))), axis=1)
         p = np.append(x[..., np.newaxis], y[..., np.newaxis], axis=2)
-        return self.solutionData.solution(p, 'v')
+        vI = self.solutionData.solution(p, 'v')
+        return vI
 
     def interp_p(self):
         # interpolation of the given solution on mesh points
@@ -92,22 +94,26 @@ class getPDEBasicData:
 
         # p = np.concatenate((x.reshape((-1, 1)), y.reshape((-1, 1))), axis=1)
         p = np.append(x[..., np.newaxis], y[..., np.newaxis], axis=2)
-        return self.solutionData.solution(p, 'p')
+        pI = self.solutionData.solution(p, 'p')
+        return pI
 
     def interp_f1(self):
         x, y = self.init_coord('u')
         p = np.append(x[..., np.newaxis], y[..., np.newaxis], axis=2)
-        return self.solutionData.source(p, 'f1')
+        f1I = self.solutionData.source(p, 'f1')
+        return f1I
 
     def interp_f2(self):
         x, y = self.init_coord('v')
         p = np.append(x[..., np.newaxis], y[..., np.newaxis], axis=2)
-        return self.solutionData.source(p, 'f2')
+        f2I = self.solutionData.source(p, 'f2')
+        return f2I
 
     def interp_g(self):
         x, y = self.init_coord('p')
         p = np.append(x[..., np.newaxis], y[..., np.newaxis], axis=2)
-        return self.solutionData.source(p, 'g')
+        gI = self.solutionData.source(p, 'g')
+        return gI
 
     def get_u_dirichlet(self):
         uNrow, uNcol = self.get_u_shape()

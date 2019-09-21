@@ -17,15 +17,22 @@ import numpy as np
 class DGS_smoother:
     def __init__(self, pde):
         self.pde = pde
+        self.uh, self.vh, self.ph = pde.get_init_vals()
+        self.uhTop, self.uhBot = pde.get_u_dirichlet()
+        self.vhLef, self.vhRig = pde.get_v_dirichlet()
+        self.f1h = pde.interp_f1()
+        self.f2h = pde.interp_f2()
+        self.gh = pde.interp_g()
+        self.h = pde.h
 
     def smoother(self, nstep=1):
-        uh, vh, ph = self.pde.get_init_vals()
-        uhTop, uhBot = self.pde.get_u_dirichlet()
-        vhLef, vhRig = self.pde.get_v_dirichlet()
-        f1h = self.pde.interp_f1()
-        f2h = self.pde.interp_f2()
-        gh = self.pde.interp_g()
-        h = self.pde.h
+        uh, vh, ph = self.uh, self.vh, self.ph
+        uhTop, uhBot = self.uhTop, self.uhBot
+        vhLef, vhRig = self.vhLef, self.vhRig
+        f1h = self.f1h
+        f2h = self.f2h
+        gh = self.gh
+        h = self.h
 
         (uNrow, uNcol) = uh.shape
         (vNrow, vNcol) = vh.shape
@@ -184,7 +191,68 @@ class DGS_smoother:
 
         # --- ---
         # return
+
         return uh, vh, ph
 
+    def u_l2_err(self):
+        e = self.uh - self.pde.interp_u()
+        return np.sqrt(np.mean(e ** 2))
+
+    def v_l2_err(self):
+        e = self.vh - self.pde.interp_v()
+        return np.sqrt(np.mean(e ** 2))
+
+    def p_l2_err(self):
+        e = self.ph - self.pde.interp_p()
+        return np.sqrt(np.mean(e ** 2))
+
+    def get_residual(self, entity='all'):
+        uh, vh, ph = self.uh, self.vh, self.ph
+        uhTop, uhBot = self.uhTop, self.uhBot
+        vhLef, vhRig = self.vhLef, self.vhRig
+        f1h = self.f1h
+        f2h = self.f2h
+        gh = self.gh
+        h = self.h
+
+        uNrow, uNcol = uh.shape
+        vNrow, vNcol = vh.shape
+
+        r_u = np.zeros((uNrow, uNcol), dtype=float)
+        r_v = np.zeros((vNrow, vNcol), dtype=float)
+        r_div = np.zeros((uNrow, vNcol), dtype=float)
+
+        # uh residual
+        row = np.arange(1, uNrow - 1)
+        row = row[:, None]
+        col = np.arange(1, uNcol - 1)
+        r_u[row, col] = f1h[row, col] - (ph[row, col] - ph[row, col - 1]) / h + (uh[row - 1, col] + uh[row + 1, col] + uh[row, col - 1] + uh[row, col + 1] - 4 * uh[row, col]) / h ** 2
+        r_u[0, col] = f1h[0, col] - (ph[0, col] - ph[0, col - 1]) / h + (2 * uhTop[0, col] + uh[1, col] + uh[0, col - 1] + uh[0, col + 1] - 5 * uh[0, col]) / h ** 2
+        r_u[-1, col] = f1h[-1, col] - (ph[-1, col] - ph[-1, col - 1]) / h + (2 * uhBot[0, col] + uh[-2, col] + uh[-1, col - 1] + uh[-1, col + 1] - 5 * uh[-1, col]) / h ** 2
+
+        # vh residual
+        row = np.arange(1, vNrow - 1)
+        row = row[:, None]
+        col = np.arange(1, vNcol - 1)
+        r_v[row, col] = f2h[row, col] - (ph[row - 1, col] - ph[row, col]) / h + (vh[row - 1, col] + vh[row + 1, col] + vh[row, col - 1] + vh[row, col + 1] - 4 * vh[row, col]) / h ** 2
+        r_v[row, 0] = f2h[row, 0] - (ph[row - 1, 0] - ph[row, 0]) / h + (2 * vhLef[row, 0] + vh[row - 1, 0] + vh[row + 1, 0] + vh[row, 1] - 5 * vh[row, 0]) / h ** 2
+        r_v[row, -1] = f2h[row, -1] - (ph[row - 1, -1] - ph[row, -1]) / h + (2 * vhRig[row, 0] + vh[row - 1, -1] + vh[row + 1, -1] + vh[row, -2] - 5 * vh[row, -1]) / h ** 2
+
+        # div residual
+        row = np.arange(0, uNrow)
+        row = row[:, None]
+        col = np.arange(0, vNcol)
+        r_div[row, col] = gh[row, col] + (uh[row, col + 1] - uh[row, col]) / h + (vh[row, col] - vh[row + 1, col]) / h
+
+        if entity is 'all':
+            return r_u, r_v, r_div
+        elif entity is 'u':
+            return r_u
+        elif entity is 'v':
+            return r_v
+        elif entity in ('p', 'div'):
+            return r_div
+        else:
+            raise ValueError("There is no '{}' type!".format(entity))
 
 
