@@ -11,7 +11,7 @@
 
 
 import numpy as np
-import copy
+# import copy
 
 
 class DGS_smoother:
@@ -102,7 +102,8 @@ class DGS_smoother:
         maxIt = 1000
         tol = 1e-3
         for ite in range(0, maxIt):
-            dp_temp = copy.copy(dp)
+            # dp_temp = copy.copy(dp)
+            dp_temp = dp.copy()
 
             # --- ---
             # interior points
@@ -184,4 +185,6 @@ class DGS_smoother:
         # --- ---
         # return
         return uh, vh, ph
+
+
 
