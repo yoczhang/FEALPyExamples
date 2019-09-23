@@ -48,7 +48,6 @@ def DGS_test():
 
     my_show_error_table(ndof, errorType, errorMatrix)
 
-
 DGS_test()
 
 
