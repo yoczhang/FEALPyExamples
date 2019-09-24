@@ -255,4 +255,3 @@ class DGS_smoother:
         else:
             raise ValueError("There is no '{}' type!".format(entity))
 
-

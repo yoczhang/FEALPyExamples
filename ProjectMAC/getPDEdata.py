@@ -174,6 +174,17 @@ class getPDEBasicData:
         return u_0, v_0, p_0
 
 
+class updatePDE(getPDEBasicData):
+    def __init__(self, pde, uh, vh, ph):
+        super().__init__(pde.solutionData)
+        self.uh = uh
+        self.vh = vh
+        self.ph = ph
+
+    def get_init_vals(self):
+        return self.uh, self.vh, self.ph
+
+
 
 
 
