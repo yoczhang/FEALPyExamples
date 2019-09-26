@@ -175,14 +175,36 @@ class getPDEBasicData:
 
 
 class updatePDE(getPDEBasicData):
-    def __init__(self, pde, uh, vh, ph):
+    def __init__(self, pde, uh, vh, ph, uhTop, uhBot, vhLef, vhRig, f1h, f2h, gh):
         super().__init__(pde.solutionData)
         self.uh = uh
         self.vh = vh
         self.ph = ph
+        self.uhTop = uhTop
+        self.uhBot = uhBot
+        self.vhLef = vhLef
+        self.vhRig = vhRig
+        self.f1h = f1h
+        self.f2h = f2h
+        self.gh = gh
 
     def get_init_vals(self):
         return self.uh, self.vh, self.ph
+
+    def get_u_dirichlet(self):
+        return self.uhTop, self.uhBot
+
+    def get_v_dirichlet(self):
+        return self.vhLef, self.vhRig
+
+    def interp_f1(self):
+        return self.f1h
+
+    def interp_f2(self):
+        return self.f2h
+
+    def interp_g(self):
+        return self.gh
 
 
 
