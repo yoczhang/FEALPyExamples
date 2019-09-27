@@ -35,6 +35,7 @@ def DGS_test():
         step = 0
         start = timer()
         while tol > 1e-6:
+            # ru, rv, rdiv = DGS_obj.get_residual()
             DGS_obj.smoother()
             r_u, r_v, r_div = DGS_obj.get_residual()
             tol = np.sqrt(np.mean(r_u ** 2)) + np.sqrt(np.mean(r_v ** 2)) + np.sqrt(np.mean(r_div ** 2))

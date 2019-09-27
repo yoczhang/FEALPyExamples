@@ -12,6 +12,7 @@
 
 import numpy as np
 # import copy
+from getPDEdata import updatePDE
 
 
 class DGS_smoother:
@@ -24,6 +25,18 @@ class DGS_smoother:
         self.f2h = pde.interp_f2()
         self.gh = pde.interp_g()
         self.h = pde.h
+
+    def updateSmoother(self, uh, vh, ph, uhTop, uhBot, vhLef, vhRig, f1h, f2h, gh):
+        self.uh = uh
+        self.vh = vh
+        self.ph = ph
+        self.uhTop = uhTop
+        self.uhBot = uhBot
+        self.vhLef = vhLef
+        self.vhRig = vhRig
+        self.f1h = f1h
+        self.f2h = f2h
+        self.gh = gh
 
     def smoother(self, nstep=1):
         uh, vh, ph = self.uh, self.vh, self.ph

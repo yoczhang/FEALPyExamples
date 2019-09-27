@@ -3,7 +3,9 @@
   <component name="ChangeListManager">
     <list default="true" id="d6697517-9995-4856-b6a4-f2d5c3228b43" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ProjectMAC/getPDEdata.py" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectMAC/getPDEdata.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ProjectMAC/MainStokesMAC.py" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectMAC/MainStokesMAC.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ProjectMAC/Smoothers_2D.py" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectMAC/Smoothers_2D.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ProjectMAC/Vcycle.py" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectMAC/Vcycle.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -212,23 +214,8 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/ProjectMAC/MainStokesMAC.py</url>
-          <line>64</line>
+          <line>65</line>
           <option name="timeStamp" value="15" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/ProjectMAC/MainStokesMAC.py</url>
-          <line>32</line>
-          <option name="timeStamp" value="17" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/ProjectMAC/Smoothers_2D.py</url>
-          <line>210</line>
-          <option name="timeStamp" value="18" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/ProjectMAC/Smoothers_2D.py</url>
-          <line>29</line>
-          <option name="timeStamp" value="20" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
