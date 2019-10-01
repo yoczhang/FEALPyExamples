@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="d6697517-9995-4856-b6a4-f2d5c3228b43" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ProjectMAC/MainStokesMAC.py" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectMAC/MainStokesMAC.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ProjectMAC/Smoothers_2D.py" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectMAC/Smoothers_2D.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ProjectMAC/Vcycle.py" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectMAC/Vcycle.py" afterDir="false" />
-    </list>
+    <list default="true" id="d6697517-9995-4856-b6a4-f2d5c3228b43" name="Default Changelist" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -199,6 +194,11 @@
       </map>
     </option>
   </component>
+  <component name="VcsManagerConfiguration">
+    <ignored-roots>
+      <path value="$PROJECT_DIR$" />
+    </ignored-roots>
+  </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
@@ -209,7 +209,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/../fealpy_install_folder/fealpy/fealpy/functionspace/ScaledMonomialSpace2d.py</url>
-          <line>99</line>
+          <line>119</line>
           <option name="timeStamp" value="8" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
