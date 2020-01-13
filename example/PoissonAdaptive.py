@@ -13,8 +13,11 @@ from fealpy.recovery import FEMFunctionRecoveryAlg
 import mpl_toolkits.mplot3d as a3
 import pylab as pl
 
-p = int(sys.argv[1])
-maxit = int(sys.argv[2])
+# p = int(sys.argv[1])
+# maxit = int(sys.argv[2])
+
+p = 1
+maxit = 3
 theta = 0.35
 
 errorType = ['$|| u_I - u_h ||_{l_2}$',
