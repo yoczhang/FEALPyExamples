@@ -15,10 +15,8 @@ from fealpy.quadrature import TriangleQuadrature
 import matplotlib.pyplot as plt 
 from mpl_toolkits.mplot3d import Axes3D
 
-# m = int(sys.argv[1])
-# maxit = int(sys.argv[2])
-m=1
-maxit = 4
+m = int(sys.argv[1])
+maxit = int(sys.argv[2])
 
 if m == 1:
     model = CircleInterfaceData(np.array([0,0]), 0.53, 1, 1000)

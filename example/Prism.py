@@ -10,8 +10,20 @@ from fealpy.mesh.implicit_surface import Sphere
 from fealpy.mesh import PrismMesh
 
 from fealpy.pde.poisson_2d import CosCosData
-from fealpy.functionspace import CPPFEMDof3d
+from fealpy.functionspace import CPPFEMDof3d, PrismFiniteElementSpace
 
+
+def one_pmesh():
+    node = np.array([
+        [0.0, 0.0, 0.0],
+        [1.0, 0.0, 0.0],
+        [0.0, 1.0, 0.0],
+        [0.0, 0.0, 1.0],
+        [1.0, 0.0, 1.0],
+        [0.0, 1.0, 1.0]], dtype=np.float)
+    cell = np.array([[0, 1, 2, 3, 4,  5]], dtype=np.int)
+    pmesh = PrismMesh(node, cell)
+    return pmesh
 
 def plane_pmesh():
     pde = CosCosData()
@@ -27,7 +39,6 @@ def plane_pmesh():
 
     pmesh = PrismMesh(pnode, pcell)
     return pmesh
-
 
 def sphere_pmesh(n=3):
     s0 = Sphere(radius=1.0)
@@ -49,24 +60,22 @@ def sphere_pmesh(n=3):
     return pmesh
 
 
-#pmesh = plane_pmesh()
-#dof = CPPFEMDof3d(pmesh, p=2)
-#print(pmesh.entity('cell'))
-#print(dof.cell2dof)
-#print(dof.number_of_global_dofs())
-#print(dof.dpoints.shape)
-#fig = plt.figure()
-#axes = Axes3D(fig)
-#pmesh.add_plot(axes, alpha=0, showedge=True)
-#pmesh.find_node(axes, node=dof.dpoints, showindex=True)
-#plt.show()
+pmesh = one_pmesh()
+qf = pmesh.integrator(2)
+bcs, ws = qf.get_quadrature_points_and_weights()
 
-pmesh = sphere_pmesh(n=6)
-dof = CPPFEMDof3d(pmesh, p=2)
-print(dof.number_of_global_dofs())
-print(dof.dpoints.shape)
-print(dof.cell2dof)
 fig = plt.figure()
 axes = Axes3D(fig)
-pmesh.add_plot(axes, alpha=0,  threshold=lambda bc: bc[:, 0] < 0.5)
+pmesh.add_plot(axes, alpha=0, showedge=True)
+pmesh.find_node(axes, node=p[:, 0, :], showindex=True)
 plt.show()
+
+# pmesh = sphere_pmesh(n=6)
+# dof = CPPFEMDof3d(pmesh, p=5)
+# print(dof.number_of_global_dofs())
+# print(dof.dpoints.shape)
+# print(dof.cell2dof)
+# fig = plt.figure()
+# axes = Axes3D(fig)
+# pmesh.add_plot(axes, alpha=0,  threshold=lambda bc: bc[:, 0] < 0.5)
+# plt.show()
