@@ -24,9 +24,10 @@ elif d == 3:
 # p = int(sys.argv[2]) # 有限元空间的次数
 # n = int(sys.argv[3]) # 初始网格的加密次数
 # maxit = int(sys.argv[4]) # 迭代加密的次数
-p = 1
-n = 1
-maxit = 3
+
+p = 1  # 有限元空间的次数
+n = 2  # 初始网格的加密次数
+maxit = 3  # 迭代加密的次数
 
 pde = PDE()  # 创建 pde 模型
 
