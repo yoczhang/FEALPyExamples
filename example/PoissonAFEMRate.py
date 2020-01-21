@@ -16,7 +16,6 @@ from fealpy.recovery import FEMFunctionRecoveryAlg
 from fealpy.mesh.adaptive_tools import mark
 from fealpy.tools.show import showmultirate
 
-
 pde = LShapeRSinData()
 mesh = pde.init_mesh(n=4, meshtype='tri')
 
@@ -34,7 +33,7 @@ Ndof = np.zeros((maxit,), dtype=np.int)
 errorMatrix = np.zeros((len(errorType), maxit), dtype=np.float)
 
 mesh.add_plot(plt)
-plt.savefig('/home/why/test-0.png')
+plt.savefig('./results/test-0.png')
 plt.close()
 
 for i in range(maxit):
@@ -47,15 +46,15 @@ for i in range(maxit):
     errorMatrix[1, i] = fem.L2_error()
     errorMatrix[2, i] = fem.H1_semi_error()
     rguh = ralg.harmonic_average(uh)
-    #eta = fem.recover_estimate(rguh)
+    # eta = fem.recover_estimate(rguh)
     eta = fem.residual_estimate()
-    errorMatrix[3, i] = np.sqrt(np.sum(eta**2))
+    errorMatrix[3, i] = np.sqrt(np.sum(eta ** 2))
     if i < maxit - 1:
         # isMarkedCell = mark(eta, theta=theta)
         options = mesh.adaptive_options(method='max', theta=0.5)
         mesh.adaptive(eta, options)
         mesh.add_plot(plt)
-        plt.savefig('/home/why/test-' + str(i+1) + '.png')
+        plt.savefig('./results/test-' + str(i + 1) + '.png')
         plt.close()
 
 fig = plt.figure()
