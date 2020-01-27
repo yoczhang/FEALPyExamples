@@ -35,7 +35,7 @@
     <property name="restartRequiresConfirmation" value="false" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
-  <component name="RunManager" selected="Python.PoissonFEMRate">
+  <component name="RunManager" selected="Python.YC_testFile">
     <configuration name="CahnHilliardRFEM" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="FEALPyExamples" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -78,48 +78,6 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="PoissonAFEMRate" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="FEALPyExamples" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/example" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/example/PoissonAFEMRate.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="PoissonAdaptive" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <module name="FEALPyExamples" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="/Applications/anaconda3/envs/fealpy/bin/python" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/example" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/example/PoissonAdaptive.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
     <configuration name="PoissonFEMRate" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="FEALPyExamples" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -141,20 +99,62 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="YC_testFile" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="FEALPyExamples" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/myExamples" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/myExamples/YC_testFile.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="YC_test_new_func" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="FEALPyExamples" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/myExamples" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/myExamples/YC_test_new_func.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <list>
       <item itemvalue="Python.LagrangeFiniteElementSpace" />
-      <item itemvalue="Python.PoissonAFEMRate" />
-      <item itemvalue="Python.PoissonAdaptive" />
       <item itemvalue="Python.PoissonFEMRate" />
       <item itemvalue="Python.CahnHilliardRFEM" />
+      <item itemvalue="Python.YC_test_new_func" />
+      <item itemvalue="Python.YC_testFile" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.YC_testFile" />
         <item itemvalue="Python.PoissonFEMRate" />
+        <item itemvalue="Python.YC_test_new_func" />
         <item itemvalue="Python.CahnHilliardRFEM" />
         <item itemvalue="Python.LagrangeFiniteElementSpace" />
-        <item itemvalue="Python.PoissonAFEMRate" />
-        <item itemvalue="Python.PoissonAdaptive" />
       </list>
     </recent_temporary>
   </component>
@@ -215,38 +215,38 @@
       <screen x="0" y="23" width="1280" height="734" />
     </state>
     <state x="104" y="52" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.23.1280.734@0.23.1280.734" timestamp="1579175192654" />
-    <state width="1239" height="211" key="GridCell.Tab.0.bottom" timestamp="1580044331516">
+    <state width="1259" height="204" key="GridCell.Tab.0.bottom" timestamp="1580138038648">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1239" height="211" key="GridCell.Tab.0.bottom/0.23.1280.734@0.23.1280.734" timestamp="1580044331516" />
-    <state width="1239" height="211" key="GridCell.Tab.0.center" timestamp="1580044331515">
+    <state width="1259" height="204" key="GridCell.Tab.0.bottom/0.23.1280.734@0.23.1280.734" timestamp="1580138038648" />
+    <state width="1259" height="204" key="GridCell.Tab.0.center" timestamp="1580138038647">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1239" height="211" key="GridCell.Tab.0.center/0.23.1280.734@0.23.1280.734" timestamp="1580044331515" />
-    <state width="1239" height="211" key="GridCell.Tab.0.left" timestamp="1580044331515">
+    <state width="1259" height="204" key="GridCell.Tab.0.center/0.23.1280.734@0.23.1280.734" timestamp="1580138038647" />
+    <state width="1259" height="204" key="GridCell.Tab.0.left" timestamp="1580138038646">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1239" height="211" key="GridCell.Tab.0.left/0.23.1280.734@0.23.1280.734" timestamp="1580044331515" />
-    <state width="1239" height="211" key="GridCell.Tab.0.right" timestamp="1580044331516">
+    <state width="1259" height="204" key="GridCell.Tab.0.left/0.23.1280.734@0.23.1280.734" timestamp="1580138038646" />
+    <state width="1259" height="204" key="GridCell.Tab.0.right" timestamp="1580138038647">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1239" height="211" key="GridCell.Tab.0.right/0.23.1280.734@0.23.1280.734" timestamp="1580044331516" />
-    <state width="1239" height="211" key="GridCell.Tab.1.bottom" timestamp="1580044331517">
+    <state width="1259" height="204" key="GridCell.Tab.0.right/0.23.1280.734@0.23.1280.734" timestamp="1580138038647" />
+    <state width="1259" height="204" key="GridCell.Tab.1.bottom" timestamp="1580138038650">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1239" height="211" key="GridCell.Tab.1.bottom/0.23.1280.734@0.23.1280.734" timestamp="1580044331517" />
-    <state width="1239" height="211" key="GridCell.Tab.1.center" timestamp="1580044331516">
+    <state width="1259" height="204" key="GridCell.Tab.1.bottom/0.23.1280.734@0.23.1280.734" timestamp="1580138038650" />
+    <state width="1259" height="204" key="GridCell.Tab.1.center" timestamp="1580138038649">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1239" height="211" key="GridCell.Tab.1.center/0.23.1280.734@0.23.1280.734" timestamp="1580044331516" />
-    <state width="1239" height="211" key="GridCell.Tab.1.left" timestamp="1580044331516">
+    <state width="1259" height="204" key="GridCell.Tab.1.center/0.23.1280.734@0.23.1280.734" timestamp="1580138038649" />
+    <state width="1259" height="204" key="GridCell.Tab.1.left" timestamp="1580138038649">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1239" height="211" key="GridCell.Tab.1.left/0.23.1280.734@0.23.1280.734" timestamp="1580044331516" />
-    <state width="1239" height="211" key="GridCell.Tab.1.right" timestamp="1580044331517">
+    <state width="1259" height="204" key="GridCell.Tab.1.left/0.23.1280.734@0.23.1280.734" timestamp="1580138038649" />
+    <state width="1259" height="204" key="GridCell.Tab.1.right" timestamp="1580138038650">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1239" height="211" key="GridCell.Tab.1.right/0.23.1280.734@0.23.1280.734" timestamp="1580044331517" />
+    <state width="1259" height="204" key="GridCell.Tab.1.right/0.23.1280.734@0.23.1280.734" timestamp="1580138038650" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -269,12 +269,32 @@
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/../fealpy_install_folder/fealpy/fealpy/functionspace/LagrangeFiniteElementSpace.py</url>
           <line>382</line>
-          <option name="timeStamp" value="18" />
+          <option name="timeStamp" value="23" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/myExamples/YC_testFile.py</url>
+          <line>87</line>
+          <option name="timeStamp" value="26" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/myExamples/YC_testFile.py</url>
+          <line>68</line>
+          <option name="timeStamp" value="27" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/myExamples/YC_testFile.py</url>
+          <line>56</line>
+          <option name="timeStamp" value="28" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/../fealpy_install_folder/fealpy/fealpy/functionspace/LagrangeFiniteElementSpace.py</url>
+          <line>507</line>
+          <option name="timeStamp" value="29" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/example/PoissonFEMRate.py</url>
-          <line>44</line>
-          <option name="timeStamp" value="19" />
+          <line>43</line>
+          <option name="timeStamp" value="31" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

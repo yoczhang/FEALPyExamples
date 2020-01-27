@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # 
 import sys
+
+sys.path.append("/Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/")
+from poisson2DData import CosCosData as PDE
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.io as sio
@@ -14,12 +17,12 @@ from fealpy.tools.show import showmultirate, show_error_table
 # d = int(sys.argv[1])
 d = 2
 
-if d == 1:
-    from fealpy.pde.poisson_1d import CosData as PDE
-elif d == 2:
-    from fealpy.pde.poisson_2d import CosCosData as PDE
-elif d == 3:
-    from fealpy.pde.poisson_3d import CosCosCosData as PDE
+# if d == 1:
+#     from fealpy.pde.poisson_1d import CosData as PDE
+# elif d == 2:
+#     from poisson2DData import CosCosData as PDE
+# elif d == 3:
+#     from fealpy.pde.poisson_3d import CosCosCosData as PDE
 
 # p = int(sys.argv[2]) # 有限元空间的次数
 # n = int(sys.argv[3]) # 初始网格的加密次数
