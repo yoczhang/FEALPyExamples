@@ -215,38 +215,38 @@
       <screen x="0" y="23" width="1280" height="734" />
     </state>
     <state x="104" y="52" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.23.1280.734@0.23.1280.734" timestamp="1579175192654" />
-    <state width="1259" height="204" key="GridCell.Tab.0.bottom" timestamp="1580138038648">
+    <state width="1259" height="204" key="GridCell.Tab.0.bottom" timestamp="1580191873294">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="204" key="GridCell.Tab.0.bottom/0.23.1280.734@0.23.1280.734" timestamp="1580138038648" />
-    <state width="1259" height="204" key="GridCell.Tab.0.center" timestamp="1580138038647">
+    <state width="1259" height="204" key="GridCell.Tab.0.bottom/0.23.1280.734@0.23.1280.734" timestamp="1580191873294" />
+    <state width="1259" height="204" key="GridCell.Tab.0.center" timestamp="1580191873293">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="204" key="GridCell.Tab.0.center/0.23.1280.734@0.23.1280.734" timestamp="1580138038647" />
-    <state width="1259" height="204" key="GridCell.Tab.0.left" timestamp="1580138038646">
+    <state width="1259" height="204" key="GridCell.Tab.0.center/0.23.1280.734@0.23.1280.734" timestamp="1580191873293" />
+    <state width="1259" height="204" key="GridCell.Tab.0.left" timestamp="1580191873292">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="204" key="GridCell.Tab.0.left/0.23.1280.734@0.23.1280.734" timestamp="1580138038646" />
-    <state width="1259" height="204" key="GridCell.Tab.0.right" timestamp="1580138038647">
+    <state width="1259" height="204" key="GridCell.Tab.0.left/0.23.1280.734@0.23.1280.734" timestamp="1580191873292" />
+    <state width="1259" height="204" key="GridCell.Tab.0.right" timestamp="1580191873293">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="204" key="GridCell.Tab.0.right/0.23.1280.734@0.23.1280.734" timestamp="1580138038647" />
-    <state width="1259" height="204" key="GridCell.Tab.1.bottom" timestamp="1580138038650">
+    <state width="1259" height="204" key="GridCell.Tab.0.right/0.23.1280.734@0.23.1280.734" timestamp="1580191873293" />
+    <state width="1259" height="204" key="GridCell.Tab.1.bottom" timestamp="1580191833826">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="204" key="GridCell.Tab.1.bottom/0.23.1280.734@0.23.1280.734" timestamp="1580138038650" />
-    <state width="1259" height="204" key="GridCell.Tab.1.center" timestamp="1580138038649">
+    <state width="1259" height="204" key="GridCell.Tab.1.bottom/0.23.1280.734@0.23.1280.734" timestamp="1580191833826" />
+    <state width="1259" height="204" key="GridCell.Tab.1.center" timestamp="1580191833825">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="204" key="GridCell.Tab.1.center/0.23.1280.734@0.23.1280.734" timestamp="1580138038649" />
-    <state width="1259" height="204" key="GridCell.Tab.1.left" timestamp="1580138038649">
+    <state width="1259" height="204" key="GridCell.Tab.1.center/0.23.1280.734@0.23.1280.734" timestamp="1580191833825" />
+    <state width="1259" height="204" key="GridCell.Tab.1.left" timestamp="1580191833825">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="204" key="GridCell.Tab.1.left/0.23.1280.734@0.23.1280.734" timestamp="1580138038649" />
-    <state width="1259" height="204" key="GridCell.Tab.1.right" timestamp="1580138038650">
+    <state width="1259" height="204" key="GridCell.Tab.1.left/0.23.1280.734@0.23.1280.734" timestamp="1580191833825" />
+    <state width="1259" height="204" key="GridCell.Tab.1.right" timestamp="1580191833826">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="204" key="GridCell.Tab.1.right/0.23.1280.734@0.23.1280.734" timestamp="1580138038650" />
+    <state width="1259" height="204" key="GridCell.Tab.1.right/0.23.1280.734@0.23.1280.734" timestamp="1580191833826" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -262,28 +262,18 @@
           <option name="timeStamp" value="15" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/../fealpy_install_folder/fealpy/fealpy/functionspace/LagrangeFiniteElementSpace.py</url>
-          <line>392</line>
-          <option name="timeStamp" value="16" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/../fealpy_install_folder/fealpy/fealpy/functionspace/LagrangeFiniteElementSpace.py</url>
-          <line>382</line>
-          <option name="timeStamp" value="23" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/myExamples/YC_testFile.py</url>
-          <line>87</line>
+          <line>88</line>
           <option name="timeStamp" value="26" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/myExamples/YC_testFile.py</url>
-          <line>68</line>
+          <line>69</line>
           <option name="timeStamp" value="27" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/myExamples/YC_testFile.py</url>
-          <line>56</line>
+          <line>57</line>
           <option name="timeStamp" value="28" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -295,6 +285,11 @@
           <url>file://$PROJECT_DIR$/example/PoissonFEMRate.py</url>
           <line>43</line>
           <option name="timeStamp" value="31" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/myExamples/YC_testFile.py</url>
+          <line>85</line>
+          <option name="timeStamp" value="32" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

@@ -19,7 +19,8 @@ from fealpy.mesh.mesh_tools import find_node, find_entity
 # init settings
 n = 1  # refine times
 p = 2  # polynomial order of FEM space
-q = p + 1  # integration order
+# q = p + 1  # integration order
+q = 2 + 1  # integration order
 
 node = np.array([
     (0, 0),
