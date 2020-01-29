@@ -57,7 +57,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="LagrangeFiniteElementSpace" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="PoissonCVEMRate2d" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="FEALPyExamples" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -65,11 +65,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../fealpy_install_folder/fealpy/fealpy/functionspace" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/example" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../fealpy_install_folder/fealpy/fealpy/functionspace/LagrangeFiniteElementSpace.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/example/PoissonCVEMRate2d.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -142,19 +142,19 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Python.LagrangeFiniteElementSpace" />
       <item itemvalue="Python.PoissonFEMRate" />
       <item itemvalue="Python.CahnHilliardRFEM" />
       <item itemvalue="Python.YC_test_new_func" />
       <item itemvalue="Python.YC_testFile" />
+      <item itemvalue="Python.PoissonCVEMRate2d" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Python.YC_testFile" />
+        <item itemvalue="Python.PoissonCVEMRate2d" />
         <item itemvalue="Python.PoissonFEMRate" />
         <item itemvalue="Python.YC_test_new_func" />
         <item itemvalue="Python.CahnHilliardRFEM" />
-        <item itemvalue="Python.LagrangeFiniteElementSpace" />
       </list>
     </recent_temporary>
   </component>
@@ -215,47 +215,42 @@
       <screen x="0" y="23" width="1280" height="734" />
     </state>
     <state x="104" y="52" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.23.1280.734@0.23.1280.734" timestamp="1579175192654" />
-    <state width="1259" height="204" key="GridCell.Tab.0.bottom" timestamp="1580191873294">
+    <state width="1259" height="211" key="GridCell.Tab.0.bottom" timestamp="1580282814178">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="204" key="GridCell.Tab.0.bottom/0.23.1280.734@0.23.1280.734" timestamp="1580191873294" />
-    <state width="1259" height="204" key="GridCell.Tab.0.center" timestamp="1580191873293">
+    <state width="1259" height="211" key="GridCell.Tab.0.bottom/0.23.1280.734@0.23.1280.734" timestamp="1580282814178" />
+    <state width="1259" height="211" key="GridCell.Tab.0.center" timestamp="1580282814178">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="204" key="GridCell.Tab.0.center/0.23.1280.734@0.23.1280.734" timestamp="1580191873293" />
-    <state width="1259" height="204" key="GridCell.Tab.0.left" timestamp="1580191873292">
+    <state width="1259" height="211" key="GridCell.Tab.0.center/0.23.1280.734@0.23.1280.734" timestamp="1580282814178" />
+    <state width="1259" height="211" key="GridCell.Tab.0.left" timestamp="1580282814177">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="204" key="GridCell.Tab.0.left/0.23.1280.734@0.23.1280.734" timestamp="1580191873292" />
-    <state width="1259" height="204" key="GridCell.Tab.0.right" timestamp="1580191873293">
+    <state width="1259" height="211" key="GridCell.Tab.0.left/0.23.1280.734@0.23.1280.734" timestamp="1580282814177" />
+    <state width="1259" height="211" key="GridCell.Tab.0.right" timestamp="1580282814178">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="204" key="GridCell.Tab.0.right/0.23.1280.734@0.23.1280.734" timestamp="1580191873293" />
-    <state width="1259" height="204" key="GridCell.Tab.1.bottom" timestamp="1580191833826">
+    <state width="1259" height="211" key="GridCell.Tab.0.right/0.23.1280.734@0.23.1280.734" timestamp="1580282814178" />
+    <state width="1259" height="211" key="GridCell.Tab.1.bottom" timestamp="1580282812134">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="204" key="GridCell.Tab.1.bottom/0.23.1280.734@0.23.1280.734" timestamp="1580191833826" />
-    <state width="1259" height="204" key="GridCell.Tab.1.center" timestamp="1580191833825">
+    <state width="1259" height="211" key="GridCell.Tab.1.bottom/0.23.1280.734@0.23.1280.734" timestamp="1580282812134" />
+    <state width="1259" height="211" key="GridCell.Tab.1.center" timestamp="1580282812133">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="204" key="GridCell.Tab.1.center/0.23.1280.734@0.23.1280.734" timestamp="1580191833825" />
-    <state width="1259" height="204" key="GridCell.Tab.1.left" timestamp="1580191833825">
+    <state width="1259" height="211" key="GridCell.Tab.1.center/0.23.1280.734@0.23.1280.734" timestamp="1580282812133" />
+    <state width="1259" height="211" key="GridCell.Tab.1.left" timestamp="1580282812133">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="204" key="GridCell.Tab.1.left/0.23.1280.734@0.23.1280.734" timestamp="1580191833825" />
-    <state width="1259" height="204" key="GridCell.Tab.1.right" timestamp="1580191833826">
+    <state width="1259" height="211" key="GridCell.Tab.1.left/0.23.1280.734@0.23.1280.734" timestamp="1580282812133" />
+    <state width="1259" height="211" key="GridCell.Tab.1.right" timestamp="1580282812133">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="204" key="GridCell.Tab.1.right/0.23.1280.734@0.23.1280.734" timestamp="1580191833826" />
+    <state width="1259" height="211" key="GridCell.Tab.1.right/0.23.1280.734@0.23.1280.734" timestamp="1580282812133" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/../fealpy_install_folder/fealpy/fealpy/functionspace/ScaledMonomialSpace2d.py</url>
-          <line>119</line>
-          <option name="timeStamp" value="8" />
-        </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/ProjectMAC/MainStokesMAC.py</url>
           <line>65</line>
@@ -263,18 +258,8 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/myExamples/YC_testFile.py</url>
-          <line>88</line>
+          <line>109</line>
           <option name="timeStamp" value="26" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/YC_testFile.py</url>
-          <line>69</line>
-          <option name="timeStamp" value="27" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/YC_testFile.py</url>
-          <line>57</line>
-          <option name="timeStamp" value="28" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/../fealpy_install_folder/fealpy/fealpy/functionspace/LagrangeFiniteElementSpace.py</url>
@@ -285,11 +270,6 @@
           <url>file://$PROJECT_DIR$/example/PoissonFEMRate.py</url>
           <line>43</line>
           <option name="timeStamp" value="31" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/YC_testFile.py</url>
-          <line>85</line>
-          <option name="timeStamp" value="32" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

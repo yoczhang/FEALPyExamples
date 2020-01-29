@@ -15,6 +15,7 @@ from fealpy.mesh.StructureQuadMesh import StructureQuadMesh
 from fealpy.mesh.QuadrangleMesh import QuadrangleMesh
 from fealpy.functionspace.femdof import CPLFEMDof2d
 from fealpy.mesh.mesh_tools import find_node, find_entity
+from fealpy.quadrature.GaussLegendreQuadrature import GaussLegendreQuadrature
 
 # init settings
 n = 1  # refine times
@@ -46,13 +47,17 @@ dof = CPLFEMDof2d(mesh, p)
 # plot mesh
 ipoint = dof.interpolation_points()
 cell2dof = dof.cell2dof
+node = mesh.entity('node')
+edge = mesh.entity('edge')
 
-fig = plt.figure()
-axes = fig.gca()
-mesh.add_plot(axes, cellcolor='w')
-find_entity(axes, mesh, entity='cell', index='all', showindex=True, color='b', fontsize=15)
-# find_node(axes, ipoint, showindex=False, fontsize=12, markersize=25)
-plt.show()
+# fig = plt.figure()
+# axes = fig.gca()
+# mesh.add_plot(axes, cellcolor='w')
+# find_entity(axes, mesh, entity='cell', index='all', showindex=True, color='b', fontsize=15)
+# # find_node(axes, ipoint, showindex=False, fontsize=12, markersize=25)
+# find_node(axes, node, showindex=True, fontsize=12, markersize=25)
+# find_entity(axes, mesh, entity='edge', index='all', showindex=True, color='b', fontsize=12)
+# plt.show()
 
 # get bcs
 integrator = mesh.integrator(q)
@@ -67,7 +72,7 @@ print(shape)
 # ---      project 2: get basis at bcs          --- #
 
 # Ref: lagrange_fem_space.py -- basis
-bc = bcs
+bcs = bcs
 ftype = mesh.ftype
 TD = 2  # topological dimension
 multiIndex = dof.multiIndex
@@ -75,15 +80,31 @@ multiIndex = dof.multiIndex
 c = np.arange(1, p + 1, dtype=np.int)
 P = 1.0 / np.multiply.accumulate(c)
 t = np.arange(0, p)
-shape = bc.shape[:-1] + (p + 1, TD + 1)
+shape = bcs.shape[:-1] + (p + 1, TD + 1)
 A = np.ones(shape, dtype=ftype)
-A[..., 1:, :] = p * bc[..., np.newaxis, :] - t.reshape(-1, 1)
+A[..., 1:, :] = p * bcs[..., np.newaxis, :] - t.reshape(-1, 1)
 np.cumprod(A, axis=-2, out=A)
 A[..., 1:, :] *= P.reshape(-1, 1)
 idx = np.arange(TD + 1)
 phi = np.prod(A[..., multiIndex, idx], axis=-1)
 
 print(phi.shape)
+
+
+# ------------------------------------------------- #
+# ---      project 3:                           --- #
+# --- to test ScaledMonomialSpace2d --- matrix_H()
+qf = GaussLegendreQuadrature(p + 1)
+bcs, ws = qf.quadpts, qf.weights
+
+node = mesh.entity('node')
+edge = mesh.entity('edge')
+edge2cell = mesh.ds.edge_to_cell()
+
+node_edge = node[edge]
+
+ps = np.einsum('ij, kjm->ikm', bcs, node[edge])
+
 
 # ------------------------------------------------- #
 print("End of this test file")

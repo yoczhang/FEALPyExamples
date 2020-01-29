@@ -12,9 +12,9 @@
 import numpy as np
 from scipy.sparse import coo_matrix, csr_matrix, spdiags
 from fealpy.functionspace.function import Function
-from fealpy.functionspace.lagrange_fem_space import LagrangeFiniteElementSpace
-from fealpy.functionspace.dof import CPLFEMDof1d, CPLFEMDof2d, CPLFEMDof3d
-from fealpy.functionspace.dof import DPLFEMDof1d, DPLFEMDof2d, DPLFEMDof3d
+from fealpy.functionspace.LagrangeFiniteElementSpace import LagrangeFiniteElementSpace
+from fealpy.functionspace.femdof import CPLFEMDof1d, CPLFEMDof2d, CPLFEMDof3d
+from fealpy.functionspace.femdof import DPLFEMDof1d, DPLFEMDof2d, DPLFEMDof3d
 
 
 class DiscontinuousGalerkinSpace(LagrangeFiniteElementSpace):
