@@ -105,6 +105,15 @@ node_edge = node[edge]
 
 ps = np.einsum('ij, kjm->ikm', bcs, node[edge])
 
+# --------------
+ldof = dof.number_of_local_dofs()
+shape = ps.shape[:-1]+(ldof,)
+phi0 = np.ones(shape, dtype=np.float)  # (..., M, ldof)
+tphi0 = phi0
+tphi0[..., 1:3] = phi0[..., 1:3]
+start = 3
+i = 2
+tphi0[..., start:start+i] = phi0[..., start-i:start]*phi0[..., [1]]
 
 # ------------------------------------------------- #
 print("End of this test file")
