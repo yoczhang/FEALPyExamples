@@ -100,6 +100,7 @@ bcs, ws = qf.quadpts, qf.weights
 node = mesh.entity('node')
 edge = mesh.entity('edge')
 edge2cell = mesh.ds.edge_to_cell()
+isInEdge = (edge2cell[:, 0] != edge2cell[:, 1])
 
 node_edge = node[edge]
 
@@ -114,6 +115,16 @@ tphi0[..., 1:3] = phi0[..., 1:3]
 start = 3
 i = 2
 tphi0[..., start:start+i] = phi0[..., start-i:start]*phi0[..., [1]]
+
+# --------------
+shape2 = ps.shape[:-1]+(ldof, 2)
+gphi = np.ones(shape2, dtype=np.float)
+gphi[..., 1, 0] = 1
+gphi[..., 2, 1] = 1
+len_index = ps.shape[-2]
+h = 2*np.ones(len_index, dtype=np.float)
+th = h.reshape(-1, 1, 1)
+aa = gphi/th
 
 # ------------------------------------------------- #
 print("End of this test file")
