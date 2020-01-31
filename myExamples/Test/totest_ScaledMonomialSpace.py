@@ -16,6 +16,7 @@ from fealpy.mesh.QuadrangleMesh import QuadrangleMesh
 from fealpy.functionspace.femdof import CPLFEMDof2d
 from fealpy.mesh.mesh_tools import find_node, find_entity
 from fealpy.quadrature.GaussLegendreQuadrature import GaussLegendreQuadrature
+from fealpy.functionspace.ScaledMonomialSpace2d import SMDof2d, ScaledMonomialSpace2d
 
 # init settings
 n = 1  # refine times
@@ -125,6 +126,11 @@ len_index = ps.shape[-2]
 h = 2*np.ones(len_index, dtype=np.float)
 th = h.reshape(-1, 1, 1)
 aa = gphi/th
+
+# --------------
+smdof = SMDof2d(mesh, p)
+smspace = ScaledMonomialSpace2d(mesh, p)
+
 
 # ------------------------------------------------- #
 print("End of this test file")
