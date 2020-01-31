@@ -11,7 +11,7 @@
 
 import numpy as np
 
-from DGSpace2d import DiscontinuousGalerkinSpace
+from DGSpace2d import DiscontinuousGalerkinSpace2d
 from fealpy.fem.integral_alg import IntegralAlg
 
 from fealpy.boundarycondition import DirichletBC
@@ -23,7 +23,7 @@ from timeit import default_timer as timer
 
 class PoissonDGModel2d(object):
     def __init__(self, pde, mesh, p, q=3):
-        self.space = LagrangeFiniteElementSpace(mesh, p, spacetype='D')
+        self.space = DiscontinuousGalerkinSpace2d(mesh, p)
         self.mesh = self.space.mesh
         self.pde = pde
         self.uh = self.space.function()
