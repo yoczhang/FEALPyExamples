@@ -51,5 +51,17 @@ class DiscontinuousGalerkinSpace2d(ScaledMonomialSpace2d):
         phi1 = self.basis(ps[:, isInEdge, :], index=edge2cell[isInEdge, 1])
         # # phi1 is the value of the cell basis functions on the other-side of the corresponding edges.
 
+        # In the following, the subscript 'm' stands for the little-index of the cell,
+        # and the subscript 'p' stands for the big-index of the cell.
+        Jmm = np.einsum('i, ijk, ijm->jkm', ws, phi0, phi0)  # Jmm.shape: (NE,ldof,ldof)
+        Jmp = np.einsum('i, ijk, ijm->jkm', ws, phi0, phi1)  # Jmp.shape: (NE,ldof,ldof)
+        Jpm = np.einsum('i, ijk, ijm->jkm', ws, phi1, phi0)  # Jpm.shape: (NE,ldof,ldof)
+        Jpp = np.einsum('i, ijk, ijm->jkm', ws, phi1, phi1)  # Jpp.shape: (NE,ldof,ldof)
+
+        ldof = self.number_of_local_dofs()
+        J = np.zeros((NC, ldof, ldof), dtype=np.float)
+        np.add.at(J, edge2cell[:, 0], H0)
+        np.add.at(J, edge2cell[isInEdge, 1], H1)
+
 
 
