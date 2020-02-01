@@ -27,8 +27,18 @@ fig = plt.figure()
 axes = fig.gca()
 mesh.add_plot(axes, cellcolor='w')
 find_entity(axes, mesh, entity='cell', index='all', showindex=True, color='b', markersize=16, fontsize=9)
-find_entity(axes, mesh, entity='node', index='all', showindex=True, color='r', markersize=16, fontsize=9)
+find_entity(axes, mesh, entity='edge', index='all', showindex=True, color='r', markersize=16, fontsize=9)
+# find_entity(axes, mesh, entity='node', index='all', showindex=True, color='r', markersize=16, fontsize=9)
 # find_node(axes, mesh.node, showindex=True, fontsize=12, markersize=25)
 plt.show()
+
+
+# -------------------
+edge2cell = mesh.ds.edge_to_cell()
+nm = mesh.edge_normal()  # The length of the normal-vector isn't 1, is the length of corresponding edge.
+
+
+# ------------------------------------------------- #
+print("End of this test file")
 
 

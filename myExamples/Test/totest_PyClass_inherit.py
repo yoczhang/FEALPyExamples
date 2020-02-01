@@ -10,10 +10,12 @@
 # ---
 
 
+# This file is to test the DGSpace2d.py which is inherited from the ScaledMonomialSpace2d.py
+
 import sys
 sys.path.append("/Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/DG_Poisson")
 
-from DGSpace2d import DGDof2d
+from DGSpace2d import DGDof2d, DiscontinuousGalerkinSpace2d
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -45,7 +47,21 @@ mesh = TriangleMesh(node, cell)
 mesh.uniform_refine(n)
 # ------------------
 
+# ---- quad mesh ----
+# cell = np.array([(0, 1, 2, 3)], dtype=np.int)  # quad mesh
+# # mesh = Quadtree(node, cell)
+# mesh = QuadrangleMesh(node, cell)
+# mesh.uniform_refine(n)
+# -------------------
+
+# -----------
 dgdof = DGDof2d(mesh, p)
+nlocalcells = dgdof.number_of_local_dofs()
+
+
+# -----------
+dgspace = DiscontinuousGalerkinSpace2d(mesh, p)
+massM = dgspace.mass_matrix()
 
 # ------------------------------------------------- #
 print("End of this test file")
