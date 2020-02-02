@@ -58,10 +58,17 @@ class DiscontinuousGalerkinSpace2d(ScaledMonomialSpace2d):
         Jpm = np.einsum('i, ijk, ijm->jkm', ws, phi1, phi0)  # Jpm.shape: (NE,ldof,ldof)
         Jpp = np.einsum('i, ijk, ijm->jkm', ws, phi1, phi1)  # Jpp.shape: (NE,ldof,ldof)
 
+        JJ = np.array([Jmm, Jmp, Jpm, Jpp])  # JJ.shape: (4,NE,ldof,lodf)
+
         ldof = self.number_of_local_dofs()
         J = np.zeros((NC, ldof, ldof), dtype=np.float)
         np.add.at(J, edge2cell[:, 0], H0)
         np.add.at(J, edge2cell[isInEdge, 1], H1)
 
-
+    def getRowCol(self):
+        p = self.p
+        mesh = self.mesh
+        cell2dof = self.cell_to_dof()
+        ldof = self.number_of_local_dofs()
+        edge2cell = mesh.ds.edge_to_cell()
 

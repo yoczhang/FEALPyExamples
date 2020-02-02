@@ -74,10 +74,6 @@ I = np.einsum('k, ij->ijk', np.ones(ldof), cell2dof)
 J = I.swapaxes(-1, -2)
 
 
-
-
-
-
 # ------------------------------------------------- #
 print("End of this test file")
 
