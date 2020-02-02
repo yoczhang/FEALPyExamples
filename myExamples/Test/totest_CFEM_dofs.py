@@ -73,6 +73,17 @@ ldof = dof.number_of_local_dofs()
 I = np.einsum('k, ij->ijk', np.ones(ldof), cell2dof)
 J = I.swapaxes(-1, -2)
 
+I2 = np.einsum('ij, k->ijk',  cell2dof, np.ones(ldof))
+J2 = I2.swapaxes(-1, -2)
+J2_2 = np.einsum('ij, k->ikj',  cell2dof, np.ones(ldof))
+
+
+# ------------------------------------------------- #
+# ---             integrator                    --- #
+integrator = mesh.integrator(q)
+qf = integrator
+bcs, ws = qf.quadpts, qf.weights
+bcs2, ws2 = integrator.get_quadrature_points_and_weights()
 
 # ------------------------------------------------- #
 print("End of this test file")

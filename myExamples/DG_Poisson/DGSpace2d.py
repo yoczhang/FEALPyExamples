@@ -31,7 +31,7 @@ class DiscontinuousGalerkinSpace2d(ScaledMonomialSpace2d):
     def __str__(self):
         return "Discontinuous Galerkin finite element space!"
 
-    def jumpjump_matrix(self):
+    def jumpjumpIn_matrix(self):
         p = self.p
         mesh = self.mesh
         node = mesh.entity('node')
@@ -41,34 +41,71 @@ class DiscontinuousGalerkinSpace2d(ScaledMonomialSpace2d):
 
         isInEdge = (edge2cell[:, 0] != edge2cell[:, 1])  # the bool vars, to get the inner edges
 
-        NC = mesh.number_of_cells()
-
         qf = GaussLegendreQuadrature(p + 1)  # the integral points on edges (1D)
         bcs, ws = qf.quadpts, qf.weights  # bcs.shape: (NQ,2); ws.shape: (NQ,)
         ps = np.einsum('ij, kjm->ikm', bcs, node[edge])  # ps.shape: (NQ,NE,2), NE is the number of edges
-        phi0 = self.basis(ps, index=edge2cell[:, 0])  # phi0.shape: (NQ,NE,ldof), lodf is the number of local DOFs
+
+        phi0 = self.basis(ps[:, isInEdge, :], index=edge2cell[isInEdge, 0])
+        # # phi0.shape: (NQ,NE,ldof), lodf is the number of local DOFs
         # # phi0 is the value of the cell basis functions on the one-side of the corresponding edges.
         phi1 = self.basis(ps[:, isInEdge, :], index=edge2cell[isInEdge, 1])
         # # phi1 is the value of the cell basis functions on the other-side of the corresponding edges.
 
-        # In the following, the subscript 'm' stands for the little-index of the cell,
-        # and the subscript 'p' stands for the big-index of the cell.
-        Jmm = np.einsum('i, ijk, ijm->jkm', ws, phi0, phi0)  # Jmm.shape: (NE,ldof,ldof)
-        Jmp = np.einsum('i, ijk, ijm->jkm', ws, phi0, phi1)  # Jmp.shape: (NE,ldof,ldof)
-        Jpm = np.einsum('i, ijk, ijm->jkm', ws, phi1, phi0)  # Jpm.shape: (NE,ldof,ldof)
-        Jpp = np.einsum('i, ijk, ijm->jkm', ws, phi1, phi1)  # Jpp.shape: (NE,ldof,ldof)
+        # In the following, the subscript 'm' stands for the smaller-index of the cell,
+        # and the subscript 'p' stands for the bigger-index of the cell.
+        Jmm = np.einsum('i, ijk, ijm->jmk', ws, phi0, phi0)  # Jmm.shape: (NE,ldof,ldof)
+        Jmp = np.einsum('i, ijk, ijm->jmk', ws, phi0, phi1)  # Jmp.shape: (NE,ldof,ldof)
+        Jpm = np.einsum('i, ijk, ijm->jmk', ws, phi1, phi0)  # Jpm.shape: (NE,ldof,ldof)
+        Jpp = np.einsum('i, ijk, ijm->jmk', ws, phi1, phi1)  # Jpp.shape: (NE,ldof,ldof)
 
-        JJ = np.array([Jmm, Jmp, Jpm, Jpp])  # JJ.shape: (4,NE,ldof,lodf)
+        rowmm, colmm = self.getGlobalDofLocation(edge2cell[isInEdge, 0], edge2cell[isInEdge, 0])
+        rowmp, colmp = self.getGlobalDofLocation(edge2cell[isInEdge, 0], edge2cell[isInEdge, 1])
+        rowpm, colpm = self.getGlobalDofLocation(edge2cell[isInEdge, 1], edge2cell[isInEdge, 0])
+        rowpp, colpp = self.getGlobalDofLocation(edge2cell[isInEdge, 1], edge2cell[isInEdge, 1])
 
-        ldof = self.number_of_local_dofs()
-        J = np.zeros((NC, ldof, ldof), dtype=np.float)
-        np.add.at(J, edge2cell[:, 0], H0)
-        np.add.at(J, edge2cell[isInEdge, 1], H1)
+        J_matrix = np.array([Jmm, -Jmp, -Jpm, Jpp])  # J_matrix.shape: (4,NE,ldof,lodf)
+        row = np.array([rowmm, rowmp, rowpm, rowpp])
+        col = np.array([colmm, colmp, colpm, colpp])
 
-    def getRowCol(self):
+        Ngdof = self.number_of_global_dofs()
+
+        # Construct the jump-matrix
+        J_matrix = csr_matrix((J_matrix.flat, (row.flat, col.flat)), shape=(Ngdof, Ngdof))
+        return J_matrix
+
+    def jumpjumpDir_matrix(self):
         p = self.p
         mesh = self.mesh
-        cell2dof = self.cell_to_dof()
-        ldof = self.number_of_local_dofs()
+        node = mesh.entity('node')
+
+        edge = mesh.entity('edge')
         edge2cell = mesh.ds.edge_to_cell()
+
+        isDirEdge = (edge2cell[:, 0] == edge2cell[:, 1])  # the bool vars, to get the inner edges
+
+        qf = GaussLegendreQuadrature(p + 1)  # the integral points on edges (1D)
+        bcs, ws = qf.quadpts, qf.weights  # bcs.shape: (NQ,2); ws.shape: (NQ,)
+        ps = np.einsum('ij, kjm->ikm', bcs, node[edge])  # ps.shape: (NQ,NE,2), NE is the number of edges
+
+        phi0 = self.basis(ps[:, isDirEdge, :], index=edge2cell[isDirEdge, 0])
+        # # phi0.shape: (NQ,NE,ldof), lodf is the number of local DOFs
+        # # phi0 is the value of the cell basis functions on the one-side of the corresponding edges.
+
+    def getGlobalDofLocation(self, trialCellIndex, testCellIndex):
+        cell2dof = self.cell_to_dof()  # (NC,ldof)
+        ldof = self.number_of_local_dofs()
+
+        testdof = cell2dof[testCellIndex, :]  # (NtestCell,ldof)
+        trialdof = cell2dof[trialCellIndex, :]  # (NtrialCell,ldof)
+
+        rowIndex = np.einsum('ij, k->ijk', testdof, np.ones(ldof))
+        # colIndex_temp = np.einsum('ij, k->ikj', trialdof, np.ones(ldof))
+        # colIndex = colIndex_temp.swapaxes(-1, -2)
+        colIndex = np.einsum('ij, k->ikj', trialdof, np.ones(ldof))
+
+        return rowIndex, colIndex
+
+
+
+
 

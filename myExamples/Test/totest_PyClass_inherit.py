@@ -27,6 +27,8 @@ from fealpy.functionspace.femdof import CPLFEMDof2d
 from fealpy.mesh.mesh_tools import find_node, find_entity
 from fealpy.quadrature.GaussLegendreQuadrature import GaussLegendreQuadrature
 from fealpy.functionspace.ScaledMonomialSpace2d import SMDof2d, ScaledMonomialSpace2d
+from fealpy.mesh.simple_mesh_generator import triangle
+
 
 
 # init settings
@@ -42,9 +44,9 @@ node = np.array([
     (0, 1)], dtype=np.float)
 
 # ---- tri mesh ----
-cell = np.array([(1, 2, 0), (3, 0, 2)], dtype=np.int)  # tri mesh
-mesh = TriangleMesh(node, cell)
-mesh.uniform_refine(n)
+# cell = np.array([(1, 2, 0), (3, 0, 2)], dtype=np.int)  # tri mesh
+# mesh = TriangleMesh(node, cell)
+# mesh.uniform_refine(n)
 # ------------------
 
 # ---- quad mesh ----
@@ -54,14 +56,33 @@ mesh.uniform_refine(n)
 # mesh.uniform_refine(n)
 # -------------------
 
+# ---- poly mesh ----
+h = 0.2
+box = [0, 1, 0, 1]  # [0, 1]^2 domain
+mesh = triangle(box, h, meshtype='polygon')
+# -------------------
+
+# ---- plot mesh ----
+fig = plt.figure()
+axes = fig.gca()
+mesh.add_plot(axes, cellcolor='w')
+find_entity(axes, mesh, entity='cell', index='all', showindex=True, color='b', markersize=16, fontsize=9)
+find_entity(axes, mesh, entity='edge', index='all', showindex=True, color='r', markersize=16, fontsize=9)
+plt.show()
+# -------------------
+
+
 # -----------
 dgdof = DGDof2d(mesh, p)
-nlocalcells = dgdof.number_of_local_dofs()
-
+cell2dof = dgdof.cell2dof
 
 # -----------
 dgspace = DiscontinuousGalerkinSpace2d(mesh, p)
 massM = dgspace.mass_matrix()
+
+# -----------
+qf = GaussLegendreQuadrature(p + 1)  # the integral points on edges (1D)
+bcs, ws = qf.quadpts, qf.weights  # bcs.shape: (NQ,2); ws.shape: (NQ,)
 
 # ------------------------------------------------- #
 print("End of this test file")
