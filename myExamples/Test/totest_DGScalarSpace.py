@@ -98,9 +98,12 @@ N = NE*NQ*ldof
 phi0 = np.ones(N).reshape(NQ, NE, ldof)
 phi1 = 3*np.ones(N).reshape(NQ, NE, ldof)
 
-phyws = np.einsum('i,j->ij', ws, 0.1*np.arange(1, NE+1))
+test_edge_area = 0.1*np.arange(1, NE+1)
+phyws = np.einsum('i,j->ij', ws, test_edge_area)
 
 Jmm = np.einsum('ij, ijk, ijm->jmk', phyws, phi0, phi1)  # Jmm.shape: (NInE,ldof,ldof)
+
+Jmm_1 = np.einsum('i, ijk, ijm, j->jmk', ws, phi0, phi1, test_edge_area)  # Jmm.shape: (NInE,ldof,ldof)
 
 
 

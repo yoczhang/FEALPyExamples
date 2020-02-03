@@ -38,16 +38,33 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
 
         edge = mesh.entity('edge')
         edge2cell = mesh.ds.edge_to_cell()
-        edgeArea = mesh.edge_length()
+        # edgeArea = mesh.edge_length()
+        nm = mesh.edge_normal()
+        # # (NE,2). The length of the normal-vector isn't 1, is the length of corresponding edge.
 
         isInEdge = (edge2cell[:, 0] != edge2cell[:, 1])  # the bool vars, to get the inner edges
 
         qf = GaussLegendreQuadrature(p + 1)  # the integral points on edges (1D)
         bcs, ws = qf.quadpts, qf.weights  # bcs.shape: (NQ,2); ws.shape: (NQ,)
         ps = np.einsum('ij, kjm->ikm', bcs, node[edge])  # ps.shape: (NQ,NE,2), NE is the number of edges
-        phyws = np.einsum('i,j->ij', ws, edgeArea[isInEdge])  # (NQ,NInE), NInE is the number of interior edges
 
         gphi0 = self.grad_basis(ps[:, isInEdge, :], index=edge2cell[isInEdge, 0])
+        # # gphi0.shape: (NQ,NInE,ldof,2), NInE is the number of interior edges, lodf is the number of local DOFs
+        # # gphi0 is the grad-value of the cell basis functions on the one-side of the corresponding edges.
+        gphi1 = self.grad_basis(ps[:, isInEdge, :], index=edge2cell[isInEdge, 1])
+
+        phi0 = self.basis(ps[:, isInEdge, :], index=edge2cell[isInEdge, 0])
+        # # phi0.shape: (NQ,NInE,ldof), NInE is the number of interior edges, lodf is the number of local DOFs
+        # # phi0 is the value of the cell basis functions on the one-side of the corresponding edges.
+        phi1 = self.basis(ps[:, isInEdge, :], index=edge2cell[isInEdge, 1])
+        # # phi1 is the value of the cell basis functions on the other-side of the corresponding edges.
+
+        Amm = np.einsum('i, ijkm, ijp, jm->jpk', ws, gphi0, phi0, nm[isInEdge], optimize=True)  # (NInE,ldof,ldof)
+        Amp = np.einsum('i, ijkm, ijp, jm->jpk', ws, gphi0, phi1, nm[isInEdge], optimize=True)
+        Apm = np.einsum('i, ijkm, ijp, jm->jpk', ws, gphi1, phi0, nm[isInEdge], optimize=True)
+        App = np.einsum('i, ijkm, ijp, jm->jpk', ws, gphi1, phi1, nm[isInEdge], optimize=True)
+
+
 
     def jumpjumpIn_matrix(self):  # the jump-jump matrix at interior edges
         p = self.p
@@ -63,7 +80,6 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
         qf = GaussLegendreQuadrature(p + 1)  # the integral points on edges (1D)
         bcs, ws = qf.quadpts, qf.weights  # bcs.shape: (NQ,2); ws.shape: (NQ,)
         ps = np.einsum('ij, kjm->ikm', bcs, node[edge])  # ps.shape: (NQ,NE,2), NE is the number of edges
-        phyws = np.einsum('i,j->ij', ws, edgeArea[isInEdge])  # (NQ,NInE), NInE is the number of interior edges
 
         phi0 = self.basis(ps[:, isInEdge, :], index=edge2cell[isInEdge, 0])
         # # phi0.shape: (NQ,NInE,ldof), NInE is the number of interior edges, lodf is the number of local DOFs
@@ -73,10 +89,10 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
 
         # In the following, the subscript 'm' stands for the smaller-index of the cell,
         # and the subscript 'p' stands for the bigger-index of the cell.
-        Jmm = np.einsum('ij, ijk, ijm->jmk', phyws, phi0, phi0)  # Jmm.shape: (NInE,ldof,ldof)
-        Jmp = np.einsum('ij, ijk, ijm->jmk', phyws, phi0, phi1)  # Jmp.shape: (NInE,ldof,ldof)
-        Jpm = np.einsum('ij, ijk, ijm->jmk', phyws, phi1, phi0)  # Jpm.shape: (NInE,ldof,ldof)
-        Jpp = np.einsum('ij, ijk, ijm->jmk', phyws, phi1, phi1)  # Jpp.shape: (NInE,ldof,ldof)
+        Jmm = np.einsum('i, ijk, ijm, j->jmk', ws, phi0, phi0, edgeArea[isInEdge])  # Jmm.shape: (NInE,ldof,ldof)
+        Jmp = np.einsum('i, ijk, ijm, j->jmk', ws, phi0, phi1, edgeArea[isInEdge])  # Jmp.shape: (NInE,ldof,ldof)
+        Jpm = np.einsum('i, ijk, ijm, j->jmk', ws, phi1, phi0, edgeArea[isInEdge])  # Jpm.shape: (NInE,ldof,ldof)
+        Jpp = np.einsum('i, ijk, ijm, j->jmk', ws, phi1, phi1, edgeArea[isInEdge])  # Jpp.shape: (NInE,ldof,ldof)
 
         rowmm, colmm = self.getGlobalDofLocation(edge2cell[isInEdge, 0], edge2cell[isInEdge, 0])
         rowmp, colmp = self.getGlobalDofLocation(edge2cell[isInEdge, 0], edge2cell[isInEdge, 1])
@@ -107,7 +123,6 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
         qf = GaussLegendreQuadrature(p + 1)  # the integral points on edges (1D)
         bcs, ws = qf.quadpts, qf.weights  # bcs.shape: (NQ,2); ws.shape: (NQ,)
         ps = np.einsum('ij, kjm->ikm', bcs, node[edge])  # ps.shape: (NQ,NE,2), NE is the number of edges
-        phyws = np.einsum('i,j->ij', ws, edgeArea[isDirEdge])  # (NQ,NDirE), NDirE is the number of Dirichlet edges
 
         phi0 = self.basis(ps[:, isDirEdge, :], index=edge2cell[isDirEdge, 0])
         # # phi0.shape: (NQ,NDirE,ldof), lodf is the number of local DOFs
@@ -115,7 +130,7 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
 
         # In the following, the subscript 'm' stands for the smaller-index of the cell,
         # and the subscript 'p' stands for the bigger-index of the cell.
-        Jmm = np.einsum('ij, ijk, ijm->jmk', phyws, phi0, phi0)  # Jmm.shape: (NDirE,ldof,ldof)
+        Jmm = np.einsum('i, ijk, ijm, j->jmk', ws, phi0, phi0, edgeArea[isDirEdge])  # Jmm.shape: (NDirE,ldof,ldof)
 
         rowmm, colmm = self.getGlobalDofLocation(edge2cell[isDirEdge, 0], edge2cell[isDirEdge, 0])
 
