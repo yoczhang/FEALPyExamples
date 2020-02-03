@@ -74,11 +74,34 @@ plt.show()
 
 # -----------
 dgdof = DGScalarDof2d(mesh, p)
-cell2dof = dgdof.cell2dof  # cell2dof() is inherited from ScaledMonomialSpace2d.py
+cell2dof = dgdof.cell2dof
+ldof = dgdof.number_of_local_dofs()
+edge = mesh.entity('edge')
 
 # -----------
 dgspace = DGScalarSpace2d(mesh, p)
-massM = dgspace.mass_matrix()  # mass_matrix() is inherited from ScaledMonomialSpace2d.py
+massM = dgspace.mass_matrix()
+jumpjumpIn_matrix = dgspace.jumpjumpIn_matrix()
+
+
+# -----------
+qf = GaussLegendreQuadrature(p + 1)  # the integral points on edges (1D)
+bcs, ws = qf.quadpts, qf.weights  # bcs.shape: (NQ,2); ws.shape: (NQ,)
+NQ = len(ws)
+
+# -----------
+
+
+# -----------
+NE = mesh.number_of_edges()
+N = NE*NQ*ldof
+phi0 = np.ones(N).reshape(NQ, NE, ldof)
+phi1 = 3*np.ones(N).reshape(NQ, NE, ldof)
+
+phyws = np.einsum('i,j->ij', ws, 0.1*np.arange(1, NE+1))
+
+Jmm = np.einsum('ij, ijk, ijm->jmk', phyws, phi0, phi1)  # Jmm.shape: (NInE,ldof,ldof)
+
 
 
 # ------------------------------------------------- #

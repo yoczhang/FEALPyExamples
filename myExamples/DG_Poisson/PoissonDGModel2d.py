@@ -11,7 +11,7 @@
 
 import numpy as np
 
-from DGSpace2d import DiscontinuousGalerkinSpace2d
+from DGScalarSpace2d import DiscontinuousGalerkinSpace2d
 from fealpy.fem.integral_alg import IntegralAlg
 
 from fealpy.boundarycondition import DirichletBC
