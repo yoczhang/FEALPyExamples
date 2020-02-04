@@ -81,7 +81,7 @@ edge = mesh.entity('edge')
 # -----------
 dgspace = DGScalarSpace2d(mesh, p)
 massM = dgspace.mass_matrix()
-jumpjumpIn_matrix = dgspace.jumpjumpIn_matrix()
+AJ, JA, JJ = dgspace.getInEdgeMatrix()
 
 
 # -----------
