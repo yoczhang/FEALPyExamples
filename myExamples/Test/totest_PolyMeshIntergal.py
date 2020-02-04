@@ -3,19 +3,11 @@
 # ---
 # @Software: PyCharm
 # @Site: 
-# @File: test_PyClass_inherit.py
+# @File: totest_PolyMeshIntergal.py
 # @Author: Yongchao Zhang
 # @E-mail: yoczhang@126.com
-# @Time: Jan 31, 2020
+# @Time: Feb 04, 2020
 # ---
-
-
-# This file is to test the DGScalarSpace2d.py which is inherited from the ScaledMonomialSpace2d.py
-
-import sys
-sys.path.append("/Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/DG_Poisson")
-
-from DGScalarSpace2d import DGScalarDof2d, DGScalarSpace2d
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -28,8 +20,7 @@ from fealpy.mesh.mesh_tools import find_node, find_entity
 from fealpy.quadrature.GaussLegendreQuadrature import GaussLegendreQuadrature
 from fealpy.functionspace.ScaledMonomialSpace2d import SMDof2d, ScaledMonomialSpace2d
 from fealpy.mesh.simple_mesh_generator import triangle
-
-
+from fealpy.quadrature.PolygonMeshIntegralAlg import PolygonMeshIntegralAlg
 
 # init settings
 n = 1  # refine times
@@ -55,10 +46,34 @@ node = np.array([
 # mesh.uniform_refine(n)
 # -------------------
 
+# --- quad-tree mesh ---
+cell = np.array([(0, 1, 2, 3)], dtype=np.int)  # quad mesh
+mesh = Quadtree(node, cell)
+mesh.uniform_refine(n)
+# -----------------------
+
+# --- quad-tree mesh 2 ---
+point = np.array([
+            (-1, -1),
+            (0, -1),
+            (-1, 0),
+            (0, 0),
+            (1, 0),
+            (-1, 1),
+            (0, 1),
+            (1, 1)], dtype=np.float)
+cell = np.array([
+                (0, 1, 3, 2),
+                (2, 3, 6, 5),
+                (3, 4, 7, 6)], dtype=np.int)
+mesh = Quadtree(point, cell)
+mesh.uniform_refine(n)
+# -------------------------
+
 # ---- poly mesh ----
-h = 0.2
-box = [0, 1, 0, 1]  # [0, 1]^2 domain
-mesh = triangle(box, h, meshtype='polygon')
+# h = 0.2
+# box = [0, 1, 0, 1]  # [0, 1]^2 domain
+# mesh = triangle(box, h, meshtype='polygon')
 # -------------------
 
 # ---- plot mesh ----
@@ -71,39 +86,9 @@ find_entity(axes, mesh, entity='node', index='all', showindex=True, color='y', m
 plt.show()
 # -------------------
 
+# --------
+polyInte = PolygonMeshIntegralAlg(mesh, q)
 
-# -----------
-dgdof = DGScalarDof2d(mesh, p)
-cell2dof = dgdof.cell2dof
-ldof = dgdof.number_of_local_dofs()
-edge = mesh.entity('edge')
-
-# -----------
-dgspace = DGScalarSpace2d(mesh, p)
-massM = dgspace.mass_matrix()
-AJ, JA, JJ = dgspace.getInEdgeMatrix()
-
-
-# -----------
-qf = GaussLegendreQuadrature(p + 1)  # the integral points on edges (1D)
-bcs, ws = qf.quadpts, qf.weights  # bcs.shape: (NQ,2); ws.shape: (NQ,)
-NQ = len(ws)
-
-# -----------
-
-
-# -----------
-NE = mesh.number_of_edges()
-N = NE*NQ*ldof
-phi0 = np.ones(N).reshape(NQ, NE, ldof)
-phi1 = 3*np.ones(N).reshape(NQ, NE, ldof)
-
-test_edge_area = 0.1*np.arange(1, NE+1)
-phyws = np.einsum('i,j->ij', ws, test_edge_area)
-
-Jmm = np.einsum('ij, ijk, ijm->jmk', phyws, phi0, phi1)  # Jmm.shape: (NInE,ldof,ldof)
-
-Jmm_1 = np.einsum('i, ijk, ijm, j->jmk', ws, phi0, phi1, test_edge_area)  # Jmm.shape: (NInE,ldof,ldof)
 
 # ----------
 bc = mesh.entity_barycenter('cell')
@@ -115,8 +100,9 @@ tri = [bc[edge2cell[:, 0]], node[edge[:, 0]], node[edge[:, 1]]]
 qf = mesh.integrator(q)
 bcs, ws = qf.quadpts, qf.weights
 
+
+
 pp = np.einsum('ij, jkm->ikm', bcs, tri)
 
 # ------------------------------------------------- #
 print("End of this test file")
-

@@ -165,6 +165,8 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
 
     def stiff_matrix(self):
         p = self.p
+        assert p >= 2, 'the polynomial-order should have p >= 2 '
+
         mesh = self.mesh
         node = mesh.entity('node')
 
@@ -186,6 +188,7 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
         # # gphi0 is the grad-value of the cell basis functions on the one-side of the corresponding edges.
         gphi1 = self.grad_basis(ps[:, isInEdge, :], index=edge2cell[isInEdge, 1])
 
+        # # using the divergence-theorem to get the
         S0 = np.einsum('i, ijkm, ijpm->jpk', ws, gphi0, gphi0)  # (NE,ldof,ldof)
         b = node[edge[:, 0]] - self.cellbarycenter[edge2cell[:, 0]]  # (NE,2)
         S0 = np.einsum('ij, ij, ikm->ikm', b, nm, S0)  # (NE,ldof,ldof)
@@ -205,7 +208,7 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
 
         return S
 
-    
+
 
 
 

@@ -35,7 +35,7 @@
     <property name="restartRequiresConfirmation" value="false" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
-  <component name="RunManager" selected="Python.totest_DGScalarSpace">
+  <component name="RunManager" selected="Python.totest_PolyMeshIntergal">
     <configuration name="totest_CFEM_dofs" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="FEALPyExamples" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -78,6 +78,27 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="totest_PolyMeshIntergal" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="FEALPyExamples" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/myExamples/Test" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/myExamples/Test/totest_PolyMeshIntergal.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="totest_PyClass_inherit" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="FEALPyExamples" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -91,27 +112,6 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/myExamples/Test/totest_PyClass_inherit.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="totest_ScaledMonomialSpace" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="FEALPyExamples" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/myExamples/Test" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/myExamples/Test/totest_ScaledMonomialSpace.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -145,16 +145,16 @@
       <item itemvalue="Python.totest_PyClass_inherit" />
       <item itemvalue="Python.totest_polymesh" />
       <item itemvalue="Python.totest_CFEM_dofs" />
-      <item itemvalue="Python.totest_ScaledMonomialSpace" />
       <item itemvalue="Python.totest_DGScalarSpace" />
+      <item itemvalue="Python.totest_PolyMeshIntergal" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.totest_PolyMeshIntergal" />
         <item itemvalue="Python.totest_DGScalarSpace" />
         <item itemvalue="Python.totest_polymesh" />
         <item itemvalue="Python.totest_PyClass_inherit" />
         <item itemvalue="Python.totest_CFEM_dofs" />
-        <item itemvalue="Python.totest_ScaledMonomialSpace" />
       </list>
     </recent_temporary>
   </component>
@@ -215,38 +215,38 @@
       <screen x="0" y="23" width="1280" height="734" />
     </state>
     <state x="104" y="52" width="1071" height="696" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.23.1280.734@0.23.1280.734" timestamp="1580462002823" />
-    <state width="1259" height="187" key="GridCell.Tab.0.bottom" timestamp="1580795233992">
+    <state width="1259" height="187" key="GridCell.Tab.0.bottom" timestamp="1580820173073">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="187" key="GridCell.Tab.0.bottom/0.23.1280.734@0.23.1280.734" timestamp="1580795233992" />
-    <state width="1259" height="187" key="GridCell.Tab.0.center" timestamp="1580795233991">
+    <state width="1259" height="187" key="GridCell.Tab.0.bottom/0.23.1280.734@0.23.1280.734" timestamp="1580820173073" />
+    <state width="1259" height="187" key="GridCell.Tab.0.center" timestamp="1580820173072">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="187" key="GridCell.Tab.0.center/0.23.1280.734@0.23.1280.734" timestamp="1580795233991" />
-    <state width="1259" height="187" key="GridCell.Tab.0.left" timestamp="1580795233990">
+    <state width="1259" height="187" key="GridCell.Tab.0.center/0.23.1280.734@0.23.1280.734" timestamp="1580820173072" />
+    <state width="1259" height="187" key="GridCell.Tab.0.left" timestamp="1580820173072">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="187" key="GridCell.Tab.0.left/0.23.1280.734@0.23.1280.734" timestamp="1580795233990" />
-    <state width="1259" height="187" key="GridCell.Tab.0.right" timestamp="1580795233991">
+    <state width="1259" height="187" key="GridCell.Tab.0.left/0.23.1280.734@0.23.1280.734" timestamp="1580820173072" />
+    <state width="1259" height="187" key="GridCell.Tab.0.right" timestamp="1580820173072">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="187" key="GridCell.Tab.0.right/0.23.1280.734@0.23.1280.734" timestamp="1580795233991" />
-    <state width="1259" height="187" key="GridCell.Tab.1.bottom" timestamp="1580795231694">
+    <state width="1259" height="187" key="GridCell.Tab.0.right/0.23.1280.734@0.23.1280.734" timestamp="1580820173072" />
+    <state width="1259" height="187" key="GridCell.Tab.1.bottom" timestamp="1580820168610">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="187" key="GridCell.Tab.1.bottom/0.23.1280.734@0.23.1280.734" timestamp="1580795231694" />
-    <state width="1259" height="187" key="GridCell.Tab.1.center" timestamp="1580795231693">
+    <state width="1259" height="187" key="GridCell.Tab.1.bottom/0.23.1280.734@0.23.1280.734" timestamp="1580820168610" />
+    <state width="1259" height="187" key="GridCell.Tab.1.center" timestamp="1580820168609">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="187" key="GridCell.Tab.1.center/0.23.1280.734@0.23.1280.734" timestamp="1580795231693" />
-    <state width="1259" height="187" key="GridCell.Tab.1.left" timestamp="1580795231693">
+    <state width="1259" height="187" key="GridCell.Tab.1.center/0.23.1280.734@0.23.1280.734" timestamp="1580820168609" />
+    <state width="1259" height="187" key="GridCell.Tab.1.left" timestamp="1580820168609">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="187" key="GridCell.Tab.1.left/0.23.1280.734@0.23.1280.734" timestamp="1580795231693" />
-    <state width="1259" height="187" key="GridCell.Tab.1.right" timestamp="1580795231694">
+    <state width="1259" height="187" key="GridCell.Tab.1.left/0.23.1280.734@0.23.1280.734" timestamp="1580820168609" />
+    <state width="1259" height="187" key="GridCell.Tab.1.right" timestamp="1580820168610">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="187" key="GridCell.Tab.1.right/0.23.1280.734@0.23.1280.734" timestamp="1580795231694" />
+    <state width="1259" height="187" key="GridCell.Tab.1.right/0.23.1280.734@0.23.1280.734" timestamp="1580820168610" />
     <state x="141" y="29" key="SettingsEditor" timestamp="1580458963320">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
@@ -296,8 +296,23 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/myExamples/Test/totest_DGScalarSpace.py</url>
-          <line>110</line>
+          <line>120</line>
           <option name="timeStamp" value="44" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/myExamples/Test/totest_DGScalarSpace.py</url>
+          <line>117</line>
+          <option name="timeStamp" value="45" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/myExamples/Test/totest_PolyMeshIntergal.py</url>
+          <line>107</line>
+          <option name="timeStamp" value="46" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/myExamples/Test/totest_PolyMeshIntergal.py</url>
+          <line>104</line>
+          <option name="timeStamp" value="47" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
