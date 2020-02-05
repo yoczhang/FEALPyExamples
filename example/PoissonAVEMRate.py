@@ -4,7 +4,7 @@
 import numpy as np
 import sys
 
-from fealpy.vem import PoissonVEMModel
+from fealpy.vem import PoissonVEMModel_test
 from fealpy.mesh.adaptive_tools import AdaptiveMarker
 from fealpy.tools.show import showmultirate
 

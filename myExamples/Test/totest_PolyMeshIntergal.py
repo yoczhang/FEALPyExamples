@@ -50,25 +50,8 @@ node = np.array([
 cell = np.array([(0, 1, 2, 3)], dtype=np.int)  # quad mesh
 mesh = Quadtree(node, cell)
 mesh.uniform_refine(n)
+mesh = mesh.to_pmesh()  # Excuse me?! It has this operator!
 # -----------------------
-
-# --- quad-tree mesh 2 ---
-point = np.array([
-            (-1, -1),
-            (0, -1),
-            (-1, 0),
-            (0, 0),
-            (1, 0),
-            (-1, 1),
-            (0, 1),
-            (1, 1)], dtype=np.float)
-cell = np.array([
-                (0, 1, 3, 2),
-                (2, 3, 6, 5),
-                (3, 4, 7, 6)], dtype=np.int)
-mesh = Quadtree(point, cell)
-mesh.uniform_refine(n)
-# -------------------------
 
 # ---- poly mesh ----
 # h = 0.2
