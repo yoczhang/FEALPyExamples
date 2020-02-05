@@ -12,7 +12,6 @@
 import numpy as np
 from fealpy.quadrature import GaussLegendreQuadrature
 from scipy.sparse import coo_matrix, csr_matrix, spdiags
-from fealpy.functionspace.function import Function
 from fealpy.functionspace.ScaledMonomialSpace2d import SMDof2d, ScaledMonomialSpace2d
 
 
@@ -31,7 +30,7 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
     def __str__(self):
         return "Discontinuous Galerkin finite element space!"
 
-    def getInEdgeMatrix(self):  # get the average-jump, jump-average and jump-jump matrix at interior edges
+    def interiorEdge_matrix(self):  # get the average-jump, jump-average and jump-jump matrix at interior edges
         p = self.p
         mesh = self.mesh
         node = mesh.entity('node')
@@ -78,10 +77,11 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
         JA_matrix = 0.5 * np.array([JAmm, -JAmp, JApm, -JApp])  # JA_matrix.shape: (4,NInE,ldof,lodf)
 
         # --- get the jump-jump matrix --- #
-        JJmm = np.einsum('i, ijk, ijm, j->jmk', ws, phi0, phi0, edgeArea[isInEdge])  # Jmm.shape: (NInE,ldof,ldof)
-        JJmp = np.einsum('i, ijk, ijm, j->jmk', ws, phi0, phi1, edgeArea[isInEdge])  # Jmp.shape: (NInE,ldof,ldof)
-        JJpm = np.einsum('i, ijk, ijm, j->jmk', ws, phi1, phi0, edgeArea[isInEdge])  # Jpm.shape: (NInE,ldof,ldof)
-        JJpp = np.einsum('i, ijk, ijm, j->jmk', ws, phi1, phi1, edgeArea[isInEdge])  # Jpp.shape: (NInE,ldof,ldof)
+        penalty = 1.0 / (edgeArea[isInEdge])
+        JJmm = np.einsum('i, ijk, ijm, j, j->jmk', ws, phi0, phi0, edgeArea[isInEdge], penalty)  # Jmm.shape: (NInE,ldof,ldof)
+        JJmp = np.einsum('i, ijk, ijm, j, j->jmk', ws, phi0, phi1, edgeArea[isInEdge], penalty)  # Jmp.shape: (NInE,ldof,ldof)
+        JJpm = np.einsum('i, ijk, ijm, j, j->jmk', ws, phi1, phi0, edgeArea[isInEdge], penalty)  # Jpm.shape: (NInE,ldof,ldof)
+        JJpp = np.einsum('i, ijk, ijm, j, j->jmk', ws, phi1, phi1, edgeArea[isInEdge], penalty)  # Jpp.shape: (NInE,ldof,ldof)
         JJ_matrix = np.array([JJmm, -JJmp, -JJpm, JJpp])  # JJ_matrix.shape: (4,NInE,ldof,lodf)
 
         # --- get the global dofs location --- #
@@ -100,7 +100,7 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
 
         return AJ_matrix, JA_matrix, JJ_matrix
 
-    def getDirEdgeMatrix(self):  # get the average-jump, jump-average and jump-jump matrix at Dirichlet edges
+    def DirichletEdge_matrix(self):  # get the average-jump, jump-average and jump-jump matrix at Dirichlet edges
         p = self.p
         mesh = self.mesh
         node = mesh.entity('node')
@@ -136,7 +136,8 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
         JAmm = np.einsum('i, ijk, ijpm, jm->jpk', ws, phi0, gphi0, nm[isDirEdge], optimize=True)  # (NDirE,ldof,ldof)
 
         # --- get the jump-jump matrix --- #
-        JJmm = np.einsum('i, ijk, ijm, j->jmk', ws, phi0, phi0, edgeArea[isDirEdge])  # Jmm.shape: (NDirE,ldof,ldof)
+        penalty = 1.0 / (edgeArea[isDirEdge])
+        JJmm = np.einsum('i, ijk, ijm, j, j->jmk', ws, phi0, phi0, edgeArea[isDirEdge], penalty)  # Jmm.shape: (NDirE,ldof,ldof)
 
         # --- get the global dofs location --- #
         rowmm, colmm = self.getGlobalDofLocation(edge2cell[isDirEdge, 0], edge2cell[isDirEdge, 0])
@@ -203,10 +204,23 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
         np.add.at(S, edge2cell[isInEdge, 1], S1)
 
         multiIndex = self.dof.multiIndex
-        q = np.sum(multiIndex, axis=1) - 1  # here, we used the grad-basis to get stiff-matrix, so we need to -1.
+        q = np.sum(multiIndex, axis=1) - 1  # here, we used the grad-basis to get stiff-matrix, so we need to -1
         S /= q + q.reshape(-1, 1) + 2
 
         return S
+
+    def source_vector(self, f):
+        phi = self.basis  # basis is inherited from class ScaledMonomialSpace2d()
+
+        def u(x, index):
+            return np.einsum('ij, ijm->ijm', f(x), phi(x, index=index))
+
+        fh = self.integralalg.integral(u, celltype=True)  # (NC,ldof)
+        # # integralalg is inherited from class ScaledMonomialSpace2d()
+        gdof = self.number_of_global_dofs()
+
+        return fh.reshape(gdof,)
+
 
 
 
