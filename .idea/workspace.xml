@@ -35,7 +35,7 @@
     <property name="restartRequiresConfirmation" value="false" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
-  <component name="RunManager" selected="Python.totest_PolyMeshIntergal">
+  <component name="RunManager" selected="Python.SFCAVEMRate">
     <configuration name="PoissonAVEMRate" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="FEALPyExamples" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -150,8 +150,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.totest_PolyMeshIntergal" />
         <item itemvalue="Python.SFCAVEMRate" />
+        <item itemvalue="Python.totest_PolyMeshIntergal" />
         <item itemvalue="Python.PoissonAVEMRate" />
         <item itemvalue="Python.totest_DGScalarSpace" />
         <item itemvalue="Python.totest_polymesh" />
@@ -215,38 +215,38 @@
       <screen x="0" y="23" width="1280" height="734" />
     </state>
     <state x="104" y="52" width="1071" height="696" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.23.1280.734@0.23.1280.734" timestamp="1580462002823" />
-    <state width="1259" height="141" key="GridCell.Tab.0.bottom" timestamp="1580827046810">
+    <state width="1259" height="191" key="GridCell.Tab.0.bottom" timestamp="1580887285894">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="141" key="GridCell.Tab.0.bottom/0.23.1280.734@0.23.1280.734" timestamp="1580827046810" />
-    <state width="1259" height="141" key="GridCell.Tab.0.center" timestamp="1580827046809">
+    <state width="1259" height="191" key="GridCell.Tab.0.bottom/0.23.1280.734@0.23.1280.734" timestamp="1580887285894" />
+    <state width="1259" height="191" key="GridCell.Tab.0.center" timestamp="1580887285893">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="141" key="GridCell.Tab.0.center/0.23.1280.734@0.23.1280.734" timestamp="1580827046809" />
-    <state width="1259" height="141" key="GridCell.Tab.0.left" timestamp="1580827046809">
+    <state width="1259" height="191" key="GridCell.Tab.0.center/0.23.1280.734@0.23.1280.734" timestamp="1580887285893" />
+    <state width="1259" height="191" key="GridCell.Tab.0.left" timestamp="1580887285893">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="141" key="GridCell.Tab.0.left/0.23.1280.734@0.23.1280.734" timestamp="1580827046809" />
-    <state width="1259" height="141" key="GridCell.Tab.0.right" timestamp="1580827046809">
+    <state width="1259" height="191" key="GridCell.Tab.0.left/0.23.1280.734@0.23.1280.734" timestamp="1580887285893" />
+    <state width="1259" height="191" key="GridCell.Tab.0.right" timestamp="1580887285893">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="141" key="GridCell.Tab.0.right/0.23.1280.734@0.23.1280.734" timestamp="1580827046809" />
-    <state width="1259" height="187" key="GridCell.Tab.1.bottom" timestamp="1580827046805">
+    <state width="1259" height="191" key="GridCell.Tab.0.right/0.23.1280.734@0.23.1280.734" timestamp="1580887285893" />
+    <state width="1259" height="191" key="GridCell.Tab.1.bottom" timestamp="1580887285895">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="187" key="GridCell.Tab.1.bottom/0.23.1280.734@0.23.1280.734" timestamp="1580827046805" />
-    <state width="1259" height="187" key="GridCell.Tab.1.center" timestamp="1580827046805">
+    <state width="1259" height="191" key="GridCell.Tab.1.bottom/0.23.1280.734@0.23.1280.734" timestamp="1580887285895" />
+    <state width="1259" height="191" key="GridCell.Tab.1.center" timestamp="1580887285895">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="187" key="GridCell.Tab.1.center/0.23.1280.734@0.23.1280.734" timestamp="1580827046805" />
-    <state width="1259" height="187" key="GridCell.Tab.1.left" timestamp="1580827046805">
+    <state width="1259" height="191" key="GridCell.Tab.1.center/0.23.1280.734@0.23.1280.734" timestamp="1580887285895" />
+    <state width="1259" height="191" key="GridCell.Tab.1.left" timestamp="1580887285894">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="187" key="GridCell.Tab.1.left/0.23.1280.734@0.23.1280.734" timestamp="1580827046805" />
-    <state width="1259" height="187" key="GridCell.Tab.1.right" timestamp="1580827046805">
+    <state width="1259" height="191" key="GridCell.Tab.1.left/0.23.1280.734@0.23.1280.734" timestamp="1580887285894" />
+    <state width="1259" height="191" key="GridCell.Tab.1.right" timestamp="1580887285895">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="187" key="GridCell.Tab.1.right/0.23.1280.734@0.23.1280.734" timestamp="1580827046805" />
+    <state width="1259" height="191" key="GridCell.Tab.1.right/0.23.1280.734@0.23.1280.734" timestamp="1580887285895" />
     <state x="141" y="29" key="SettingsEditor" timestamp="1580458963320">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
@@ -255,6 +255,10 @@
       <screen x="0" y="23" width="1280" height="734" />
     </state>
     <state width="500" height="445" key="SwitcherDM/0.23.1280.734@0.23.1280.734" timestamp="1580724237845" />
+    <state x="266" y="23" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1580887580653">
+      <screen x="0" y="23" width="1280" height="734" />
+    </state>
+    <state x="266" y="23" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/0.23.1280.734@0.23.1280.734" timestamp="1580887580653" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -306,28 +310,33 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/myExamples/Test/totest_PolyMeshIntergal.py</url>
-          <line>90</line>
+          <line>100</line>
           <option name="timeStamp" value="46" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/myExamples/Test/totest_PolyMeshIntergal.py</url>
-          <line>87</line>
+          <line>97</line>
           <option name="timeStamp" value="47" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/../fealpy_install_folder/fealpy/fealpy/functionspace/ConformingVirtualElementSpace2d.py</url>
-          <line>358</line>
-          <option name="timeStamp" value="49" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/../fealpy_install_folder/fealpy/fealpy/quadrature/PolygonMeshIntegralAlg.py</url>
-          <line>56</line>
-          <option name="timeStamp" value="50" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/myExamples/Test/totest_PolyMeshIntergal.py</url>
           <line>52</line>
           <option name="timeStamp" value="51" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/example/sfcavem/SFCAVEMRate.py</url>
+          <line>81</line>
+          <option name="timeStamp" value="52" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/../fealpy_install_folder/fealpy/fealpy/mesh/Quadtree.py</url>
+          <line>1</line>
+          <option name="timeStamp" value="53" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/../fealpy_install_folder/fealpy/fealpy/functionspace/ConformingVirtualElementSpace2d.py</url>
+          <line>359</line>
+          <option name="timeStamp" value="54" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

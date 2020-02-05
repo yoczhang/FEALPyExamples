@@ -48,15 +48,25 @@ node = np.array([
 
 # --- quad-tree mesh ---
 cell = np.array([(0, 1, 2, 3)], dtype=np.int)  # quad mesh
-mesh = Quadtree(node, cell)
-mesh.uniform_refine(n)
-mesh = mesh.to_pmesh()  # Excuse me?! It has this operator!
+qtree = Quadtree(node, cell)
+qtree.uniform_refine(n)
+mesh = qtree.to_pmesh()  # Excuse me?! It has this operator!
 # -----------------------
 
 # ---- poly mesh ----
 # h = 0.2
 # box = [0, 1, 0, 1]  # [0, 1]^2 domain
 # mesh = triangle(box, h, meshtype='polygon')
+# -------------------
+
+# ---- plot qtree mesh ----
+fig = plt.figure()
+axes = fig.gca()
+qtree.add_plot(axes, cellcolor='r')
+find_entity(axes, qtree, entity='cell', index='all', showindex=True, color='b', markersize=10, fontsize=8)
+find_entity(axes, qtree, entity='edge', index='all', showindex=True, color='r', markersize=10, fontsize=8)
+find_entity(axes, qtree, entity='node', index='all', showindex=True, color='y', markersize=10, fontsize=8)
+plt.show()
 # -------------------
 
 # ---- plot mesh ----
