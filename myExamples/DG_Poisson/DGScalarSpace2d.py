@@ -169,7 +169,7 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
 
     def stiff_matrix(self):
         p = self.p
-        assert p >= 2, 'the polynomial-order should have p >= 2 '
+        assert p >= 1, 'the polynomial-order should have p >= 1 '
 
         mesh = self.mesh
         node = mesh.entity('node')

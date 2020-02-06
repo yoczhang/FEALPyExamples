@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # 
-import sys
 
-sys.path.append("/Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/")
 from poisson2DData import CosCosData as PDE
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,8 +8,9 @@ import scipy.io as sio
 
 # 导入 Poisson 有限元模型
 from fealpy.fem.PoissonFEMModel import PoissonFEMModel
-
 from fealpy.tools.show import showmultirate, show_error_table
+import sys
+sys.path.append("/Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/")
 
 # 问题维数
 # d = int(sys.argv[1])

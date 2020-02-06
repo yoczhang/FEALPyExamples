@@ -13,11 +13,7 @@ import numpy as np
 
 from DGScalarSpace2d import DGScalarSpace2d
 from fealpy.fem.integral_alg import IntegralAlg
-
-from fealpy.boundarycondition import DirichletBC
-
 from scipy.sparse.linalg import spsolve
-
 from timeit import default_timer as timer
 
 
@@ -48,7 +44,61 @@ class PoissonDGModel2d(object):
     def get_right_vector(self):
         space = self.space
         f = self.pde.source
+        gD = self.pde.gD
         fh = space.source_vector(f)
+        JADir, JJDir = space.DirichletEdge_vector(gD)
+
+        epsilon = self.pde.epsilon
+        eta = self.pde.eta
+
+        return fh + epsilon*JADir + eta*JJDir
+
+    def solve(self):
+        start = timer()
+        A = self.get_left_matrix()
+        b = self.get_right_vector()
+        end = timer()
+        self.A = A
+        print("Construct linear system time:", end - start)
+
+        start = timer()
+        self.uh[:] = spsolve(A, b)
+        end = timer()
+        print("Solve time:", end - start)
+
+        ls = {'A': A, 'b': b, 'solution': self.uh.copy()}
+
+        return ls  # return the linear system
+
+    def L2_error(self, u):
+        uh = self.uh  # note that, here, type(uh) is the space.function variable
+
+        def f(x, index):
+            return (u(x, index) - uh.value(x, index))**2
+        e = self.integralalg.integral(f, celltype=True)
+
+        return np.sqrt(e.sum())
+
+    def H1_semi_error(self, gu):
+        uh = self.uh
+
+        def f(x, index):
+            return (gu(x, index) - uh.grad_value(x, index))**2
+        e = self.integralalg.integral(f, celltype=True)
+
+        return np.sqrt(e.sum())
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
