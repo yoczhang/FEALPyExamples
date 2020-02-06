@@ -267,7 +267,9 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
         np.add.at(JADir, edge2cell[isDirEdge, 0], JADir_temp)
         np.add.at(JJDir, edge2cell[isDirEdge, 0], JJDir_temp)
 
+        gdof = self.number_of_global_dofs()
 
+        return JADir.reshape(gdof,), JJDir.reshape(gdof,)
 
 
 
