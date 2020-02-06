@@ -85,10 +85,10 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
         JJ_matrix = np.array([JJmm, -JJmp, -JJpm, JJpp])  # JJ_matrix.shape: (4,NInE,ldof,lodf)
 
         # --- get the global dofs location --- #
-        rowmm, colmm = self.getGlobalDofLocation(edge2cell[isInEdge, 0], edge2cell[isInEdge, 0])
-        rowmp, colmp = self.getGlobalDofLocation(edge2cell[isInEdge, 0], edge2cell[isInEdge, 1])
-        rowpm, colpm = self.getGlobalDofLocation(edge2cell[isInEdge, 1], edge2cell[isInEdge, 0])
-        rowpp, colpp = self.getGlobalDofLocation(edge2cell[isInEdge, 1], edge2cell[isInEdge, 1])
+        rowmm, colmm = self.global_dof_location(edge2cell[isInEdge, 0], edge2cell[isInEdge, 0])
+        rowmp, colmp = self.global_dof_location(edge2cell[isInEdge, 0], edge2cell[isInEdge, 1])
+        rowpm, colpm = self.global_dof_location(edge2cell[isInEdge, 1], edge2cell[isInEdge, 0])
+        rowpp, colpp = self.global_dof_location(edge2cell[isInEdge, 1], edge2cell[isInEdge, 1])
         row = np.array([rowmm, rowmp, rowpm, rowpp])
         col = np.array([colmm, colmp, colpm, colpp])
 
@@ -140,7 +140,7 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
         JJmm = np.einsum('i, ijk, ijm, j, j->jmk', ws, phi0, phi0, edgeArea[isDirEdge], penalty)  # Jmm.shape: (NDirE,ldof,ldof)
 
         # --- get the global dofs location --- #
-        rowmm, colmm = self.getGlobalDofLocation(edge2cell[isDirEdge, 0], edge2cell[isDirEdge, 0])
+        rowmm, colmm = self.global_dof_location(edge2cell[isDirEdge, 0], edge2cell[isDirEdge, 0])
 
         # --- construct the global matrix --- #
         gdof = self.number_of_global_dofs()
@@ -150,17 +150,20 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
 
         return AJmm, JAmm, JJmm
 
-    def getGlobalDofLocation(self, trialCellIndex, testCellIndex):
+    def global_dof_location(self, trialCellIndex, testCellIndex):
         cell2dof = self.cell_to_dof()  # (NC,ldof)
         ldof = self.number_of_local_dofs()
 
         testdof = cell2dof[testCellIndex, :]  # (NtestCell,ldof)
-        trialdof = cell2dof[trialCellIndex, :]  # (NtrialCell,ldof)
-
         rowIndex = np.einsum('ij, k->ijk', testdof, np.ones(ldof))
-        # colIndex_temp = np.einsum('ij, k->ikj', trialdof, np.ones(ldof))
-        # colIndex = colIndex_temp.swapaxes(-1, -2)
-        colIndex = np.einsum('ij, k->ikj', trialdof, np.ones(ldof))
+
+        if trialCellIndex is not None:
+            trialdof = cell2dof[trialCellIndex, :]  # (NtrialCell,ldof)
+            # colIndex_temp = np.einsum('ij, k->ikj', trialdof, np.ones(ldof))
+            # colIndex = colIndex_temp.swapaxes(-1, -2)
+            colIndex = np.einsum('ij, k->ikj', trialdof, np.ones(ldof))
+        else:
+            colIndex = None
 
         return rowIndex, colIndex
 
@@ -214,12 +217,58 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
 
         def u(x, index):
             return np.einsum('ij, ijm->ijm', f(x), phi(x, index=index))
+            # # f(x).shape: (NQ,NC).    phi(x,...).shape: (NQ,NC,ldof)
 
         fh = self.integralalg.integral(u, celltype=True)  # (NC,ldof)
         # # integralalg is inherited from class ScaledMonomialSpace2d()
         gdof = self.number_of_global_dofs()
 
         return fh.reshape(gdof,)
+
+    def DirichletEdge_vector(self, gD):
+        p = self.p
+        mesh = self.mesh
+        node = mesh.entity('node')
+
+        edge = mesh.entity('edge')
+        edge2cell = mesh.ds.edge_to_cell()
+        edgeArea = mesh.edge_length()
+        nm = mesh.edge_normal()
+        # # (NE,2). The length of the normal-vector isn't 1, is the length of corresponding edge.
+
+        isDirEdge = (edge2cell[:, 0] == edge2cell[:, 1])  # the bool vars, to get the inner edges
+
+        qf = GaussLegendreQuadrature(p + 1)  # the integral points on edges (1D)
+        bcs, ws = qf.quadpts, qf.weights  # bcs.shape: (NQ,2); ws.shape: (NQ,)
+        ps = np.einsum('ij, kjm->ikm', bcs, node[edge])  # ps.shape: (NQ,NE,2), NE is the number of edges
+
+        phi0 = self.basis(ps[:, isDirEdge, :], index=edge2cell[isDirEdge, 0])
+        # # phi0.shape: (NQ,NDirE,ldof), NDirE is the number of Dirichlet edges, lodf is the number of local DOFs
+        # # phi0 is the value of the cell basis functions on the one-side of the corresponding edges.
+
+        gphi0 = self.grad_basis(ps[:, isDirEdge, :], index=edge2cell[isDirEdge, 0])
+        # # gphi0.shape: (NQ,NDirE,ldof,2), NDirE is the number of Dirichlet edges, lodf is the number of local DOFs
+        # # gphi0 is the grad-value of the cell basis functions on the one-side of the corresponding edges.
+
+        gDh = gD(ps)
+        # # (NQ,NE), get the Dirichlet values at physical integral points
+
+        # --- get the jump-average, jump-jump vector at the Dirichlet bds --- #
+        penalty = 1.0 / (edgeArea[isDirEdge])
+        JADir_temp = np.einsum('i, ij, ijpm, jm->jp', ws, gDh, gphi0, nm[isDirEdge], optimize=True)  # (NDirE,ldof)
+        JJDir_temp = np.einsum('i, ij, ijp, j, j->jp', ws, gDh, phi0, edgeArea[isDirEdge], penalty, optimize=True)  # (NDirE,ldof)
+
+        # --- construct the final vector --- #
+        NC = mesh.number_of_cells()
+        shape = (NC,) + gDh.shape[2:]  # shape.shape: (NC,ldof)
+        JADir = np.zeros(shape, dtype=np.float)
+        JJDir = np.zeros(shape, dtype=np.float)
+
+        np.add.at(JADir, edge2cell[isDirEdge, 0], JADir_temp)
+        np.add.at(JJDir, edge2cell[isDirEdge, 0], JJDir_temp)
+
+
+
 
 
 

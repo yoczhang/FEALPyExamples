@@ -41,6 +41,14 @@ class PoissonDGModel2d(object):
         AJIn, JAIn, JJIn = space.interiorEdge_matrix()
         AJDir, JADir, JJDir = space.DirichletEdge_matrix()
 
-        A = S - (AJIn + AJDir) + epsilon*(JAIn + JADir) + eta
+        A = S - (AJIn + AJDir) + epsilon*(JAIn + JADir) + eta*(JJIn + JJDir)
+
+        return A
+
+    def get_right_vector(self):
+        space = self.space
+        f = self.pde.source
+        fh = space.source_vector(f)
+
 
 

@@ -121,7 +121,7 @@ val = u(pp, edge2cell[:, 0])  # val.shape: (NQ,NE,smsldof), smsldof is the numbe
 shape = (NC, ) + val.shape[2:]  # shape.shape: (NC,smsldof)
 e = np.zeros(shape, dtype=np.float)
 
-ee = np.einsum('i, ij..., j->j...', ws, val, a)
+ee = np.einsum('i, ij..., j->j...', ws, val, a)  # ee.shape: (NE,smsldof)
 np.add.at(e, edge2cell[:, 0], ee)
 
 isInEdge = (edge2cell[:, 0] != edge2cell[:, 1])
