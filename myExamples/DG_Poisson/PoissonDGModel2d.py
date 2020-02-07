@@ -23,7 +23,6 @@ class PoissonDGModel2d(object):
         self.mesh = self.space.mesh
         self.pde = pde
         self.uh = self.space.function()
-        self.uI = self.space.interpolation(pde.solution)
         self.cellmeasure = mesh.entity_measure('cell')
         self.integrator = mesh.integrator(q)
         self.integralalg = IntegralAlg(

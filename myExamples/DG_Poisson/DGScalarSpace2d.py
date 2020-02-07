@@ -187,7 +187,7 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
         bcs, ws = qf.quadpts, qf.weights  # bcs.shape: (NQ,2); ws.shape: (NQ,)
         ps = np.einsum('ij, kjm->ikm', bcs, node[edge])  # ps.shape: (NQ,NE,2), NE is the number of edges
 
-        gphi0 = self.grad_basis(ps[:, isInEdge, :], index=edge2cell[:, 0])
+        gphi0 = self.grad_basis(ps, index=edge2cell[:, 0])
         # # gphi0.shape: (NQ,NInE,ldof,2), NInE is the number of interior edges, lodf is the number of local DOFs
         # # gphi0 is the grad-value of the cell basis functions on the one-side of the corresponding edges.
         gphi1 = self.grad_basis(ps[:, isInEdge, :], index=edge2cell[isInEdge, 1])
@@ -209,6 +209,9 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
         multiIndex = self.dof.multiIndex
         q = np.sum(multiIndex, axis=1) - 1  # here, we used the grad-basis to get stiff-matrix, so we need to -1
         S /= q + q.reshape(-1, 1) + 2
+
+        # --- get row and col --- #
+        
 
         return S
 

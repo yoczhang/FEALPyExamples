@@ -53,4 +53,13 @@ mesh = qtree.to_pmesh()
 # -------------------
 # # TODO: need to test the 'tri'-mesh and give more simple way to construct polygon mesh
 
+for i in range(maxit):
+    dg = PoissonDGModel2d(pde, mesh, p, q=p+2)
+    ls = dg.solve()
+    Ndof[i] = dg.space.number_of_global_dofs()  # 获得空间自由度个数
+    errorMatrix[0, i] = dg.L2_error()  # 计算 L2 误差
+    errorMatrix[1, i] = dg.H1_semi_error()  # 计算 H1 误差
+    if i < maxit - 1:
+        mesh.uniform_refine()  # 一致加密网格
+
 
