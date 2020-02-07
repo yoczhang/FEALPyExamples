@@ -208,10 +208,19 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
 
         multiIndex = self.dof.multiIndex
         q = np.sum(multiIndex, axis=1) - 1  # here, we used the grad-basis to get stiff-matrix, so we need to -1
-        S /= q + q.reshape(-1, 1) + 2
+        qq = q + q.reshape(-1, 1) + 2
+        qq[0, 0] = 1
+        # # note that this is the special case, since we want to compute the \int_T \nabla u\cdot \nabla v,
+        # # this needs to minus 1 in the 'q', so qq[0,0] is 0, moreover, S[:, 0, :] == S[:, :, 0] is 0-values,
+        # # so we set qq[0, 0] = 1 which doesn't affect the result of S /= qq.
+
+        S /= qq
 
         # --- get row and col --- #
-        
+        row, col = self.global_dof_location(np.arange(NC), np.arange(NC))
+
+        gdof = self.number_of_global_dofs()
+        S = csr_matrix((S.flat, (row.flat, col.flat)), shape=(gdof, gdof))
 
         return S
 
@@ -253,7 +262,7 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
         # # gphi0.shape: (NQ,NDirE,ldof,2), NDirE is the number of Dirichlet edges, lodf is the number of local DOFs
         # # gphi0 is the grad-value of the cell basis functions on the one-side of the corresponding edges.
 
-        gDh = gD(ps)
+        gDh = gD(ps[:, isDirEdge, :])
         # # (NQ,NE), get the Dirichlet values at physical integral points
 
         # --- get the jump-average, jump-jump vector at the Dirichlet bds --- #
@@ -263,7 +272,8 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
 
         # --- construct the final vector --- #
         NC = mesh.number_of_cells()
-        shape = (NC,) + gDh.shape[2:]  # shape.shape: (NC,ldof)
+        ldof = self.number_of_local_dofs()
+        shape = (NC, ldof)  # shape.shape: (NC,ldof)
         JADir = np.zeros(shape, dtype=np.float)
         JJDir = np.zeros(shape, dtype=np.float)
 

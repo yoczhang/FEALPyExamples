@@ -10,11 +10,12 @@
 # ---
 
 
-from poisson2DData import CosCosData as PDE
+from fealpy.pde.poisson_2d import CosCosData as PDE
 import numpy as np
 import matplotlib.pyplot as plt
 from fealpy.tools.show import showmultirate, show_error_table
 from PoissonDGModel2d import PoissonDGModel2d
+from fealpy.mesh.mesh_tools import find_entity
 
 import os
 import sys
@@ -53,13 +54,25 @@ mesh = qtree.to_pmesh()
 # -------------------
 # # TODO: need to test the 'tri'-mesh and give more simple way to construct polygon mesh
 
+# --- plot the mesh --- #
+# fig = plt.figure()
+# axes = fig.gca()
+# mesh.add_plot(axes, cellcolor='w')
+# find_entity(axes, mesh, entity='cell', index='all', showindex=True, color='b', markersize=10, fontsize=8)
+# find_entity(axes, mesh, entity='edge', index='all', showindex=True, color='r', markersize=10, fontsize=8)
+# find_entity(axes, mesh, entity='node', index='all', showindex=True, color='y', markersize=10, fontsize=8)
+# plt.show()
+
+
+# --- start for-loop --- #
 for i in range(maxit):
     dg = PoissonDGModel2d(pde, mesh, p, q=p+2)
     ls = dg.solve()
-    Ndof[i] = dg.space.number_of_global_dofs()  # 获得空间自由度个数
-    errorMatrix[0, i] = dg.L2_error()  # 计算 L2 误差
-    errorMatrix[1, i] = dg.H1_semi_error()  # 计算 H1 误差
+    Ndof[i] = dg.space.number_of_global_dofs()  # get the number of dofs
+    errorMatrix[0, i] = dg.L2_error()  # get the L2 error
+    errorMatrix[1, i] = dg.H1_semi_error()  # get the H1-semi error
     if i < maxit - 1:
-        mesh.uniform_refine()  # 一致加密网格
+        qtree.uniform_refine()  # 一致加密网格
+        mesh = qtree.to_pmesh()
 
 

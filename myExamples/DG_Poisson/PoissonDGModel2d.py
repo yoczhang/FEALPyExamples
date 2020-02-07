@@ -23,10 +23,9 @@ class PoissonDGModel2d(object):
         self.mesh = self.space.mesh
         self.pde = pde
         self.uh = self.space.function()
-        self.cellmeasure = mesh.entity_measure('cell')
-        self.integrator = mesh.integrator(q)
-        self.integralalg = IntegralAlg(
-            self.integrator, self.mesh, self.cellmeasure)
+        # self.cellmeasure = mesh.entity_measure('cell')
+        # self.integrator = mesh.integrator(q)
+        self.integralalg = self.space.integralalg
 
     def get_left_matrix(self):
         space = self.space
@@ -43,7 +42,7 @@ class PoissonDGModel2d(object):
     def get_right_vector(self):
         space = self.space
         f = self.pde.source
-        gD = self.pde.gD
+        gD = self.pde.dirichlet
         fh = space.source_vector(f)
         JADir, JJDir = space.DirichletEdge_vector(gD)
 
@@ -69,20 +68,22 @@ class PoissonDGModel2d(object):
 
         return ls  # return the linear system
 
-    def L2_error(self, u):
+    def L2_error(self):
+        u = self.pde.solution
         uh = self.uh  # note that, here, type(uh) is the space.function variable
 
         def f(x, index):
-            return (u(x, index) - uh.value(x, index))**2
+            return (u(x) - uh.value(x, index))**2
         e = self.integralalg.integral(f, celltype=True)
 
         return np.sqrt(e.sum())
 
-    def H1_semi_error(self, gu):
+    def H1_semi_error(self):
+        gu = self.pde.gradient
         uh = self.uh
 
         def f(x, index):
-            return (gu(x, index) - uh.grad_value(x, index))**2
+            return (gu(x) - uh.grad_value(x, index))**2
         e = self.integralalg.integral(f, celltype=True)
 
         return np.sqrt(e.sum())
