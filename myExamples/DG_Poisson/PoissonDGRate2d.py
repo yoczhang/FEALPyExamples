@@ -27,7 +27,7 @@ sys.path.append(cwd)
 # --- begin setting --- #
 d = 2  # the dimension
 p = 1  # the polynomial order
-n = 2  # the number of refine mesh
+n = 1  # the number of refine mesh
 maxit = 3  # the max iteration of the mesh
 
 pde = PDE()  # create pde model
