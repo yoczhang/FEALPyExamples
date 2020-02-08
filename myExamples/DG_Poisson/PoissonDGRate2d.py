@@ -27,7 +27,7 @@ sys.path.append(cwd)
 # --- begin setting --- #
 d = 2  # the dimension
 p = 1  # the polynomial order
-n = 1  # the number of refine mesh
+n = 2  # the number of refine mesh
 maxit = 3  # the max iteration of the mesh
 
 pde = PDE()  # create pde model
@@ -36,7 +36,7 @@ pde.epsilon = -1  # setting the DG-scheme parameter
 # # the corresponding DG-scheme is called symmetric interior penalty Galerkin (SIPG),
 # # incomplete interior penalty Galerkin (IIPG) and nonsymmetric interior penalty Galerkin (NIPG)
 
-pde.eta = 9  # setting the penalty parameter
+pde.eta = 16  # setting the penalty parameter
 # # eta may change corresponding the polynomial order 'p' and 'epsilon'
 
 # # error settings
@@ -55,13 +55,13 @@ mesh = qtree.to_pmesh()
 # # TODO: need to test the 'tri'-mesh and give more simple way to construct polygon mesh
 
 # --- plot the mesh --- #
-# fig = plt.figure()
-# axes = fig.gca()
-# mesh.add_plot(axes, cellcolor='w')
-# find_entity(axes, mesh, entity='cell', index='all', showindex=True, color='b', markersize=10, fontsize=8)
-# find_entity(axes, mesh, entity='edge', index='all', showindex=True, color='r', markersize=10, fontsize=8)
-# find_entity(axes, mesh, entity='node', index='all', showindex=True, color='y', markersize=10, fontsize=8)
-# plt.show()
+fig = plt.figure()
+axes = fig.gca()
+mesh.add_plot(axes, cellcolor='w')
+find_entity(axes, mesh, entity='cell', index='all', showindex=True, color='b', markersize=10, fontsize=8)
+find_entity(axes, mesh, entity='edge', index='all', showindex=True, color='r', markersize=10, fontsize=8)
+find_entity(axes, mesh, entity='node', index='all', showindex=True, color='y', markersize=10, fontsize=8)
+plt.show()
 
 
 # --- start for-loop --- #
