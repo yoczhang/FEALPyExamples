@@ -74,7 +74,7 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
         JAmp = np.einsum('i, ijk, ijpm, jm->jpk', ws, phi0, gphi1, nm[isInEdge], optimize=True)
         JApm = np.einsum('i, ijk, ijpm, jm->jpk', ws, phi1, gphi0, nm[isInEdge], optimize=True)
         JApp = np.einsum('i, ijk, ijpm, jm->jpk', ws, phi1, gphi1, nm[isInEdge], optimize=True)
-        JA_matrix = 0.5 * np.array([JAmm, -JAmp, JApm, -JApp])  # JA_matrix.shape: (4,NInE,ldof,lodf)
+        JA_matrix = 0.5 * np.array([JAmm, JAmp, -JApm, -JApp])  # JA_matrix.shape: (4,NInE,ldof,lodf)
 
         # --- get the jump-jump matrix --- #
         penalty = 1.0 / (edgeArea[isInEdge])
