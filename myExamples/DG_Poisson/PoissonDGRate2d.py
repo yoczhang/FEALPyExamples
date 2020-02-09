@@ -15,6 +15,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from fealpy.tools.show import showmultirate, show_error_table
 from PoissonDGModel2d import PoissonDGModel2d
+from fealpy.mesh.simple_mesh_generator import triangle
 from fealpy.mesh.mesh_tools import find_entity
 
 import os
@@ -28,7 +29,7 @@ sys.path.append(cwd)
 d = 2  # the dimension
 p = 1  # the polynomial order
 n = 2  # the number of refine mesh
-maxit = 3  # the max iteration of the mesh
+maxit = 5  # the max iteration of the mesh
 
 pde = PDE()  # create pde model
 pde.epsilon = -1  # setting the DG-scheme parameter
@@ -37,7 +38,7 @@ pde.epsilon = -1  # setting the DG-scheme parameter
 # # incomplete interior penalty Galerkin (IIPG) and nonsymmetric interior penalty Galerkin (NIPG)
 
 pde.eta = 16  # setting the penalty parameter
-# # eta may change corresponding the polynomial order 'p' and 'epsilon'
+# # eta may change corresponding to the polynomial order 'p' and 'epsilon'
 
 # # error settings
 errorType = ['$|| u - u_h||_0$', '$||\\nabla u - \\nabla u_h||_0$']
@@ -45,14 +46,21 @@ errorMatrix = np.zeros((len(errorType), maxit), dtype=np.float)
 
 Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
 
-qtree = pde.init_mesh(n, meshtype='quadtree')
-mesh = qtree.to_pmesh()
-# ---- poly mesh ----
-# h = 0.2
-# box = [0, 1, 0, 1]  # [0, 1]^2 domain
-# mesh = triangle(box, h, meshtype='polygon')
-# -------------------
+# --- mesh setting --- #
+# # mesh 1:
+# # quad-tree mesh
+# qtree = pde.init_mesh(n, meshtype='quadtree')
+# mesh = qtree.to_pmesh()
+
+# # mesh 2:
+# # polygon mesh
+h = 0.2
+box = [0, 1, 0, 1]  # [0, 1]^2 domain
+mesh = triangle(box, h, meshtype='polygon')
+
+# # TODO: The triangle mesh is also needed to be incorporated into the polygon mesh.
 # # TODO: need to test the 'tri'-mesh and give more simple way to construct polygon mesh
+
 
 # --- plot the mesh --- #
 fig = plt.figure()
@@ -66,7 +74,7 @@ plt.show()
 
 # --- start for-loop --- #
 for i in range(maxit):
-    dg = PoissonDGModel2d(pde, mesh, p, q=p+2)
+    dg = PoissonDGModel2d(pde, mesh, p)
     ls = dg.solve()
     Ndof[i] = dg.space.number_of_global_dofs()  # get the number of dofs
     errorMatrix[0, i] = dg.L2_error()  # get the L2 error
@@ -76,3 +84,10 @@ for i in range(maxit):
         mesh = qtree.to_pmesh()  # transfer to polygon mesh
 
 
+# --- get the convergence rate --- #
+# # show the error table
+show_error_table(Ndof, errorType, errorMatrix)
+
+# # plot the rate
+showmultirate(plt, 0, Ndof, errorMatrix, errorType)
+plt.show()

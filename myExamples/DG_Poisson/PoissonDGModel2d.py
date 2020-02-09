@@ -12,19 +12,16 @@
 import numpy as np
 
 from DGScalarSpace2d import DGScalarSpace2d
-from fealpy.fem.integral_alg import IntegralAlg
 from scipy.sparse.linalg import spsolve
 from timeit import default_timer as timer
 
 
 class PoissonDGModel2d(object):
-    def __init__(self, pde, mesh, p, q=3):
+    def __init__(self, pde, mesh, p):
         self.space = DGScalarSpace2d(mesh, p)
         self.mesh = self.space.mesh
         self.pde = pde
         self.uh = self.space.function()
-        # self.cellmeasure = mesh.entity_measure('cell')
-        # self.integrator = mesh.integrator(q)
         self.integralalg = self.space.integralalg
 
     def get_left_matrix(self):

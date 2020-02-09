@@ -11,7 +11,7 @@
 
 import numpy as np
 from fealpy.quadrature import GaussLegendreQuadrature
-from scipy.sparse import coo_matrix, csr_matrix, spdiags
+from scipy.sparse import csr_matrix
 from fealpy.functionspace.ScaledMonomialSpace2d import SMDof2d, ScaledMonomialSpace2d
 
 
@@ -20,7 +20,7 @@ class DGScalarDof2d(SMDof2d):
         super(DGScalarDof2d, self).__init__(mesh, p)
 
     def __str__(self):
-        return "Discontinuous Galerkin Dofs!"
+        return "Discontinuous Galerkin scalar Dofs!"
 
 
 class DGScalarSpace2d(ScaledMonomialSpace2d):
@@ -28,9 +28,42 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
         super(DGScalarSpace2d, self).__init__(mesh, p)
 
     def __str__(self):
-        return "Discontinuous Galerkin finite element space!"
+        return "Discontinuous Galerkin scalar finite element space!"
 
-    def interiorEdge_matrix(self):  # get the average-jump, jump-average and jump-jump matrix at interior edges
+    def interiorEdge_matrix(self):
+        """
+        Get the average-jump, jump-average and jump-jump matrix at interior edges.
+
+        -------
+        In the following, the subscript 'm'(-) stands for the smaller-index of the cell,
+        and the subscript 'p'(+) stands for the bigger-index of the cell.
+
+        What's more, let v, w be the trial and test function, respectively.
+
+        Define
+        (1) {{\nabla w}} := 1/2*(\nabla w^+ + \nabla w^-),
+        (2) [[w]] := (w^- - w^+).
+        (3) n_e: the unit-normal-vector of edge 'e'.
+            In FEALPy, n_e is given by nm=mesh.edge_normal() (NE,2).
+            Note that, the length of the normal-vector 'nm' isn't 1, is the length of corresponding edge.
+            And the The direction of normal vector is from edge2cell[i,0] to edge2cell[i,1]
+            (that is, from the cell with small number to the cell with large number).
+
+
+        -------
+        The matrix
+        AJ-matrix: \int_{E_h} {{\nabla v}}\cdot n_e [[w]],
+
+        JA-matrix: \int_{E_h} [[v]]{{\nabla w}}\cdot n_e,
+
+        JJ-matrix: \int_{E_h} [[v]][[w]].
+
+
+        -------
+        The DG scheme can be found in
+        (Béatrice Rivière, Page:29) Discontinuous Galerkin Methods for Solving Elliptic and Parabolic Equations
+        """
+
         p = self.p
         mesh = self.mesh
         node = mesh.entity('node')
@@ -58,20 +91,6 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
         # # gphi0 is the grad-value of the cell basis functions on the one-side of the corresponding edges.
         gphi1 = self.grad_basis(ps[:, isInEdge, :], index=edge2cell[isInEdge, 1])
 
-        # --- some explanations --- #
-        # # In the following, the subscript 'm' stands for the smaller-index of the cell,
-        # # and the subscript 'p' stands for the bigger-index of the cell.
-        # # #
-        # # What's more, let v, w be the trial and test function, respectively,
-        # # AJ-matrix: \int_{E_h} {{\nabla v}}\cdot n_e [[w]],
-        # # {{\nabla v}} := 1/2*(\nabla v^+ + \nabla v^-), [[w]] := (w^- - w^+).
-        # # #
-        # # JA-matrix: \int_{E_h} [[v]]{{\nabla w}}\cdot n_e,
-        # # #
-        # # JJ-matrix: \int_{E_h} [[v]][[w]].
-        # # #
-        # # Ref: (Béatrice Rivière, Page:29) Discontinuous Galerkin Methods for Solving Elliptic and Parabolic Equations
-
         # --- get the average-jump matrix --- #
         AJmm = np.einsum('i, ijkm, ijp, jm->jpk', ws, gphi0, phi0, nm[isInEdge], optimize=True)  # (NInE,ldof,ldof)
         AJmp = np.einsum('i, ijkm, ijp, jm->jpk', ws, gphi0, phi1, nm[isInEdge], optimize=True)
@@ -88,10 +107,14 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
 
         # --- get the jump-jump matrix --- #
         penalty = 1.0 / (edgeArea[isInEdge])
-        JJmm = np.einsum('i, ijk, ijm, j, j->jmk', ws, phi0, phi0, edgeArea[isInEdge], penalty)  # Jmm.shape: (NInE,ldof,ldof)
-        JJmp = np.einsum('i, ijk, ijm, j, j->jmk', ws, phi0, phi1, edgeArea[isInEdge], penalty)  # Jmp.shape: (NInE,ldof,ldof)
-        JJpm = np.einsum('i, ijk, ijm, j, j->jmk', ws, phi1, phi0, edgeArea[isInEdge], penalty)  # Jpm.shape: (NInE,ldof,ldof)
-        JJpp = np.einsum('i, ijk, ijm, j, j->jmk', ws, phi1, phi1, edgeArea[isInEdge], penalty)  # Jpp.shape: (NInE,ldof,ldof)
+        JJmm = np.einsum('i, ijk, ijm, j, j->jmk', ws, phi0, phi0, edgeArea[isInEdge],
+                         penalty)  # Jmm.shape: (NInE,ldof,ldof)
+        JJmp = np.einsum('i, ijk, ijm, j, j->jmk', ws, phi0, phi1, edgeArea[isInEdge],
+                         penalty)  # Jmp.shape: (NInE,ldof,ldof)
+        JJpm = np.einsum('i, ijk, ijm, j, j->jmk', ws, phi1, phi0, edgeArea[isInEdge],
+                         penalty)  # Jpm.shape: (NInE,ldof,ldof)
+        JJpp = np.einsum('i, ijk, ijm, j, j->jmk', ws, phi1, phi1, edgeArea[isInEdge],
+                         penalty)  # Jpp.shape: (NInE,ldof,ldof)
         JJ_matrix = np.array([JJmm, -JJmp, -JJpm, JJpp])  # JJ_matrix.shape: (4,NInE,ldof,lodf)
 
         # --- get the global dofs location --- #
@@ -110,7 +133,14 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
 
         return AJ_matrix, JA_matrix, JJ_matrix
 
-    def DirichletEdge_matrix(self):  # get the average-jump, jump-average and jump-jump matrix at Dirichlet edges
+    def DirichletEdge_matrix(self):
+        """
+        Get the average-jump, jump-average and jump-jump matrix at Dirichlet edges.
+
+        -------
+        The explanations see interiorEdge_matrix().
+        """
+
         p = self.p
         mesh = self.mesh
         node = mesh.entity('node')
@@ -135,10 +165,6 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
         # # gphi0.shape: (NQ,NDirE,ldof,2), NDirE is the number of Dirichlet edges, lodf is the number of local DOFs
         # # gphi0 is the grad-value of the cell basis functions on the one-side of the corresponding edges.
 
-        # --- some explanations --- #
-        # # In the following, the subscript 'm' stands for the smaller-index of the cell,
-        # # and the subscript 'p' stands for the bigger-index of the cell.
-
         # --- get the average-jump matrix --- #
         AJmm = np.einsum('i, ijkm, ijp, jm->jpk', ws, gphi0, phi0, nm[isDirEdge], optimize=True)  # (NDirE,ldof,ldof)
 
@@ -147,7 +173,8 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
 
         # --- get the jump-jump matrix --- #
         penalty = 1.0 / (edgeArea[isDirEdge])
-        JJmm = np.einsum('i, ijk, ijm, j, j->jmk', ws, phi0, phi0, edgeArea[isDirEdge], penalty)  # Jmm.shape: (NDirE,ldof,ldof)
+        JJmm = np.einsum('i, ijk, ijm, j, j->jmk', ws, phi0, phi0, edgeArea[isDirEdge],
+                         penalty)  # Jmm.shape: (NDirE,ldof,ldof)
 
         # --- get the global dofs location --- #
         rowmm, colmm = self.global_dof_location(edge2cell[isDirEdge, 0], edge2cell[isDirEdge, 0])
@@ -245,7 +272,7 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
         # # integralalg is inherited from class ScaledMonomialSpace2d()
         gdof = self.number_of_global_dofs()
 
-        return fh.reshape(gdof,)
+        return fh.reshape(gdof, )
 
     def DirichletEdge_vector(self, gD):
         p = self.p
@@ -278,7 +305,8 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
         # --- get the jump-average, jump-jump vector at the Dirichlet bds --- #
         penalty = 1.0 / (edgeArea[isDirEdge])
         JADir_temp = np.einsum('i, ij, ijpm, jm->jp', ws, gDh, gphi0, nm[isDirEdge], optimize=True)  # (NDirE,ldof)
-        JJDir_temp = np.einsum('i, ij, ijp, j, j->jp', ws, gDh, phi0, edgeArea[isDirEdge], penalty, optimize=True)  # (NDirE,ldof)
+        JJDir_temp = np.einsum('i, ij, ijp, j, j->jp', ws, gDh, phi0, edgeArea[isDirEdge], penalty,
+                               optimize=True)  # (NDirE,ldof)
 
         # --- construct the final vector --- #
         NC = mesh.number_of_cells()
@@ -292,16 +320,4 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
 
         gdof = self.number_of_global_dofs()
 
-        return JADir.reshape(gdof,), JJDir.reshape(gdof,)
-
-
-
-
-
-
-
-
-
-
-
-
+        return JADir.reshape(gdof, ), JJDir.reshape(gdof, )
