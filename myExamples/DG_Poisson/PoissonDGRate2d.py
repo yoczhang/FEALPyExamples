@@ -22,7 +22,6 @@ import os
 import sys
 cwd = os.getcwd()
 sys.path.append(cwd)
-# sys.path.append("/Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/DG_Poisson")
 
 
 # --- begin setting --- #
@@ -53,23 +52,28 @@ Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
 # mesh = qtree.to_pmesh()
 
 # # mesh 2:
+# # tri mesh
+# h = 1./4
+# box = [0, 1, 0, 1]  # [0, 1]^2 domain
+# mesh = triangle(box, h, meshtype='tri')
+
+# # mesh 3:
 # # polygon mesh
-h = 0.2
+h = 1./4
 box = [0, 1, 0, 1]  # [0, 1]^2 domain
 mesh = triangle(box, h, meshtype='polygon')
 
-# # TODO: The triangle mesh is also needed to be incorporated into the polygon mesh.
-# # TODO: need to test the 'tri'-mesh and give more simple way to construct polygon mesh
+# # TODO: import mesh from other files
 
 
 # --- plot the mesh --- #
-fig = plt.figure()
-axes = fig.gca()
-mesh.add_plot(axes, cellcolor='w')
-find_entity(axes, mesh, entity='cell', index='all', showindex=True, color='b', markersize=10, fontsize=8)
-find_entity(axes, mesh, entity='edge', index='all', showindex=True, color='r', markersize=10, fontsize=8)
-find_entity(axes, mesh, entity='node', index='all', showindex=True, color='y', markersize=10, fontsize=8)
-plt.show()
+# fig = plt.figure()
+# axes = fig.gca()
+# mesh.add_plot(axes, cellcolor='w')
+# find_entity(axes, mesh, entity='cell', index='all', showindex=True, color='b', markersize=10, fontsize=8)
+# find_entity(axes, mesh, entity='edge', index='all', showindex=True, color='r', markersize=10, fontsize=8)
+# find_entity(axes, mesh, entity='node', index='all', showindex=True, color='y', markersize=10, fontsize=8)
+# plt.show()
 
 
 # --- start for-loop --- #
@@ -80,8 +84,16 @@ for i in range(maxit):
     errorMatrix[0, i] = dg.L2_error()  # get the L2 error
     errorMatrix[1, i] = dg.H1_semi_error()  # get the H1-semi error
     if i < maxit - 1:
-        qtree.uniform_refine()  # uniform refine the mesh
-        mesh = qtree.to_pmesh()  # transfer to polygon mesh
+        if mesh.meshtype == 'polygon':
+            if 'qtree' in locals().keys():
+                qtree.uniform_refine()  # uniform refine the mesh
+                mesh = qtree.to_pmesh()  # transfer to polygon mesh
+            else:
+                h = h/2
+                box = [0, 1, 0, 1]  # [0, 1]^2 domain
+                mesh = triangle(box, h, meshtype='polygon')
+        else:
+            mesh.uniform_refine()
 
 
 # --- get the convergence rate --- #

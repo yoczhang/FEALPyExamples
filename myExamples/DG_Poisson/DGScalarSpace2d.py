@@ -214,7 +214,7 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
         The mass matrix on ScaledMonomialSpace2d can be found in class ScaledMonomialSpace2d(): mass_matrix()
 
         """
-        
+
         p = self.p
         assert p >= 1, 'the polynomial-order should have p >= 1 '
 
