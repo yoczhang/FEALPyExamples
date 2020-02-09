@@ -47,7 +47,7 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
             In FEALPy, n_e is given by nm=mesh.edge_normal() (NE,2).
             Note that, the length of the normal-vector 'nm' isn't 1, is the length of corresponding edge.
             And the The direction of normal vector is from edge2cell[i,0] to edge2cell[i,1]
-            (that is, from the cell with small number to the cell with large number).
+            (that is, from the cell with smaller number to the cell with larger number).
 
 
         -------
@@ -62,6 +62,7 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
         -------
         The DG scheme can be found in
         (Béatrice Rivière, Page:29) Discontinuous Galerkin Methods for Solving Elliptic and Parabolic Equations
+
         """
 
         p = self.p
@@ -138,7 +139,8 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
         Get the average-jump, jump-average and jump-jump matrix at Dirichlet edges.
 
         -------
-        The explanations see interiorEdge_matrix().
+        The explanations see interiorEdge_matrix()
+
         """
 
         p = self.p
@@ -205,6 +207,14 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
         return rowIndex, colIndex
 
     def stiff_matrix(self):
+        """
+        Get the stiff matrix on ScaledMonomialSpace2d.
+
+        ---
+        The mass matrix on ScaledMonomialSpace2d can be found in class ScaledMonomialSpace2d(): mass_matrix()
+
+        """
+        
         p = self.p
         assert p >= 1, 'the polynomial-order should have p >= 1 '
 
