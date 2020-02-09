@@ -61,6 +61,16 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
         # --- some explanations --- #
         # # In the following, the subscript 'm' stands for the smaller-index of the cell,
         # # and the subscript 'p' stands for the bigger-index of the cell.
+        # # #
+        # # What's more, let v, w be the trial and test function, respectively,
+        # # AJ-matrix: \int_{E_h} {{\nabla v}}\cdot n_e [[w]],
+        # # {{\nabla v}} := 1/2*(\nabla v^+ + \nabla v^-), [[w]] := (w^- - w^+).
+        # # #
+        # # JA-matrix: \int_{E_h} [[v]]{{\nabla w}}\cdot n_e,
+        # # #
+        # # JJ-matrix: \int_{E_h} [[v]][[w]].
+        # # #
+        # # Ref: (Béatrice Rivière, Page:29) Discontinuous Galerkin Methods for Solving Elliptic and Parabolic Equations
 
         # --- get the average-jump matrix --- #
         AJmm = np.einsum('i, ijkm, ijp, jm->jpk', ws, gphi0, phi0, nm[isInEdge], optimize=True)  # (NInE,ldof,ldof)

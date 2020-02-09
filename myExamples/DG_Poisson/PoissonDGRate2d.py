@@ -72,7 +72,7 @@ for i in range(maxit):
     errorMatrix[0, i] = dg.L2_error()  # get the L2 error
     errorMatrix[1, i] = dg.H1_semi_error()  # get the H1-semi error
     if i < maxit - 1:
-        qtree.uniform_refine()  # 一致加密网格
-        mesh = qtree.to_pmesh()
+        qtree.uniform_refine()  # uniform refine the mesh
+        mesh = qtree.to_pmesh()  # transfer to polygon mesh
 
 
