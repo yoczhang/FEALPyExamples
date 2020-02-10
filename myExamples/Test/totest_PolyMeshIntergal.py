@@ -63,13 +63,13 @@ mesh = qtree.to_pmesh()  # Excuse me?! It has this operator!
 # -------------------
 
 # ---- plot mesh ----
-# fig = plt.figure()
-# axes = fig.gca()
-# mesh.add_plot(axes, cellcolor='w')
-# find_entity(axes, mesh, entity='cell', index='all', showindex=True, color='b', markersize=10, fontsize=8)
-# find_entity(axes, mesh, entity='edge', index='all', showindex=True, color='r', markersize=10, fontsize=8)
-# find_entity(axes, mesh, entity='node', index='all', showindex=True, color='y', markersize=10, fontsize=8)
-# plt.show()
+fig = plt.figure()
+axes = fig.gca()
+mesh.add_plot(axes, cellcolor='w')
+find_entity(axes, mesh, entity='cell', index='all', showindex=True, color='b', markersize=10, fontsize=8)
+find_entity(axes, mesh, entity='edge', index='all', showindex=True, color='r', markersize=10, fontsize=8)
+find_entity(axes, mesh, entity='node', index='all', showindex=True, color='y', markersize=10, fontsize=8)
+plt.show()
 # -------------------
 
 # --------

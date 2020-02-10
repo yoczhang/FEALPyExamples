@@ -34,6 +34,7 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
         """
         Get the average-jump, jump-average and jump-jump matrix at interior edges.
 
+
         -------
         In the following, the subscript 'm'(-) stands for the smaller-index of the cell,
         and the subscript 'p'(+) stands for the bigger-index of the cell.
@@ -43,7 +44,8 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
         Define
         (1) {{\nabla w}} := 1/2*(\nabla w^+ + \nabla w^-),
         (2) [[w]] := (w^- - w^+).
-        (3) n_e: the unit-normal-vector of edge 'e'.
+        (3) E_h: all the interior edges.
+        (4) n_e: the unit-normal-vector of edge 'e'.
             In FEALPy, n_e is given by nm=mesh.edge_normal() (NE,2).
             Note that, the length of the normal-vector 'nm' isn't 1, is the length of corresponding edge.
             And the The direction of normal vector is from edge2cell[i,0] to edge2cell[i,1]
@@ -134,7 +136,7 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
 
         return AJ_matrix, JA_matrix, JJ_matrix
 
-    def DirichletEdge_matrix(self):
+    def DirichletEdge_matrix(self, isDirEdge):
         """
         Get the average-jump, jump-average and jump-jump matrix at Dirichlet edges.
 
@@ -153,7 +155,7 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
         nm = mesh.edge_normal()
         # # (NE,2). The length of the normal-vector isn't 1, is the length of corresponding edge.
 
-        isDirEdge = (edge2cell[:, 0] == edge2cell[:, 1])  # the bool vars, to get the inner edges
+        # isDirEdge = (edge2cell[:, 0] == edge2cell[:, 1])  # the bool vars, to get the boundary edges
 
         qf = GaussLegendreQuadrature(p + 1)  # the integral points on edges (1D)
         bcs, ws = qf.quadpts, qf.weights  # bcs.shape: (NQ,2); ws.shape: (NQ,)
@@ -284,7 +286,7 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
 
         return fh.reshape(gdof, )
 
-    def DirichletEdge_vector(self, gD):
+    def DirichletEdge_vector(self, uD, isDirEdge):
         p = self.p
         mesh = self.mesh
         node = mesh.entity('node')
@@ -295,7 +297,7 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
         nm = mesh.edge_normal()
         # # (NE,2). The length of the normal-vector isn't 1, is the length of corresponding edge.
 
-        isDirEdge = (edge2cell[:, 0] == edge2cell[:, 1])  # the bool vars, to get the inner edges
+        # isDirEdge = (edge2cell[:, 0] == edge2cell[:, 1])  # the bool vars, to get the boundary edges
 
         qf = GaussLegendreQuadrature(p + 1)  # the integral points on edges (1D)
         bcs, ws = qf.quadpts, qf.weights  # bcs.shape: (NQ,2); ws.shape: (NQ,)
@@ -309,13 +311,13 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
         # # gphi0.shape: (NQ,NDirE,ldof,2), NDirE is the number of Dirichlet edges, lodf is the number of local DOFs
         # # gphi0 is the grad-value of the cell basis functions on the one-side of the corresponding edges.
 
-        gDh = gD(ps[:, isDirEdge, :])
+        uDh = uD(ps[:, isDirEdge, :])
         # # (NQ,NE), get the Dirichlet values at physical integral points
 
         # --- get the jump-average, jump-jump vector at the Dirichlet bds --- #
         penalty = 1.0 / (edgeArea[isDirEdge])
-        JADir_temp = np.einsum('i, ij, ijpm, jm->jp', ws, gDh, gphi0, nm[isDirEdge], optimize=True)  # (NDirE,ldof)
-        JJDir_temp = np.einsum('i, ij, ijp, j, j->jp', ws, gDh, phi0, edgeArea[isDirEdge], penalty,
+        JADir_temp = np.einsum('i, ij, ijpm, jm->jp', ws, uDh, gphi0, nm[isDirEdge], optimize=True)  # (NDirE,ldof)
+        JJDir_temp = np.einsum('i, ij, ijp, j, j->jp', ws, uDh, phi0, edgeArea[isDirEdge], penalty,
                                optimize=True)  # (NDirE,ldof)
 
         # --- construct the final vector --- #

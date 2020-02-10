@@ -28,9 +28,10 @@ class PoissonDGModel2d(object):
         space = self.space
         epsilon = self.pde.epsilon  # epsilon may take -1, 0, 1
         eta = self.pde.eta  # the penalty coefficient
+        isDirEdge = self.set_Dirichlet_edge()
         S = space.stiff_matrix()
         AJIn, JAIn, JJIn = space.interiorEdge_matrix()
-        AJDir, JADir, JJDir = space.DirichletEdge_matrix()
+        AJDir, JADir, JJDir = space.DirichletEdge_matrix(isDirEdge)
 
         A = S - (AJIn + AJDir) + epsilon*(JAIn + JADir) + eta*(JJIn + JJDir)
 
@@ -38,10 +39,11 @@ class PoissonDGModel2d(object):
 
     def get_right_vector(self):
         space = self.space
+        isDirEdge = self.set_Dirichlet_edge()
         f = self.pde.source
-        gD = self.pde.dirichlet
+        uD = self.pde.dirichlet
         fh = space.source_vector(f)
-        JADir, JJDir = space.DirichletEdge_vector(gD)
+        JADir, JJDir = space.DirichletEdge_vector(uD, isDirEdge)
 
         epsilon = self.pde.epsilon
         eta = self.pde.eta
@@ -84,6 +86,15 @@ class PoissonDGModel2d(object):
         e = self.integralalg.integral(f, celltype=True)
 
         return np.sqrt(e.sum())
+
+    def set_Dirichlet_edge(self):
+        mesh = self.mesh
+        edge2cell = mesh.ds.edge_to_cell()
+        bdEdge = (edge2cell[:, 0] == edge2cell[:, 1])  # the bool vars, to get the boundary edges
+
+        isDirEdge = bdEdge  # here, we set all the boundary edges are Dir edges
+
+        return isDirEdge
 
 
 
