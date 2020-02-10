@@ -57,6 +57,8 @@ pmesh = qtree.to_pmesh()  # Excuse me?! It has this operator!
 # -------------------
 
 # ---- plot qtree mesh ----
+isMarkedCell = np.array((False, True, False, False, False))
+qtree.refine(isMarkedCell)
 fig1 = plt.figure()
 axes = fig1.gca()
 qtree.add_plot(axes, cellcolor='w')
@@ -64,6 +66,7 @@ find_entity(axes, qtree, entity='cell', index='all', showindex=True, color='b', 
 find_entity(axes, qtree, entity='edge', index='all', showindex=True, color='r', markersize=10, fontsize=8)
 find_entity(axes, qtree, entity='node', index='all', showindex=True, color='y', markersize=10, fontsize=8)
 plt.show()
+plt.close()
 # -------------------
 
 # ---- plot poly mesh ----
@@ -74,6 +77,7 @@ find_entity(axes, pmesh, entity='cell', index='all', showindex=True, color='b', 
 find_entity(axes, pmesh, entity='edge', index='all', showindex=True, color='r', markersize=10, fontsize=8)
 find_entity(axes, pmesh, entity='node', index='all', showindex=True, color='y', markersize=10, fontsize=8)
 plt.show()
+plt.close()
 # -------------------
 
 

@@ -74,6 +74,7 @@ mesh = triangle(box, h, meshtype='polygon')
 # find_entity(axes, mesh, entity='edge', index='all', showindex=True, color='r', markersize=10, fontsize=8)
 # find_entity(axes, mesh, entity='node', index='all', showindex=True, color='y', markersize=10, fontsize=8)
 # plt.show()
+# plt.close()
 
 
 # --- start for-loop --- #
