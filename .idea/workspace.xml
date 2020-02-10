@@ -35,7 +35,7 @@
     <property name="restartRequiresConfirmation" value="false" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
-  <component name="RunManager" selected="Python.totest_refine_qtree">
+  <component name="RunManager" selected="Python.SFCAVEMRate">
     <configuration name="PoissonDGRate2d" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="FEALPyExamples" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -150,8 +150,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.totest_refine_qtree" />
         <item itemvalue="Python.SFCAVEMRate" />
+        <item itemvalue="Python.totest_refine_qtree" />
         <item itemvalue="Python.totest_PolyMeshIntergal" />
         <item itemvalue="Python.PoissonDGRate2d" />
         <item itemvalue="Python.totest_PoissonFEMRate" />
@@ -206,38 +206,38 @@
       <screen x="0" y="23" width="1280" height="734" />
     </state>
     <state x="104" y="52" width="1071" height="696" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.23.1280.734@0.23.1280.734" timestamp="1580462002823" />
-    <state width="1259" height="150" key="GridCell.Tab.0.bottom" timestamp="1581335595015">
+    <state width="1259" height="150" key="GridCell.Tab.0.bottom" timestamp="1581345978602">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="150" key="GridCell.Tab.0.bottom/0.23.1280.734@0.23.1280.734" timestamp="1581335595015" />
-    <state width="1259" height="150" key="GridCell.Tab.0.center" timestamp="1581335595014">
+    <state width="1259" height="150" key="GridCell.Tab.0.bottom/0.23.1280.734@0.23.1280.734" timestamp="1581345978602" />
+    <state width="1259" height="150" key="GridCell.Tab.0.center" timestamp="1581345978602">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="150" key="GridCell.Tab.0.center/0.23.1280.734@0.23.1280.734" timestamp="1581335595014" />
-    <state width="1259" height="150" key="GridCell.Tab.0.left" timestamp="1581335595014">
+    <state width="1259" height="150" key="GridCell.Tab.0.center/0.23.1280.734@0.23.1280.734" timestamp="1581345978602" />
+    <state width="1259" height="150" key="GridCell.Tab.0.left" timestamp="1581345978601">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="150" key="GridCell.Tab.0.left/0.23.1280.734@0.23.1280.734" timestamp="1581335595014" />
-    <state width="1259" height="150" key="GridCell.Tab.0.right" timestamp="1581335595015">
+    <state width="1259" height="150" key="GridCell.Tab.0.left/0.23.1280.734@0.23.1280.734" timestamp="1581345978601" />
+    <state width="1259" height="150" key="GridCell.Tab.0.right" timestamp="1581345978602">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="150" key="GridCell.Tab.0.right/0.23.1280.734@0.23.1280.734" timestamp="1581335595015" />
-    <state width="1259" height="150" key="GridCell.Tab.1.bottom" timestamp="1581335593781">
+    <state width="1259" height="150" key="GridCell.Tab.0.right/0.23.1280.734@0.23.1280.734" timestamp="1581345978602" />
+    <state width="1259" height="150" key="GridCell.Tab.1.bottom" timestamp="1581345978603">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="150" key="GridCell.Tab.1.bottom/0.23.1280.734@0.23.1280.734" timestamp="1581335593781" />
-    <state width="1259" height="150" key="GridCell.Tab.1.center" timestamp="1581335593780">
+    <state width="1259" height="150" key="GridCell.Tab.1.bottom/0.23.1280.734@0.23.1280.734" timestamp="1581345978603" />
+    <state width="1259" height="150" key="GridCell.Tab.1.center" timestamp="1581345978602">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="150" key="GridCell.Tab.1.center/0.23.1280.734@0.23.1280.734" timestamp="1581335593780" />
-    <state width="1259" height="150" key="GridCell.Tab.1.left" timestamp="1581335593780">
+    <state width="1259" height="150" key="GridCell.Tab.1.center/0.23.1280.734@0.23.1280.734" timestamp="1581345978602" />
+    <state width="1259" height="150" key="GridCell.Tab.1.left" timestamp="1581345978602">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="150" key="GridCell.Tab.1.left/0.23.1280.734@0.23.1280.734" timestamp="1581335593780" />
-    <state width="1259" height="150" key="GridCell.Tab.1.right" timestamp="1581335593781">
+    <state width="1259" height="150" key="GridCell.Tab.1.left/0.23.1280.734@0.23.1280.734" timestamp="1581345978602" />
+    <state width="1259" height="150" key="GridCell.Tab.1.right" timestamp="1581345978603">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="150" key="GridCell.Tab.1.right/0.23.1280.734@0.23.1280.734" timestamp="1581335593781" />
+    <state width="1259" height="150" key="GridCell.Tab.1.right/0.23.1280.734@0.23.1280.734" timestamp="1581345978603" />
     <state x="141" y="29" key="SettingsEditor" timestamp="1580458963320">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
@@ -309,29 +309,19 @@
           <option name="timeStamp" value="53" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/../fealpy_install_folder/fealpy/fealpy/vem/SFCVEMModel2d.py</url>
-          <line>51</line>
-          <option name="timeStamp" value="59" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/../fealpy_install_folder/fealpy/fealpy/fem/PoissonFEMModel.py</url>
           <line>86</line>
           <option name="timeStamp" value="64" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/myExamples/Test/totest_refine_qtree.py</url>
-          <line>84</line>
+          <line>124</line>
           <option name="timeStamp" value="65" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/myExamples/Test/totest_PolyMeshIntergal.py</url>
           <line>75</line>
           <option name="timeStamp" value="66" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/Test/totest_refine_qtree.py</url>
-          <line>72</line>
-          <option name="timeStamp" value="68" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/example/sfcavem/SFCAVEMRate.py</url>

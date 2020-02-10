@@ -57,17 +57,56 @@ pmesh = qtree.to_pmesh()  # Excuse me?! It has this operator!
 # -------------------
 
 # ---- plot qtree mesh ----
-isMarkedCell = np.array((False, True, False, False, False))
-qtree.refine(isMarkedCell)
-fig1 = plt.figure()
-axes = fig1.gca()
-qtree.add_plot(axes, cellcolor='w')
-find_entity(axes, qtree, entity='cell', index='all', showindex=True, color='b', markersize=10, fontsize=8)
-find_entity(axes, qtree, entity='edge', index='all', showindex=True, color='r', markersize=10, fontsize=8)
-find_entity(axes, qtree, entity='node', index='all', showindex=True, color='y', markersize=10, fontsize=8)
-plt.show()
-plt.close()
+# fig1 = plt.figure()
+# axes = fig1.gca()
+# qtree.add_plot(axes, cellcolor='w')
+# find_entity(axes, qtree, entity='cell', index='all', showindex=True, color='b', markersize=10, fontsize=8)
+# find_entity(axes, qtree, entity='edge', index='all', showindex=True, color='r', markersize=10, fontsize=8)
+# find_entity(axes, qtree, entity='node', index='all', showindex=True, color='y', markersize=10, fontsize=8)
+# plt.show()
+# plt.close()
 # -------------------
+
+# ---- plot poly mesh ----
+# fig2 = plt.figure()
+# axes = fig2.gca()
+# pmesh.add_plot(axes, cellcolor='w')
+# find_entity(axes, pmesh, entity='cell', index='all', showindex=True, color='b', markersize=10, fontsize=8)
+# find_entity(axes, pmesh, entity='edge', index='all', showindex=True, color='r', markersize=10, fontsize=8)
+# find_entity(axes, pmesh, entity='node', index='all', showindex=True, color='y', markersize=10, fontsize=8)
+# plt.show()
+# plt.close()
+# -------------------
+
+# --- refine --- #
+for i in range(2):
+    leafCellIdx = qtree.leaf_cell_index()
+    Nleaf = len(leafCellIdx)
+    NC_qtree = qtree.number_of_cells()
+    isMarked = np.zeros(Nleaf, dtype=np.bool)
+    isMarked[1] = True
+    isMarked[-1] = True
+
+    isMarkedCell = np.zeros(NC_qtree, dtype=np.bool)
+    isMarkedCell[leafCellIdx[isMarked]] = True
+    qtree.refine(isMarkedCell)
+
+    # ---- plot qtree mesh ----
+    fig1 = plt.figure()
+    axes = fig1.gca()
+    qtree.add_plot(axes, cellcolor='w')
+    find_entity(axes, qtree, entity='cell', index='all', showindex=True, color='b', markersize=10, fontsize=8)
+    find_entity(axes, qtree, entity='edge', index='all', showindex=True, color='r', markersize=10, fontsize=8)
+    find_entity(axes, qtree, entity='node', index='all', showindex=True, color='y', markersize=10, fontsize=8)
+    plt.show()
+    # plt.close()
+    # -------------------
+
+
+
+
+pmesh = qtree.to_pmesh()
+
 
 # ---- plot poly mesh ----
 fig2 = plt.figure()
@@ -79,6 +118,7 @@ find_entity(axes, pmesh, entity='node', index='all', showindex=True, color='y', 
 plt.show()
 plt.close()
 # -------------------
+
 
 
 # ------------------------------------------------- #
