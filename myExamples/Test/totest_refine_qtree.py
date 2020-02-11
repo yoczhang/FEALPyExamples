@@ -95,6 +95,7 @@ for i in range(1):
     isMarkedCell[markedCellInd] = True
     qtree.refine(isMarkedCell, data=data)
     # parent_refinedqtree = qtree.parent
+    cellLocation = pmesh.ds.cellLocation
 
     # --- coarsen --- #
     leafCellIdx = qtree.leaf_cell_index()
