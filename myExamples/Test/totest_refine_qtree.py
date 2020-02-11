@@ -18,7 +18,6 @@ from fealpy.mesh.QuadrangleMesh import QuadrangleMesh
 from fealpy.functionspace.femdof import CPLFEMDof2d
 from fealpy.mesh.mesh_tools import find_node, find_entity
 
-
 # init settings
 n = 1  # refine times
 p = 2  # polynomial order of FEM space
@@ -79,34 +78,48 @@ pmesh = qtree.to_pmesh()  # Excuse me?! It has this operator!
 # -------------------
 
 # --- refine --- #
-for i in range(2):
+for i in range(1):
     leafCellIdx = qtree.leaf_cell_index()
     Nleaf = len(leafCellIdx)
-    NC_qtree = qtree.number_of_cells()
     isMarked = np.zeros(Nleaf, dtype=np.bool)
     isMarked[1] = True
     isMarked[-1] = True
 
+    data = {}
+    uh = np.ones(pmesh.number_of_nodes())
+    data[0] = uh
+
+    NC_qtree = qtree.number_of_cells()
+    markedCellInd = leafCellIdx[isMarked]
     isMarkedCell = np.zeros(NC_qtree, dtype=np.bool)
-    isMarkedCell[leafCellIdx[isMarked]] = True
-    qtree.refine(isMarkedCell)
+    isMarkedCell[markedCellInd] = True
+    qtree.refine(isMarkedCell, data=data)
+    # parent_refinedqtree = qtree.parent
+
+    # --- coarsen --- #
+    leafCellIdx = qtree.leaf_cell_index()
+    Nleaf = len(leafCellIdx)
+    isMarked = np.zeros(Nleaf, dtype=np.bool)
+    isMarked[-1] = True
+
+    NC_qtree = qtree.number_of_cells()
+    markedCellInd = leafCellIdx[isMarked]
+    isMarkedCell = np.zeros(NC_qtree, dtype=np.bool)
+    isMarkedCell[markedCellInd] = True
+    qtree.coarsen(isMarkedCell)
 
     # ---- plot qtree mesh ----
-    fig1 = plt.figure()
-    axes = fig1.gca()
-    qtree.add_plot(axes, cellcolor='w')
-    find_entity(axes, qtree, entity='cell', index='all', showindex=True, color='b', markersize=10, fontsize=8)
-    find_entity(axes, qtree, entity='edge', index='all', showindex=True, color='r', markersize=10, fontsize=8)
-    find_entity(axes, qtree, entity='node', index='all', showindex=True, color='y', markersize=10, fontsize=8)
-    plt.show()
+    # fig1 = plt.figure()
+    # axes = fig1.gca()
+    # qtree.add_plot(axes, cellcolor='w')
+    # find_entity(axes, qtree, entity='cell', index='all', showindex=True, color='b', markersize=10, fontsize=8)
+    # find_entity(axes, qtree, entity='edge', index='all', showindex=True, color='r', markersize=10, fontsize=8)
+    # find_entity(axes, qtree, entity='node', index='all', showindex=True, color='y', markersize=10, fontsize=8)
+    # plt.show()
     # plt.close()
     # -------------------
 
-
-
-
 pmesh = qtree.to_pmesh()
-
 
 # ---- plot poly mesh ----
 fig2 = plt.figure()
@@ -118,7 +131,6 @@ find_entity(axes, pmesh, entity='node', index='all', showindex=True, color='y', 
 plt.show()
 plt.close()
 # -------------------
-
 
 
 # ------------------------------------------------- #
