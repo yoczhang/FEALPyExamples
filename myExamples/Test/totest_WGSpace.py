@@ -64,6 +64,8 @@ multiIndex1d = wgdof.multi_index_matrix1d()
 
 wgsp = WeakGalerkinSpace2d(pmesh, p)
 
+edge2cell = pmesh.ds.edge2cell
+idx = cell2dofLocation[edge2cell[:, [0]]] + edge2cell[:, [2]]*(p+1) + np.arange(p+1)
 
 
 # ------------------------------------------------- #
