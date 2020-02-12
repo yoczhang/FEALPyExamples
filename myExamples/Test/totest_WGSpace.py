@@ -18,6 +18,9 @@ from fealpy.mesh.StructureQuadMesh import StructureQuadMesh
 from fealpy.mesh.QuadrangleMesh import QuadrangleMesh
 from fealpy.functionspace.WeakGalerkinSpace2d import WGDof2d, WeakGalerkinSpace2d
 from fealpy.mesh.mesh_tools import find_entity
+from fealpy.functionspace.ScaledMonomialSpace2d import SMDof2d, ScaledMonomialSpace2d
+from fealpy.quadrature import GaussLegendreQuadrature
+from fealpy.quadrature import PolygonMeshIntegralAlg
 
 # init settings
 n = 1  # refine times
@@ -57,16 +60,71 @@ pmesh = qtree.to_pmesh()  # Excuse me?! It has this operator!
 # -------------------
 
 
-# --- WG space
+# #
+# #
+# --- WG space test --- #
+
+smspace = ScaledMonomialSpace2d(pmesh, p)
 wgdof = WGDof2d(pmesh, p)
-cell2dof, cell2dofLocation = wgdof.cell_to_dof()
+wgsp = WeakGalerkinSpace2d(pmesh, p)
+integralalg = smspace.integralalg
+
 multiIndex1d = wgdof.multi_index_matrix1d()
 
-wgsp = WeakGalerkinSpace2d(pmesh, p)
+# smldof = smspace.number_of_local_dofs()
+# cell2dof, cell2dofLocation = wgdof.cell2dof, wgdof.cell2dofLocation
+# R0 = np.zeros((smldof, len(cell2dof)), dtype=np.float)
+# R1 = np.zeros((smldof, len(cell2dof)), dtype=np.float)
+#
+# edge2cell = pmesh.ds.edge2cell
+# idx = cell2dofLocation[edge2cell[:, [0]]] + edge2cell[:, [2]] * (p + 1) + np.arange(p + 1)
 
-edge2cell = pmesh.ds.edge2cell
-idx = cell2dofLocation[edge2cell[:, [0]]] + edge2cell[:, [2]]*(p+1) + np.arange(p+1)
+# --- test begin --- #
+node = pmesh.entity('node')
+edge = pmesh.entity('edge')
+edge2cell = pmesh.ds.edge_to_cell()
+isInEdge = (edge2cell[:, 0] != edge2cell[:, 1])
 
+h = integralalg.edgemeasure
+n = pmesh.edge_unit_normal()
+
+qf = GaussLegendreQuadrature(p + 3)
+bcs, ws = qf.quadpts, qf.weights
+ps = np.einsum('ij, kjm->ikm', bcs, node[edge])
+phi0 = smspace.basis(ps, index=edge2cell[:, 0])
+phi1 = smspace.basis(ps[:, isInEdge, :], index=edge2cell[isInEdge, 1])
+phi = smspace.edge_basis(ps)
+
+F0 = np.einsum('i, ijm, ijn, j->mjn', ws, phi0, phi, h)
+F1 = np.einsum('i, ijm, ijn, j->mjn', ws, phi1, phi[:, isInEdge, :], h[isInEdge])
+
+smldof = smspace.number_of_local_dofs()
+cell2dof, cell2dofLocation = wgdof.cell2dof, wgdof.cell2dofLocation
+R0 = np.zeros((smldof, len(cell2dof)), dtype=np.float)
+R1 = np.zeros((smldof, len(cell2dof)), dtype=np.float)
+
+idx = cell2dofLocation[edge2cell[:, [0]]] + edge2cell[:, [2]] * (p + 1) + np.arange(p + 1)
+R0[:, idx] = n[np.newaxis, :, [0]] * F0
+R1[:, idx] = n[np.newaxis, :, [1]] * F0
+if isInEdge.sum() > 0:
+    idx1 = cell2dofLocation[edge2cell[isInEdge, 1]].reshape(-1, 1) \
+          + (p + 1) * edge2cell[isInEdge, [3]].reshape(-1, 1) + np.arange(p + 1)
+    n = n[isInEdge]
+    R0[:, idx1] = -n[np.newaxis, :, [0]] * F1  # 这里应该加上负号
+    R1[:, idx1] = -n[np.newaxis, :, [1]] * F1  # 这里应该加上负号
+
+
+def f(x, index):
+    gphi = smspace.grad_basis(x, index)
+    phi = smspace.basis(x, index)
+    return np.einsum('...mn, ...k->...nmk', gphi, phi)
+
+
+M = integralalg.integral(f, celltype=True)
+idof = (p + 1) * (p + 2) // 2
+idx = cell2dofLocation[1:].reshape(-1, 1) + np.arange(-idof, 0)
+R0[:, idx] = -M[:, 0].swapaxes(0, 1)
+R1[:, idx] = -M[:, 1].swapaxes(0, 1)
 
 # ------------------------------------------------- #
 print("End of this test file")
