@@ -126,5 +126,7 @@ idx = cell2dofLocation[1:].reshape(-1, 1) + np.arange(-idof, 0)
 R0[:, idx] = -M[:, 0].swapaxes(0, 1)
 R1[:, idx] = -M[:, 1].swapaxes(0, 1)
 
+tR0 = np.hsplit(R0, cell2dofLocation[1:-1])
+
 # ------------------------------------------------- #
 print("End of this test file")
