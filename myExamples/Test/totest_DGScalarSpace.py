@@ -12,11 +12,8 @@
 
 # This file is to test the DGScalarSpace2d.py which is inherited from the ScaledMonomialSpace2d.py
 
-import sys
-sys.path.append("/Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/DG_Poisson")
 
 from DGScalarSpace2d import DGScalarDof2d, DGScalarSpace2d
-
 import numpy as np
 import matplotlib.pyplot as plt
 from fealpy.mesh.TriangleMesh import TriangleMesh
@@ -28,6 +25,9 @@ from fealpy.mesh.mesh_tools import find_node, find_entity
 from fealpy.quadrature.GaussLegendreQuadrature import GaussLegendreQuadrature
 from fealpy.functionspace.ScaledMonomialSpace2d import SMDof2d, ScaledMonomialSpace2d
 from fealpy.mesh.simple_mesh_generator import triangle
+
+import sys
+sys.path.append("/Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/DG_Poisson")
 
 
 
@@ -81,7 +81,7 @@ edge = mesh.entity('edge')
 # -----------
 dgspace = DGScalarSpace2d(mesh, p)
 massM = dgspace.mass_matrix()
-AJ, JA, JJ = dgspace.getInEdgeMatrix()
+AJ, JA, JJ = dgspace.interiorEdge_matrix()
 
 
 # -----------

@@ -48,7 +48,7 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
         (4) n_e: the unit-normal-vector of edge 'e'.
             In FEALPy, n_e is given by nm=mesh.edge_normal() (NE,2).
             Note that, the length of the normal-vector 'nm' isn't 1, is the length of corresponding edge.
-            And the The direction of normal vector is from edge2cell[i,0] to edge2cell[i,1]
+            And the direction of normal vector is from edge2cell[i,0] to edge2cell[i,1]
             (that is, from the cell with smaller number to the cell with larger number).
 
 
