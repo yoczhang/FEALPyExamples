@@ -14,7 +14,7 @@ from fealpy.pde.poisson_2d import CosCosData as PDE
 import numpy as np
 import matplotlib.pyplot as plt
 from fealpy.tools.show import showmultirate, show_error_table
-from PoissonDGModel2d import PoissonDGModel2d
+from newPoissonDGModel2d import PoissonDGModel2d
 from fealpy.mesh.simple_mesh_generator import triangle
 from fealpy.mesh.mesh_tools import find_entity
 
@@ -81,7 +81,7 @@ mesh = triangle(box, h, meshtype='polygon')
 for i in range(maxit):
     dg = PoissonDGModel2d(pde, mesh, p)
     ls = dg.solve()
-    Ndof[i] = dg.space.number_of_global_dofs()  # get the number of dofs
+    Ndof[i] = dg.smspace.number_of_global_dofs()  # get the number of dofs
     errorMatrix[0, i] = dg.L2_error()  # get the L2 error
     errorMatrix[1, i] = dg.H1_semi_error()  # get the H1-semi error
     if i < maxit - 1:
