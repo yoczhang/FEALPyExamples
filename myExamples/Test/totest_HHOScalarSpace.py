@@ -10,7 +10,7 @@
 # ---
 
 
-from HHOScalarSpace2d import HHOScalarSpace2d
+from HHOScalarSpace2d import HHODof2d, HHOScalarSpace2d
 import numpy as np
 import matplotlib.pyplot as plt
 from fealpy.mesh.TriangleMesh import TriangleMesh
@@ -21,6 +21,7 @@ from fealpy.functionspace.femdof import CPLFEMDof2d
 from fealpy.mesh.mesh_tools import find_node, find_entity
 from fealpy.quadrature.GaussLegendreQuadrature import GaussLegendreQuadrature
 from fealpy.mesh.simple_mesh_generator import triangle
+from fealpy.functionspace.ScaledMonomialSpace2d import SMDof2d, ScaledMonomialSpace2d
 
 
 # init settings
@@ -63,12 +64,34 @@ pmesh = qtree.to_pmesh()  # Excuse me?! It has this operator!
 
 # #
 # #
-# --- HHO space test --- #
+# --- HHO space setting --- #
+smspace = ScaledMonomialSpace2d(pmesh, p)
+integralalg = smspace.integralalg
 hhospace = HHOScalarSpace2d(pmesh, p)
+hhodof = HHODof2d(pmesh, p)
+multiIndex1d = hhodof.multi_index_matrix1d()
 
 
-pphi0 = hhospace.reconstruction_matrix()
+# --- test begin --- #
+hhospace.reconstruction_matrix()
 
+node = pmesh.entity('node')
+edge = pmesh.entity('edge')
+edge2cell = pmesh.ds.edge_to_cell()
+isInEdge = (edge2cell[:, 0] != edge2cell[:, 1])
+
+h = integralalg.edgemeasure
+n = pmesh.edge_unit_normal()
+
+qf = GaussLegendreQuadrature(p + 3)
+bcs, ws = qf.quadpts, qf.weights
+ps = np.einsum('ij, kjm->ikm', bcs, node[edge])
+phi0 = smspace.basis(ps, index=edge2cell[:, 0])  # (NQ,NE,smldof)
+phi1 = smspace.basis(ps[:, isInEdge, :], index=edge2cell[isInEdge, 1])  # (NQ,NInE,smldof)
+ephi = smspace.edge_basis(ps)  # (NQ,NE,ldof1d)
+
+cell2dof, cell2dofLocation = hhospace.dof.cell2dof, hhospace.dof.cell2dofLocation
+idx = cell2dofLocation[edge2cell[:, [0]]] + edge2cell[:, [2]] * (p + 1) + np.arange(p + 1)  # (NE,eldof)
 
 
 # ------------------------------------------------- #

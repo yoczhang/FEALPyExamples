@@ -24,6 +24,7 @@ class HHODof2d():
     """
     The dof manager of HHO 2d space.
     """
+
     def __init__(self, mesh, p):
         self.p = p
         self.mesh = mesh
@@ -50,7 +51,7 @@ class HHODof2d():
         p = self.p
         mesh = self.mesh
         NE = mesh.number_of_edges()
-        edge2dof = np.arange(NE*(p+1)).reshape(NE, p+1)
+        edge2dof = np.arange(NE * (p + 1)).reshape(NE, p + 1)
         return edge2dof
 
     def cell_to_dof(self):
@@ -70,24 +71,25 @@ class HHODof2d():
         NC = mesh.number_of_cells()
 
         ldof = self.number_of_local_dofs()
-        cell2dofLocation = np.zeros(NC+1, dtype=np.int)
+        cell2dofLocation = np.zeros(NC + 1, dtype=np.int)
         cell2dofLocation[1:] = np.add.accumulate(ldof)
         cell2dof = np.zeros(cell2dofLocation[-1], dtype=np.int)
 
         edge2dof = self.edge_to_dof()
         edge2cell = mesh.ds.edge_to_cell()
-        idx = cell2dofLocation[edge2cell[:, [0]]] + edge2cell[:, [2]]*(p+1) + np.arange(p+1)
+        idx = cell2dofLocation[edge2cell[:, [0]]] + edge2cell[:, [2]] * (p + 1) + np.arange(p + 1)
         cell2dof[idx] = edge2dof
 
         isInEdge = (edge2cell[:, 0] != edge2cell[:, 1])
-        idx = (cell2dofLocation[edge2cell[isInEdge, 1]] + edge2cell[isInEdge, 3]*(p+1)).reshape(-1, 1) + np.arange(p+1)
+        idx = (cell2dofLocation[edge2cell[isInEdge, 1]] + edge2cell[isInEdge, 3] * (p + 1)).reshape(-1, 1) + np.arange(
+            p + 1)
         cell2dof[idx] = edge2dof[isInEdge]
 
         NV = mesh.number_of_vertices_of_cells()
         NE = mesh.number_of_edges()
-        idof = (p+1)*(p+2)//2
-        idx = (cell2dofLocation[:-1] + NV*(p+1)).reshape(-1, 1) + np.arange(idof)
-        cell2dof[idx] = NE*(p+1) + np.arange(NC*idof).reshape(NC, idof)
+        idof = (p + 1) * (p + 2) // 2
+        idx = (cell2dofLocation[:-1] + NV * (p + 1)).reshape(-1, 1) + np.arange(idof)
+        cell2dof[idx] = NE * (p + 1) + np.arange(NC * idof).reshape(NC, idof)
         return cell2dof, cell2dofLocation
 
     def number_of_global_dofs(self):
@@ -95,14 +97,14 @@ class HHODof2d():
         mesh = self.mesh
         NE = mesh.number_of_edges()
         NC = mesh.number_of_cells()
-        gdof = NE*(p+1) + NC*(p+1)*(p+2)//2
+        gdof = NE * (p + 1) + NC * (p + 1) * (p + 2) // 2
         return gdof
 
     def number_of_local_dofs(self):
         p = self.p
         mesh = self.mesh
         NCE = mesh.number_of_edges_of_cells()
-        ldofs = NCE*(p+1) + (p+1)*(p+2)//2
+        ldofs = NCE * (p + 1) + (p + 1) * (p + 2) // 2
         return ldofs
 
 
@@ -137,19 +139,20 @@ class HHOScalarSpace2d():
         return self.dof.edge_to_dof()
 
     def cell_to_dof(self, doftype='all'):
-        if doftype is 'all':
+        if doftype == 'all':
             return self.dof.cell2dof, self.dof.cell2dofLocation
-        elif doftype is 'cell':
+        elif doftype == 'cell':
             p = self.p
             NE = self.mesh.number_of_edges()
             NC = self.mesh.number_of_cells()
-            idof = (p+1)*(p+2)//2
-            cell2dof = NE*(p+1) + np.arange(NC*idof).reshape(NC, idof)
+            idof = (p + 1) * (p + 2) // 2
+            cell2dof = NE * (p + 1) + np.arange(NC * idof).reshape(NC, idof)
             return cell2dof
 
     def reconstruction_matrix(self):
         p = self.p
         mesh = self.mesh
+        NC = mesh.number_of_cells()
         node = mesh.entity('node')
         edge = mesh.entity('edge')
         edge2cell = mesh.ds.edge_to_cell()
@@ -165,15 +168,43 @@ class HHOScalarSpace2d():
         ps = np.einsum('ij, kjm->ikm', bcs, node[edge])  # (NQ,NE,2), NE is the number of edges
 
         # --- the basis values at ps --- #
-        # # phi0, phi1 are the potential variable, are trial functions, taking order p;
+        # # phi0, phi1 are the potential variable, are trial functions, taking order p,
         # # pphi0, pphi1 are the test functions, taking order p+1.
+        # # So, in the following,
+        # # smldof denotes the number of local dofs in smspace in order p,
+        # # psmldof denotes the number of local dofs in smspace in order p+1.
+        # #
         phi0 = self.basis(ps, index=edge2cell[:, 0])  # (NQ,NE,smldof)
         phi1 = self.basis(ps[:, isInEdge, :], index=edge2cell[isInEdge, 1])
 
-        gpphi0 = self.grad_basis(ps, index=edge2cell[:, 0], p=p+1)  # (NQ,NE,smldof,2)
-        gpphi1 = self.grad_basis(ps[:, isInEdge, :], index=edge2cell[isInEdge, 1], p=p+1)  # (NQ,NInE,smldof,2)
+        gpphi0 = self.grad_basis(ps, index=edge2cell[:, 0], p=p + 1)  # (NQ,NE,psmldof,2),
+        gpphi1 = self.grad_basis(ps[:, isInEdge, :], index=edge2cell[isInEdge, 1], p=p + 1)  # (NQ,NInE,psmldof,2)
 
+        ephi = self.edge_basis(ps)  # (NQ,NE,eldof), eldof is the number of local 1D dofs on one edge
 
+        # --- construct different matrix --- #
+        smldof = self.smspace.number_of_local_dofs()
+        psmldof = self.smspace.number_of_local_dofs(p=p + 1)
+        cell2dof, cell2dofLocation = self.dof.cell2dof, self.dof.cell2dofLocation
+        R = np.zeros((psmldof, len(cell2dof)), dtype=np.float)
+        # # (psmldof,NC*Cldof), Cldof is the number of dofs in one cell
+
+        T0 = np.einsum('i, ijk, ijmn, jn, j->jmk', ws, phi0, gpphi0, n, hE)  # (NE,psmldof,smldof)
+        T1 = np.einsum('i, ijk, ijmn, jn, j->jmk', ws, phi1, gpphi1, -n[isInEdge, :], hE[isInEdge])
+        # # (NInE,psmldof,smldof)
+        T = np.zeros((NC, psmldof, smldof), dtype=np.float)  # (NC,psmldof,smldof)
+        np.add.at(T, edge2cell[:, 0], T0)
+        np.add.at(T, edge2cell[isInEdge, 1], T1)
+
+        idx = cell2dofLocation[edge2cell[:, 0] + 1].reshape(-1, 1) + np.arange(-smldof, 0)  # (NE,smldof)
+        np.add.at(R, idx, T0)
+
+        F0 = np.einsum('i, ijk, ijmn, jn, j->mjk', ws, ephi, gpphi0, n, hE)  # (psmldof,NE,eldof)
+        F1 = np.einsum('i, ijk, ijmn, jn, j->mjk', ws, ephi[:, isInEdge, :], gpphi1, -n[isInEdge, :], hE[isInEdge])
+        # # (psmldof,NInE,eldof)
+
+        idx = cell2dofLocation[edge2cell[:, [0]]] + edge2cell[:, [2]] * (p + 1) + np.arange(p + 1)  # (NE,eldof)
+        R[:, idx] = F0
 
     def basis(self, point, index=None, p=None):
         return self.smspace.basis(point, index=index, p=p)
@@ -195,10 +226,5 @@ class HHOScalarSpace2d():
         elif type(dim) is int:
             shape = (gdof, dim)
         elif type(dim) is tuple:
-            shape = (gdof, ) + dim
+            shape = (gdof,) + dim
         return np.zeros(shape, dtype=np.float)
-
-
-
-
-
