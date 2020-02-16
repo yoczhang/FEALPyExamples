@@ -123,7 +123,7 @@ class HHOScalarSpace2d():
 
         self.integralalg = self.smspace.integralalg
 
-        self.R = self.reconstruction_matrix()  # (psmldof,NC*Cldof)
+        self.Co = self.construction_matrix()  # (psmldof,NC*Cldof)
 
         self.CM = self.smspace.cell_mass_matrix()  # (NC,smldof,smldof), smldof is the number of local dofs of smspace
         self.EM = self.smspace.edge_mass_matrix()  # (NE,eldof,eldof), eldof is the number of local 1D dofs on one edge
@@ -151,7 +151,7 @@ class HHOScalarSpace2d():
             cell2dof = NE * (p + 1) + np.arange(NC * idof).reshape(NC, idof)
             return cell2dof
 
-    def reconstruction_matrix(self):
+    def construction_matrix(self):
         p = self.p
         mesh = self.mesh
         NC = mesh.number_of_cells()
@@ -189,7 +189,8 @@ class HHOScalarSpace2d():
         psmldof = self.smspace.number_of_local_dofs(p=p + 1)
         eldof = p + 1  # the number of local 1D dofs on one edge
         cell2dof, cell2dofLocation = self.dof.cell2dof, self.dof.cell2dofLocation
-        R = np.zeros((psmldof, len(cell2dof)), dtype=np.float)  # (psmldof,NC*Cldof), Cldof is the number of dofs in one cell
+        Co = np.zeros((psmldof, len(cell2dof)),
+                     dtype=np.float)  # (psmldof,NC*Cldof), Cldof is the number of dofs in one cell
 
         # --- edge integration. Part I: (-v_T, \nabla w\cdot n)_{\partial T}
         T0 = np.einsum('i, ijk, ijmn, jn, j->jmk', ws, phi0, gpphi0, n, hE)  # (NE,psmldof,smldof)
@@ -206,32 +207,61 @@ class HHOScalarSpace2d():
 
         idx = cell2dofLocation[edge2cell[:, [0]]] + edge2cell[:, [2]] * eldof + np.arange(eldof)  # (NE,eldof)
         idx += smldof  # rearrange the dofs
-        R[:, idx] = F0
+        Co[:, idx] = F0
         idx = cell2dofLocation[edge2cell[isInEdge, 1]].reshape(-1, 1) + \
               eldof * edge2cell[isInEdge, [3]].reshape(-1, 1) + np.arange(eldof)  # (NInE,eldof)
         idx += smldof  # rearrange the dofs
-        R[:, idx] = F1
+        Co[:, idx] = F1
 
         # --- the stiff matrix, (\nabla v, \nabla w)_T
         def f(x, index):
-            gphi = self.grad_basis(x, index)
-            gpphi = self.grad_basis(x, index, p=p+1)
+            gphi = self.grad_basis(x, index=index)
+            gpphi = self.grad_basis(x, index=index, p=p + 1)
             return np.einsum('...mn, ...kn->...km', gphi, gpphi)
+
         S = self.integralalg.integral(f, celltype=True)  # (NC,psmldof,smldof)
         np.add.at(T, np.arange(NC), S)  # T.shape: (NC,psmldof,smldof)
-        idx = cell2dofLocation[0:-1].reshape(-1, 1) + np.arange(smldof)  # (NE,smldof)
-        R[:, idx] = T.swapaxes(0, 1)  # R.shape: (psmldof,NC*Cldof)
+        idx = cell2dofLocation[0:-1].reshape(-1, 1) + np.arange(smldof)  # (NC,smldof)
+        Co[:, idx] = T.swapaxes(0, 1)  # R.shape: (psmldof,NC*Cldof)
 
-        return R
+        return Co
 
-    def reconstruction_stiff_matrix(self):
-        mesh = self.mesh
+    def reconstruction_matrix(self):
+        p = self.p
+        Co = self.Co
+        cell2dofLocation = self.dof.cell2dofLocation
+        smldof = self.smspace.number_of_local_dofs()
 
-        
+        # --- left stiff matrix and the additional condition
+        def f(x, index):
+            gpphi = self.grad_basis(x, index=index, p=p + 1)
+            return np.einsum('...mn, ...kn->...km', gpphi, gpphi)
+        ls = self.integralalg.integral(f, celltype=True)  # (NC,psmldof,psmldof)
+
+        def f(x, index):
+            return self.basis(x, index=index, p=p + 1)
+        l1 = self.integralalg.integral(f, celltype=True)  # (NC,psmldof)
+
+        def f(x, index):
+            return self.basis(x, index=index, p=p)
+        r1 = self.integralalg.integral(f, celltype=True)  # (NC,smldof)
+
+        # --- modify the matrix
+        ls[:, 0, :] = l1
+        idx = cell2dofLocation[0:-1].reshape(-1, 1) + np.arange(smldof)  # (NC,smldof)
+        Co[0, idx] = r1  # (NC,NC*Cldof)
+
+        # --- reconstruction matrix
+        invls = inv(ls)  # (NC,psmldof,psmldof)
+        Csplit = np.hsplit(Co, cell2dofLocation[1:-1])  # list, len(Csplit) is NC, Csplit[i].shape is (psmldof,Cldof)
+
+        f = lambda x: x[0] @ x[1]
+        Re = np.concatenate(list(map(f, zip(invls, Csplit))), axis=1)
+
+        return Re
 
     def stabilizer_matrix(self):
         mesh = self.mesh
-
 
     def basis(self, point, index=None, p=None):
         return self.smspace.basis(point, index=index, p=p)

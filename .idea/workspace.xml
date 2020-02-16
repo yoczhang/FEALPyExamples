@@ -206,38 +206,38 @@
       <screen x="0" y="23" width="1280" height="734" />
     </state>
     <state x="104" y="52" width="1071" height="696" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.23.1280.734@0.23.1280.734" timestamp="1580462002823" />
-    <state width="1259" height="96" key="GridCell.Tab.0.bottom" timestamp="1581828427247">
+    <state width="1259" height="223" key="GridCell.Tab.0.bottom" timestamp="1581845041709">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="96" key="GridCell.Tab.0.bottom/0.23.1280.734@0.23.1280.734" timestamp="1581828427247" />
-    <state width="1259" height="96" key="GridCell.Tab.0.center" timestamp="1581828427246">
+    <state width="1259" height="223" key="GridCell.Tab.0.bottom/0.23.1280.734@0.23.1280.734" timestamp="1581845041709" />
+    <state width="1259" height="223" key="GridCell.Tab.0.center" timestamp="1581845041708">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="96" key="GridCell.Tab.0.center/0.23.1280.734@0.23.1280.734" timestamp="1581828427246" />
-    <state width="1259" height="96" key="GridCell.Tab.0.left" timestamp="1581828427246">
+    <state width="1259" height="223" key="GridCell.Tab.0.center/0.23.1280.734@0.23.1280.734" timestamp="1581845041708" />
+    <state width="1259" height="223" key="GridCell.Tab.0.left" timestamp="1581845041708">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="96" key="GridCell.Tab.0.left/0.23.1280.734@0.23.1280.734" timestamp="1581828427246" />
-    <state width="1259" height="96" key="GridCell.Tab.0.right" timestamp="1581828427247">
+    <state width="1259" height="223" key="GridCell.Tab.0.left/0.23.1280.734@0.23.1280.734" timestamp="1581845041708" />
+    <state width="1259" height="223" key="GridCell.Tab.0.right" timestamp="1581845041709">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="96" key="GridCell.Tab.0.right/0.23.1280.734@0.23.1280.734" timestamp="1581828427247" />
-    <state width="1259" height="96" key="GridCell.Tab.1.bottom" timestamp="1581828425385">
+    <state width="1259" height="223" key="GridCell.Tab.0.right/0.23.1280.734@0.23.1280.734" timestamp="1581845041709" />
+    <state width="1259" height="223" key="GridCell.Tab.1.bottom" timestamp="1581845016804">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="96" key="GridCell.Tab.1.bottom/0.23.1280.734@0.23.1280.734" timestamp="1581828425385" />
-    <state width="1259" height="96" key="GridCell.Tab.1.center" timestamp="1581828425384">
+    <state width="1259" height="223" key="GridCell.Tab.1.bottom/0.23.1280.734@0.23.1280.734" timestamp="1581845016804" />
+    <state width="1259" height="223" key="GridCell.Tab.1.center" timestamp="1581845016804">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="96" key="GridCell.Tab.1.center/0.23.1280.734@0.23.1280.734" timestamp="1581828425384" />
-    <state width="1259" height="96" key="GridCell.Tab.1.left" timestamp="1581828425384">
+    <state width="1259" height="223" key="GridCell.Tab.1.center/0.23.1280.734@0.23.1280.734" timestamp="1581845016804" />
+    <state width="1259" height="223" key="GridCell.Tab.1.left" timestamp="1581845016803">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="96" key="GridCell.Tab.1.left/0.23.1280.734@0.23.1280.734" timestamp="1581828425384" />
-    <state width="1259" height="96" key="GridCell.Tab.1.right" timestamp="1581828425384">
+    <state width="1259" height="223" key="GridCell.Tab.1.left/0.23.1280.734@0.23.1280.734" timestamp="1581845016803" />
+    <state width="1259" height="223" key="GridCell.Tab.1.right" timestamp="1581845016804">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="96" key="GridCell.Tab.1.right/0.23.1280.734@0.23.1280.734" timestamp="1581828425384" />
+    <state width="1259" height="223" key="GridCell.Tab.1.right/0.23.1280.734@0.23.1280.734" timestamp="1581845016804" />
     <state x="141" y="29" key="SettingsEditor" timestamp="1580458963320">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
@@ -345,7 +345,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/myExamples/Test/totest_HHOScalarSpace.py</url>
-          <line>97</line>
+          <line>99</line>
           <option name="timeStamp" value="97" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -355,7 +355,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/myExamples/Test/totest_HHOScalarSpace.py</url>
-          <line>77</line>
+          <line>79</line>
           <option name="timeStamp" value="100" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -365,8 +365,8 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/myExamples/HHO/HHOScalarSpace2d.py</url>
-          <line>224</line>
-          <option name="timeStamp" value="107" />
+          <line>257</line>
+          <option name="timeStamp" value="109" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
