@@ -123,6 +123,8 @@ class HHOScalarSpace2d():
 
         self.integralalg = self.smspace.integralalg
 
+        self.R = self.reconstruction_matrix()  # (psmldof,NC*Cldof)
+
         self.CM = self.smspace.cell_mass_matrix()  # (NC,smldof,smldof), smldof is the number of local dofs of smspace
         self.EM = self.smspace.edge_mass_matrix()  # (NE,eldof,eldof), eldof is the number of local 1D dofs on one edge
 
@@ -185,26 +187,51 @@ class HHOScalarSpace2d():
         # --- construct different matrix --- #
         smldof = self.smspace.number_of_local_dofs()
         psmldof = self.smspace.number_of_local_dofs(p=p + 1)
+        eldof = p + 1  # the number of local 1D dofs on one edge
         cell2dof, cell2dofLocation = self.dof.cell2dof, self.dof.cell2dofLocation
-        R = np.zeros((psmldof, len(cell2dof)), dtype=np.float)
-        # # (psmldof,NC*Cldof), Cldof is the number of dofs in one cell
+        R = np.zeros((psmldof, len(cell2dof)), dtype=np.float)  # (psmldof,NC*Cldof), Cldof is the number of dofs in one cell
 
+        # --- edge integration. Part I: (-v_T, \nabla w\cdot n)_{\partial T}
         T0 = np.einsum('i, ijk, ijmn, jn, j->jmk', ws, phi0, gpphi0, n, hE)  # (NE,psmldof,smldof)
-        T1 = np.einsum('i, ijk, ijmn, jn, j->jmk', ws, phi1, gpphi1, -n[isInEdge, :], hE[isInEdge])
-        # # (NInE,psmldof,smldof)
+        T1 = np.einsum('i, ijk, ijmn, jn, j->jmk', ws, phi1, gpphi1,
+                       -n[isInEdge, :], hE[isInEdge])  # (NInE,psmldof,smldof)
         T = np.zeros((NC, psmldof, smldof), dtype=np.float)  # (NC,psmldof,smldof)
-        np.add.at(T, edge2cell[:, 0], T0)
-        np.add.at(T, edge2cell[isInEdge, 1], T1)
+        np.add.at(T, edge2cell[:, 0], -T0)
+        np.add.at(T, edge2cell[isInEdge, 1], -T1)
 
-        idx = cell2dofLocation[edge2cell[:, 0] + 1].reshape(-1, 1) + np.arange(-smldof, 0)  # (NE,smldof)
-        np.add.at(R, idx, T0)
-
+        # --- edge integration. Part II: (v_F, \nabla w\cdot n)_{\partial T}
         F0 = np.einsum('i, ijk, ijmn, jn, j->mjk', ws, ephi, gpphi0, n, hE)  # (psmldof,NE,eldof)
-        F1 = np.einsum('i, ijk, ijmn, jn, j->mjk', ws, ephi[:, isInEdge, :], gpphi1, -n[isInEdge, :], hE[isInEdge])
-        # # (psmldof,NInE,eldof)
+        F1 = np.einsum('i, ijk, ijmn, jn, j->mjk', ws, ephi[:, isInEdge, :], gpphi1,
+                       -n[isInEdge, :], hE[isInEdge])  # (psmldof,NInE,eldof)
 
-        idx = cell2dofLocation[edge2cell[:, [0]]] + edge2cell[:, [2]] * (p + 1) + np.arange(p + 1)  # (NE,eldof)
+        idx = cell2dofLocation[edge2cell[:, [0]]] + edge2cell[:, [2]] * eldof + np.arange(eldof)  # (NE,eldof)
+        idx += smldof  # rearrange the dofs
         R[:, idx] = F0
+        idx = cell2dofLocation[edge2cell[isInEdge, 1]].reshape(-1, 1) + \
+              eldof * edge2cell[isInEdge, [3]].reshape(-1, 1) + np.arange(eldof)  # (NInE,eldof)
+        idx += smldof  # rearrange the dofs
+        R[:, idx] = F1
+
+        # --- the stiff matrix, (\nabla v, \nabla w)_T
+        def f(x, index):
+            gphi = self.grad_basis(x, index)
+            gpphi = self.grad_basis(x, index, p=p+1)
+            return np.einsum('...mn, ...kn->...km', gphi, gpphi)
+        S = self.integralalg.integral(f, celltype=True)  # (NC,psmldof,smldof)
+        np.add.at(T, np.arange(NC), S)  # T.shape: (NC,psmldof,smldof)
+        idx = cell2dofLocation[0:-1].reshape(-1, 1) + np.arange(smldof)  # (NE,smldof)
+        R[:, idx] = T.swapaxes(0, 1)  # R.shape: (psmldof,NC*Cldof)
+
+        return R
+
+    def reconstruction_stiff_matrix(self):
+        mesh = self.mesh
+
+        
+
+    def stabilizer_matrix(self):
+        mesh = self.mesh
+
 
     def basis(self, point, index=None, p=None):
         return self.smspace.basis(point, index=index, p=p)
