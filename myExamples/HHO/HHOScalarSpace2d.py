@@ -17,7 +17,7 @@ from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, spdiags, eye
 from fealpy.functionspace.function import Function
 from fealpy.quadrature import GaussLegendreQuadrature
 from fealpy.quadrature import PolygonMeshIntegralAlg
-from fealpy.functionspace.ScaledMonomialSpace2d import ScaledMonomialSpace2d
+from fealpy.functionspace.ScaledMonomialSpace2d import SMDof2d, ScaledMonomialSpace2d
 
 
 class HHODof2d():
@@ -124,6 +124,8 @@ class HHOScalarSpace2d():
         self.integralalg = self.smspace.integralalg
 
         self.Co = self.construction_matrix()  # (psmldof,NC*Cldof)
+
+        self.Re = self.reconstruction_matrix()  # (psmldof,NC*Cldof)
 
         self.CM = self.smspace.cell_mass_matrix()  # (NC,smldof,smldof), smldof is the number of local dofs of smspace
         self.EM = self.smspace.edge_mass_matrix()  # (NE,eldof,eldof), eldof is the number of local 1D dofs on one edge
@@ -232,11 +234,12 @@ class HHOScalarSpace2d():
         cell2dofLocation = self.dof.cell2dofLocation
         smldof = self.smspace.number_of_local_dofs()
 
-        # --- left stiff matrix and the additional condition
-        def f(x, index):
-            gpphi = self.grad_basis(x, index=index, p=p + 1)
-            return np.einsum('...mn, ...kn->...km', gpphi, gpphi)
-        ls = self.integralalg.integral(f, celltype=True)  # (NC,psmldof,psmldof)
+        # --- left stiff matrix and the additional condition --- #
+        # def f(x, index):
+        #     gpphi = self.grad_basis(x, index=index, p=p + 1)
+        #     return np.einsum('...mn, ...kn->...km', gpphi, gpphi)
+        # ls = self.integralalg.integral(f, celltype=True)  # (NC,psmldof,psmldof)
+        ls = self.monomial_stiff_matrix(p=p+1)  # (NC,psmldof,psmldof)
 
         def f(x, index):
             return self.basis(x, index=index, p=p + 1)
@@ -246,22 +249,98 @@ class HHOScalarSpace2d():
             return self.basis(x, index=index, p=p)
         r1 = self.integralalg.integral(f, celltype=True)  # (NC,smldof)
 
-        # --- modify the matrix
+        # --- modify the matrix --- #
         ls[:, 0, :] = l1
         idx = cell2dofLocation[0:-1].reshape(-1, 1) + np.arange(smldof)  # (NC,smldof)
         Co[0, idx] = r1  # (NC,NC*Cldof)
 
-        # --- reconstruction matrix
+        # --- reconstruction matrix --- #
         invls = inv(ls)  # (NC,psmldof,psmldof)
         Csplit = np.hsplit(Co, cell2dofLocation[1:-1])  # list, len(Csplit) is NC, Csplit[i].shape is (psmldof,Cldof)
 
         f = lambda x: x[0] @ x[1]
-        Re = np.concatenate(list(map(f, zip(invls, Csplit))), axis=1)
+        Re = np.concatenate(list(map(f, zip(invls, Csplit))), axis=1)  # (psmldof,NC*Cldof)
 
         return Re
 
+    def reconstruction_stiff_matrix(self):
+        p = self.p
+        Re = self.Re  # (psmldof,NC*Cldof)
+        Sp = self.monomial_stiff_matrix(p=p+1)  # (NC,psmldof,psmldof)
+
+        cell2dofLocation = self.dof.cell2dofLocation
+        Rsplit = np.hsplit(Re, cell2dofLocation[1:-1])  # list, len(Rsplit) is NC, Rsplit[i].shape is (psmldof,Cldof)
+
+        f = lambda x: np.transpose(x[1]) @ x[0] @ x[1]
+        RS = np.concatenate(list(map(f, zip(Sp, Rsplit))), axis=1)  # (Cldof,NC*Cldof)
+
+        return RS
+
     def stabilizer_matrix(self):
+        p = self.p
         mesh = self.mesh
+
+
+    def monomial_stiff_matrix(self, p=None):
+        """
+        Get the stiff matrix on ScaledMonomialSpace2d.
+
+        ---
+        The mass matrix on ScaledMonomialSpace2d can be found in class ScaledMonomialSpace2d(): mass_matrix()
+
+        """
+        if p is None:
+            p = self.p
+
+        # assert p >= 1, 'the polynomial-order should have p >= 1 '
+
+        mesh = self.mesh
+        node = mesh.entity('node')
+        smdof = SMDof2d(mesh, p)
+
+        NC = mesh.number_of_cells()
+        edge = mesh.entity('edge')
+        edge2cell = mesh.ds.edge_to_cell()
+        edgeArea = mesh.edge_length()
+        nm = mesh.edge_normal()
+        # # (NE,2). The length of the normal-vector isn't 1, is the length of corresponding edge.
+
+        isInEdge = (edge2cell[:, 0] != edge2cell[:, 1])  # the bool vars, to get the inner edges
+
+        qf = GaussLegendreQuadrature(p + 3)  # the integral points on edges (1D)
+        bcs, ws = qf.quadpts, qf.weights  # bcs.shape: (NQ,2); ws.shape: (NQ,)
+        ps = np.einsum('ij, kjm->ikm', bcs, node[edge])  # ps.shape: (NQ,NE,2), NE is the number of edges
+
+        gphi0 = self.grad_basis(ps, index=edge2cell[:, 0], p=p)
+        # # gphi0.shape: (NQ,NInE,ldof,2), NInE is the number of interior edges, lodf is the number of local DOFs
+        # # gphi0 is the grad-value of the cell basis functions on the one-side of the corresponding edges.
+        gphi1 = self.grad_basis(ps[:, isInEdge, :], index=edge2cell[isInEdge, 1], p=p)
+
+        # # using the divergence-theorem to get the
+        S0 = np.einsum('i, ijkm, ijpm->jpk', ws, gphi0, gphi0)  # (NE,ldof,ldof)
+        b = node[edge[:, 0]] - self.smspace.cellbarycenter[edge2cell[:, 0]]  # (NE,2)
+        S0 = np.einsum('ij, ij, ikm->ikm', b, nm, S0)  # (NE,ldof,ldof)
+
+        S1 = np.einsum('i, ijkm, ijpm->jpk', ws, gphi1, gphi1)  # (NInE,ldof,ldof)
+        b = node[edge[isInEdge, 0]] - self.smspace.cellbarycenter[edge2cell[isInEdge, 1]]  # (NInE,2)
+        S1 = np.einsum('ij, ij, ikm->ikm', b, -nm[isInEdge], S1)  # (NInE,ldof,ldof)
+
+        ldof = self.smspace.number_of_local_dofs(p=p)
+        S = np.zeros((NC, ldof, ldof), dtype=np.float)
+        np.add.at(S, edge2cell[:, 0], S0)
+        np.add.at(S, edge2cell[isInEdge, 1], S1)
+
+        multiIndex = smdof.multiIndex
+        q = np.sum(multiIndex, axis=1) - 1  # here, we used the grad-basis to get stiff-matrix, so we need to -1
+        qq = q + q.reshape(-1, 1) + 2
+        qq[0, 0] = 1
+        # # note that this is the special case, since we want to compute the \int_T \nabla u\cdot \nabla v,
+        # # this needs to minus 1 in the 'q', so qq[0,0] is 0, moreover, S[:, 0, :] == S[:, :, 0] is 0-values,
+        # # so we set qq[0, 0] = 1 which doesn't affect the result of S /= qq.
+
+        S /= qq
+
+        return S
 
     def basis(self, point, index=None, p=None):
         return self.smspace.basis(point, index=index, p=p)
