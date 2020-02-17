@@ -129,6 +129,8 @@ class HHOScalarSpace2d():
 
         self.CM = self.smspace.cell_mass_matrix()  # (NC,smldof,smldof), smldof is the number of local dofs of smspace
         self.EM = self.smspace.edge_mass_matrix()  # (NE,eldof,eldof), eldof is the number of local 1D dofs on one edge
+        self.invCM = inv(self.CM)
+        self.invEM = inv(self.EM)
 
     def number_of_local_dofs(self):
         return self.dof.number_of_local_dofs()
@@ -276,6 +278,46 @@ class HHOScalarSpace2d():
 
         return RS
 
+    def projection_psmldof_to_smldof(self):
+        p = self.p
+
+        def rf(x, index):
+            pphi = self.basis(x, index=index, p=p+1)  # (NQ,...,psmldof)
+            phi = self.basis(x, index=index, p=p)  # (NQ,...,smldof)
+            return np.einsum('...m, ...n->...nm', pphi, phi)
+        rm = self.integralalg.integral(rf, celltype=True)  # (NC,smldof,psmldof)
+
+        invCM = self.invCM
+
+        return invCM@rm  # (NC,smldof,psmldof)
+
+    def projection_psmldof_to_edges(self):
+        p = self.p
+
+        def rf(x, index):
+
+
+    def projection_on_cell_space(self, p_from, p_to):
+        mesh = self.mesh
+
+        def rf(x, index):
+            test_phi = self.basis(x, index=index, p=p_to)  # (NQ,...,to_ldof)
+            trial_phi = self.basis(x, index=index, p=p_from)  # (NQ,...,from_ldof)
+            return np.einsum('...m, ...n->...nm', trial_phi, test_phi)
+        rm = self.integralalg.integral(rf, celltype=True)  # (NC,to_ldof,from_ldof)
+
+        def lf(x, index):
+            phi = self.basis(x, index=index, p=p_to)  # (NQ,...,to_ldof)
+            return np.einsum('...m, ...n->...nm', phi, phi)  # (NC,...,to_ldof)
+        lm = self.integralalg.integral(lf, celltype=True)  # (NC,to_ldof,to_ldof)
+
+        invlm = inv(lm)  # (NC,to_ldof,to_ldof)
+
+        return invlm@rm  # (NC,to_ldof,from_ldof)
+
+
+
+
     def stabilizer_matrix(self):
         p = self.p
         mesh = self.mesh
@@ -301,7 +343,6 @@ class HHOScalarSpace2d():
         NC = mesh.number_of_cells()
         edge = mesh.entity('edge')
         edge2cell = mesh.ds.edge_to_cell()
-        edgeArea = mesh.edge_length()
         nm = mesh.edge_normal()
         # # (NE,2). The length of the normal-vector isn't 1, is the length of corresponding edge.
 
@@ -338,7 +379,7 @@ class HHOScalarSpace2d():
         # # this needs to minus 1 in the 'q', so qq[0,0] is 0, moreover, S[:, 0, :] == S[:, :, 0] is 0-values,
         # # so we set qq[0, 0] = 1 which doesn't affect the result of S /= qq.
 
-        S /= qq
+        S /= qq  # (NC,ldof,ldof)
 
         return S
 
