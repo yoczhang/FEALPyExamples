@@ -293,8 +293,46 @@ class HHOScalarSpace2d():
 
     def projection_psmldof_to_edges(self):
         p = self.p
+        mesh = self.mesh
+        NE = mesh.number_of_edges()
+        node = mesh.entity('node')
+        edge = mesh.entity('edge')
+        edge2cell = mesh.ds.edge_to_cell()
+        isInEdge = (edge2cell[:, 0] != edge2cell[:, 1])
 
-        def rf(x, index):
+        hE = self.integralalg.edgemeasure  # (NE,), the length of edges
+        n = mesh.edge_unit_normal()  # (NE,2), the unit normal vector of edges
+        # # The direction of normal vector is from edge2cell[i,0] to edge2cell[i,1]
+        # # (that is, from the cell with smaller number to the cell with larger number).
+
+        qf = GaussLegendreQuadrature(p + 3)
+        bcs, ws = qf.quadpts, qf.weights  # bcs.shape: (NQ,2); ws.shape: (NQ,)
+        ps = np.einsum('ij, kjm->ikm', bcs, node[edge])  # (NQ,NE,2), NE is the number of edges
+
+        # --- the basis values at ps --- #
+        # # phi0, phi1 are the potential variable, are trial functions, taking order p,
+        # # pphi0, pphi1 are the test functions, taking order p+1.
+        # # So, in the following,
+        # # smldof denotes the number of local dofs in smspace in order p,
+        # # psmldof denotes the number of local dofs in smspace in order p+1.
+        # #
+        pphi0 = self.basis(ps, index=edge2cell[:, 0], p=p + 1)  # (NQ,NE,psmldof)
+        pphi1 = self.basis(ps[:, isInEdge, :], index=edge2cell[isInEdge, 1], p=p + 1)  # (NQ,NInE,psmldof)
+
+        ephi = self.edge_basis(ps)  # (NQ,NE,eldof), eldof is the number of local 1D dofs on one edge
+
+        # --- construct different matrix --- #
+        smldof = self.smspace.number_of_local_dofs()
+        psmldof = self.smspace.number_of_local_dofs(p=p + 1)
+        eldof = p + 1  # the number of local 1D dofs on one edge
+
+        # --- edge integration --- #
+        F0 = np.einsum('i, ijk, ijm, j->jmk', ws, pphi0, ephi, hE)  # (NE,eldof,psmldof)
+        F1 = np.einsum('i, ijk, ijm, j->jmk', ws, pphi1, ephi[:, isInEdge, :], hE[isInEdge])  # (NInE,eldof,psmldof)
+
+        F = np.zeros((NE, eldof, psmldof), dtype=np.float)
+
+
 
 
     def projection_on_cell_space(self, p_from, p_to):
