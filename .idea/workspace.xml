@@ -35,7 +35,7 @@
     <property name="restartRequiresConfirmation" value="false" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
-  <component name="RunManager" selected="Python.totest_HHOScalarSpace">
+  <component name="RunManager" selected="Python.totest_WGSpace">
     <configuration name="PoissonDGRate2d" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="FEALPyExamples" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -150,8 +150,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.totest_HHOScalarSpace" />
         <item itemvalue="Python.totest_WGSpace" />
+        <item itemvalue="Python.totest_HHOScalarSpace" />
         <item itemvalue="Python.totest_DGScalarSpace" />
         <item itemvalue="Python.PoissonDGRate2d" />
         <item itemvalue="Python.totest_refine_qtree" />
@@ -206,38 +206,38 @@
       <screen x="0" y="23" width="1280" height="734" />
     </state>
     <state x="104" y="52" width="1071" height="696" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.23.1280.734@0.23.1280.734" timestamp="1580462002823" />
-    <state width="1259" height="116" key="GridCell.Tab.0.bottom" timestamp="1581951311984">
+    <state width="1259" height="182" key="GridCell.Tab.0.bottom" timestamp="1582021260074">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="116" key="GridCell.Tab.0.bottom/0.23.1280.734@0.23.1280.734" timestamp="1581951311984" />
-    <state width="1259" height="116" key="GridCell.Tab.0.center" timestamp="1581951311983">
+    <state width="1259" height="182" key="GridCell.Tab.0.bottom/0.23.1280.734@0.23.1280.734" timestamp="1582021260074" />
+    <state width="1259" height="182" key="GridCell.Tab.0.center" timestamp="1582021260072">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="116" key="GridCell.Tab.0.center/0.23.1280.734@0.23.1280.734" timestamp="1581951311983" />
-    <state width="1259" height="116" key="GridCell.Tab.0.left" timestamp="1581951311983">
+    <state width="1259" height="182" key="GridCell.Tab.0.center/0.23.1280.734@0.23.1280.734" timestamp="1582021260072" />
+    <state width="1259" height="182" key="GridCell.Tab.0.left" timestamp="1582021260071">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="116" key="GridCell.Tab.0.left/0.23.1280.734@0.23.1280.734" timestamp="1581951311983" />
-    <state width="1259" height="116" key="GridCell.Tab.0.right" timestamp="1581951311984">
+    <state width="1259" height="182" key="GridCell.Tab.0.left/0.23.1280.734@0.23.1280.734" timestamp="1582021260071" />
+    <state width="1259" height="182" key="GridCell.Tab.0.right" timestamp="1582021260074">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="116" key="GridCell.Tab.0.right/0.23.1280.734@0.23.1280.734" timestamp="1581951311984" />
-    <state width="1259" height="116" key="GridCell.Tab.1.bottom" timestamp="1581951311985">
+    <state width="1259" height="182" key="GridCell.Tab.0.right/0.23.1280.734@0.23.1280.734" timestamp="1582021260074" />
+    <state width="1259" height="182" key="GridCell.Tab.1.bottom" timestamp="1582021259979">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="116" key="GridCell.Tab.1.bottom/0.23.1280.734@0.23.1280.734" timestamp="1581951311985" />
-    <state width="1259" height="116" key="GridCell.Tab.1.center" timestamp="1581951311984">
+    <state width="1259" height="182" key="GridCell.Tab.1.bottom/0.23.1280.734@0.23.1280.734" timestamp="1582021259979" />
+    <state width="1259" height="182" key="GridCell.Tab.1.center" timestamp="1582021259978">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="116" key="GridCell.Tab.1.center/0.23.1280.734@0.23.1280.734" timestamp="1581951311984" />
-    <state width="1259" height="116" key="GridCell.Tab.1.left" timestamp="1581951311984">
+    <state width="1259" height="182" key="GridCell.Tab.1.center/0.23.1280.734@0.23.1280.734" timestamp="1582021259978" />
+    <state width="1259" height="182" key="GridCell.Tab.1.left" timestamp="1582021259978">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="116" key="GridCell.Tab.1.left/0.23.1280.734@0.23.1280.734" timestamp="1581951311984" />
-    <state width="1259" height="116" key="GridCell.Tab.1.right" timestamp="1581951311985">
+    <state width="1259" height="182" key="GridCell.Tab.1.left/0.23.1280.734@0.23.1280.734" timestamp="1582021259978" />
+    <state width="1259" height="182" key="GridCell.Tab.1.right" timestamp="1582021259979">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="116" key="GridCell.Tab.1.right/0.23.1280.734@0.23.1280.734" timestamp="1581951311985" />
+    <state width="1259" height="182" key="GridCell.Tab.1.right/0.23.1280.734@0.23.1280.734" timestamp="1582021259979" />
     <state x="141" y="29" key="SettingsEditor" timestamp="1580458963320">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
@@ -364,9 +364,9 @@
           <option name="timeStamp" value="101" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/Test/totest_HHOScalarSpace.py</url>
-          <line>67</line>
-          <option name="timeStamp" value="102" />
+          <url>file://$PROJECT_DIR$/myExamples/Test/totest_WGSpace.py</url>
+          <line>70</line>
+          <option name="timeStamp" value="104" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

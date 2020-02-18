@@ -100,8 +100,8 @@ class HHODof2d():
         gdof = NE * (p + 1) + NC * (p + 1) * (p + 2) // 2
         return gdof
 
-    def number_of_local_dofs(self):
-        p = self.p
+    def number_of_local_dofs(self, p=None):
+        p = self.p if p is None else p
         mesh = self.mesh
         NCE = mesh.number_of_edges_of_cells()
         ldofs = NCE * (p + 1) + (p + 1) * (p + 2) // 2
@@ -132,8 +132,8 @@ class HHOScalarSpace2d():
         self.invCM = inv(self.CM)  # (NC,smldof,smldof)
         self.invEM = inv(self.EM)  # (NE,eldof,eldof)
 
-    def number_of_local_dofs(self):
-        return self.dof.number_of_local_dofs()
+    def number_of_local_dofs(self, p=None):
+        return self.dof.number_of_local_dofs(p=p)
 
     def number_of_global_dofs(self):
         return self.dof.number_of_global_dofs()
@@ -291,7 +291,7 @@ class HHOScalarSpace2d():
 
         return invCM@rm  # (NC,smldof,psmldof)
 
-    def projection_sm_psm_space_to_edges(self):
+    def projection_sm_psm_space_to_edge(self):
         """
         projection from smspace
         """
@@ -339,13 +339,17 @@ class HHOScalarSpace2d():
         pF0 = invEM@np.einsum('i, ijk, ijm, j->jmk', ws, pphi0, ephi, hE)  # (NE,eldof,psmldof)
         pF1 = invEM@np.einsum('i, ijk, ijm, j->jmk', ws, pphi1, ephi[:, isInEdge, :], hE[isInEdge])  # (NInE,eldof,psmldof)
 
-        F = np.zeros((eldof, NE*smldof), dtype=np.float)
-        pF = np.zeros((eldof, NE*psmldof), dtype=np.float)
+        sumNCE = mesh.number_of_edges_of_cells().sum()
+        F = np.zeros((eldof, sumNCE*smldof), dtype=np.float)
+        pF = np.zeros((eldof, sumNCE*psmldof), dtype=np.float)
 
+        celledgedofs = self.number_of_local_dofs() - smldof
         cell2dofLocation = np.zeros(NC + 1, dtype=np.int)
+        cell2dofLocation[1:] = np.add.accumulate(celledgedofs)
+
+        celledgedofs = self.number_of_local_dofs(p=p+1) - psmldof
         pcell2dofLocation = np.zeros(NC + 1, dtype=np.int)
-        cell2dofLocation[1:] = np.add.accumulate(smldof)
-        pcell2dofLocation[1:] = np.add.accumulate(psmldof)
+        pcell2dofLocation[1:] = np.add.accumulate(celledgedofs)
 
         # --- add to corresponding cells --- #
         idx = cell2dofLocation[edge2cell[:, [0]]] + edge2cell[:, [2]] * smldof + np.arange(smldof)  # (NE,smldof)
@@ -360,6 +364,7 @@ class HHOScalarSpace2d():
               psmldof * edge2cell[isInEdge, [3]].reshape(-1, 1) + np.arange(psmldof)  # (NInE,smldof)
         pF[:, idx] = pF1.swapaxes(0, 1)
 
+        # # F.shape: (eldof, sumNCE*smldof),    pF.shape: (eldof, sumNCE*psmldof),
         return F, pF
 
 
@@ -399,8 +404,7 @@ class HHOScalarSpace2d():
         The mass matrix on ScaledMonomialSpace2d can be found in class ScaledMonomialSpace2d(): mass_matrix()
 
         """
-        if p is None:
-            p = self.p
+        p = self.p if p is None else p
 
         # assert p >= 1, 'the polynomial-order should have p >= 1 '
 
