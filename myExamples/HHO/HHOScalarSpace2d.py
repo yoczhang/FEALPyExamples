@@ -291,7 +291,10 @@ class HHOScalarSpace2d():
 
         return invCM@rm  # (NC,smldof,psmldof)
 
-    def projection_cellspace_to_edges(self):
+    def projection_sm_psm_space_to_edges(self):
+        """
+        projection from smspace
+        """
         p = self.p
         mesh = self.mesh
         NC = mesh.number_of_cells()
@@ -352,13 +355,17 @@ class HHOScalarSpace2d():
 
         idx = cell2dofLocation[edge2cell[isInEdge, 1]].reshape(-1, 1) + \
               smldof * edge2cell[isInEdge, [3]].reshape(-1, 1) + np.arange(smldof)  # (NInE,smldof)
+        F[:, idx] = F1.swapaxes(0, 1)
+        idx = cell2dofLocation[edge2cell[isInEdge, 1]].reshape(-1, 1) + \
+              psmldof * edge2cell[isInEdge, [3]].reshape(-1, 1) + np.arange(psmldof)  # (NInE,smldof)
+        pF[:, idx] = pF1.swapaxes(0, 1)
+
+        return F, pF
 
 
 
 
-
-
-    def projection_on_cell_space(self, p_from, p_to):
+    def projection_on_cell_space(self, p_from, p_to):  # this function may-not used
         mesh = self.mesh
 
         def rf(x, index):
