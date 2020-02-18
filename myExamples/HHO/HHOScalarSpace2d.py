@@ -129,8 +129,8 @@ class HHOScalarSpace2d():
 
         self.CM = self.smspace.cell_mass_matrix()  # (NC,smldof,smldof), smldof is the number of local dofs of smspace
         self.EM = self.smspace.edge_mass_matrix()  # (NE,eldof,eldof), eldof is the number of local 1D dofs on one edge
-        self.invCM = inv(self.CM)
-        self.invEM = inv(self.EM)
+        self.invCM = inv(self.CM)  # (NC,smldof,smldof)
+        self.invEM = inv(self.EM)  # (NE,eldof,eldof)
 
     def number_of_local_dofs(self):
         return self.dof.number_of_local_dofs()
@@ -211,7 +211,7 @@ class HHOScalarSpace2d():
 
         idx = cell2dofLocation[edge2cell[:, [0]]] + edge2cell[:, [2]] * eldof + np.arange(eldof)  # (NE,eldof)
         idx += smldof  # rearrange the dofs
-        Co[:, idx] = F0
+        Co[:, idx] = F0  # (psmldof,NC*Cldof), Cldof is the number of dofs in one cell
         idx = cell2dofLocation[edge2cell[isInEdge, 1]].reshape(-1, 1) + \
               eldof * edge2cell[isInEdge, [3]].reshape(-1, 1) + np.arange(eldof)  # (NInE,eldof)
         idx += smldof  # rearrange the dofs
@@ -226,7 +226,7 @@ class HHOScalarSpace2d():
         S = self.integralalg.integral(f, celltype=True)  # (NC,psmldof,smldof)
         np.add.at(T, np.arange(NC), S)  # T.shape: (NC,psmldof,smldof)
         idx = cell2dofLocation[0:-1].reshape(-1, 1) + np.arange(smldof)  # (NC,smldof)
-        Co[:, idx] = T.swapaxes(0, 1)  # R.shape: (psmldof,NC*Cldof)
+        Co[:, idx] = T.swapaxes(0, 1)  # Co.shape: (psmldof,NC*Cldof)
 
         return Co
 
@@ -291,9 +291,10 @@ class HHOScalarSpace2d():
 
         return invCM@rm  # (NC,smldof,psmldof)
 
-    def projection_psmldof_to_edges(self):
+    def projection_cellspace_to_edges(self):
         p = self.p
         mesh = self.mesh
+        NC = mesh.number_of_cells()
         NE = mesh.number_of_edges()
         node = mesh.entity('node')
         edge = mesh.entity('edge')
@@ -316,6 +317,8 @@ class HHOScalarSpace2d():
         # # smldof denotes the number of local dofs in smspace in order p,
         # # psmldof denotes the number of local dofs in smspace in order p+1.
         # #
+        phi0 = self.basis(ps, index=edge2cell[:, 0], p=p)  # (NQ,NE,psmldof)
+        phi1 = self.basis(ps[:, isInEdge, :], index=edge2cell[isInEdge, 1], p=p)  # (NQ,NInE,psmldof)
         pphi0 = self.basis(ps, index=edge2cell[:, 0], p=p + 1)  # (NQ,NE,psmldof)
         pphi1 = self.basis(ps[:, isInEdge, :], index=edge2cell[isInEdge, 1], p=p + 1)  # (NQ,NInE,psmldof)
 
@@ -327,10 +330,30 @@ class HHOScalarSpace2d():
         eldof = p + 1  # the number of local 1D dofs on one edge
 
         # --- edge integration --- #
-        F0 = np.einsum('i, ijk, ijm, j->jmk', ws, pphi0, ephi, hE)  # (NE,eldof,psmldof)
-        F1 = np.einsum('i, ijk, ijm, j->jmk', ws, pphi1, ephi[:, isInEdge, :], hE[isInEdge])  # (NInE,eldof,psmldof)
+        invEM = self.invEM  # (NE,eldof,eldof)
+        F0 = invEM@np.einsum('i, ijk, ijm, j->jmk', ws, phi0, ephi, hE)  # (NE,eldof,smldof)
+        F1 = invEM@np.einsum('i, ijk, ijm, j->jmk', ws, phi1, ephi[:, isInEdge, :], hE[isInEdge])  # (NInE,eldof,smldof)
+        pF0 = invEM@np.einsum('i, ijk, ijm, j->jmk', ws, pphi0, ephi, hE)  # (NE,eldof,psmldof)
+        pF1 = invEM@np.einsum('i, ijk, ijm, j->jmk', ws, pphi1, ephi[:, isInEdge, :], hE[isInEdge])  # (NInE,eldof,psmldof)
 
-        F = np.zeros((NE, eldof, psmldof), dtype=np.float)
+        F = np.zeros((eldof, NE*smldof), dtype=np.float)
+        pF = np.zeros((eldof, NE*psmldof), dtype=np.float)
+
+        cell2dofLocation = np.zeros(NC + 1, dtype=np.int)
+        pcell2dofLocation = np.zeros(NC + 1, dtype=np.int)
+        cell2dofLocation[1:] = np.add.accumulate(smldof)
+        pcell2dofLocation[1:] = np.add.accumulate(psmldof)
+
+        # --- add to corresponding cells --- #
+        idx = cell2dofLocation[edge2cell[:, [0]]] + edge2cell[:, [2]] * smldof + np.arange(smldof)  # (NE,smldof)
+        F[:, idx] = F0.swapaxes(0, 1)
+        idx = cell2dofLocation[edge2cell[:, [0]]] + edge2cell[:, [2]] * psmldof + np.arange(psmldof)  # (NE,psmldof)
+        pF[:, idx] = pF0.swapaxes(0, 1)
+
+        idx = cell2dofLocation[edge2cell[isInEdge, 1]].reshape(-1, 1) + \
+              smldof * edge2cell[isInEdge, [3]].reshape(-1, 1) + np.arange(smldof)  # (NInE,smldof)
+
+
 
 
 
