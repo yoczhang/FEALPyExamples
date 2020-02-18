@@ -254,7 +254,7 @@ class HHOScalarSpace2d():
         # --- modify the matrix --- #
         ls[:, 0, :] = l1
         idx = cell2dofLocation[0:-1].reshape(-1, 1) + np.arange(smldof)  # (NC,smldof)
-        Co[0, idx] = r1  # (NC,NC*Cldof)
+        Co[0, idx] = r1  # (NC,NC*Cldof), Cldof is the number of dofs in one cell
 
         # --- reconstruction matrix --- #
         invls = inv(ls)  # (NC,psmldof,psmldof)
@@ -263,11 +263,11 @@ class HHOScalarSpace2d():
         f = lambda x: x[0] @ x[1]
         Re = np.concatenate(list(map(f, zip(invls, Csplit))), axis=1)  # (psmldof,NC*Cldof)
 
-        return Re
+        return Re  # (psmldof,NC*Cldof)
 
     def reconstruction_stiff_matrix(self):
         p = self.p
-        Re = self.Re  # (psmldof,NC*Cldof)
+        Re = self.Re  # (psmldof,NC*Cldof), Cldof is the number of dofs in one cell
         Sp = self.monomial_stiff_matrix(p=p+1)  # (NC,psmldof,psmldof)
 
         cell2dofLocation = self.dof.cell2dofLocation
@@ -278,7 +278,7 @@ class HHOScalarSpace2d():
 
         return RS
 
-    def projection_psmldof_to_smldof(self):
+    def projection_psmspace_to_smspace(self):
         p = self.p
 
         def rf(x, index):
@@ -335,11 +335,11 @@ class HHOScalarSpace2d():
         # --- edge integration --- #
         invEM = self.invEM  # (NE,eldof,eldof)
         F0 = invEM@np.einsum('i, ijk, ijm, j->jmk', ws, phi0, ephi, hE)  # (NE,eldof,smldof)
-        F1 = invEM@np.einsum('i, ijk, ijm, j->jmk', ws, phi1, ephi[:, isInEdge, :], hE[isInEdge])  # (NInE,eldof,smldof)
+        F1 = invEM[isInEdge, ...]@np.einsum('i, ijk, ijm, j->jmk', ws, phi1, ephi[:, isInEdge, :], hE[isInEdge])  # (NInE,eldof,smldof)
         pF0 = invEM@np.einsum('i, ijk, ijm, j->jmk', ws, pphi0, ephi, hE)  # (NE,eldof,psmldof)
-        pF1 = invEM@np.einsum('i, ijk, ijm, j->jmk', ws, pphi1, ephi[:, isInEdge, :], hE[isInEdge])  # (NInE,eldof,psmldof)
+        pF1 = invEM[isInEdge, ...]@np.einsum('i, ijk, ijm, j->jmk', ws, pphi1, ephi[:, isInEdge, :], hE[isInEdge])  # (NInE,eldof,psmldof)
 
-        sumNCE = mesh.number_of_edges_of_cells().sum()
+        sumNCE = mesh.number_of_edges_of_cells().sum()  # sumNCE is sum of (the number of edges of each cell)
         F = np.zeros((eldof, sumNCE*smldof), dtype=np.float)
         pF = np.zeros((eldof, sumNCE*psmldof), dtype=np.float)
 
@@ -364,11 +364,8 @@ class HHOScalarSpace2d():
               psmldof * edge2cell[isInEdge, [3]].reshape(-1, 1) + np.arange(psmldof)  # (NInE,smldof)
         pF[:, idx] = pF1.swapaxes(0, 1)
 
-        # # F.shape: (eldof, sumNCE*smldof),    pF.shape: (eldof, sumNCE*psmldof),
+        # # F.shape: (eldof, sumNCE*smldof),    pF.shape: (eldof, sumNCE*psmldof)
         return F, pF
-
-
-
 
     def projection_on_cell_space(self, p_from, p_to):  # this function may-not used
         mesh = self.mesh
@@ -388,12 +385,37 @@ class HHOScalarSpace2d():
 
         return invlm@rm  # (NC,to_ldof,from_ldof)
 
-
-
-
     def stabilizer_matrix(self):
         p = self.p
         mesh = self.mesh
+        smldof = self.number_of_local_dofs(p=p)
+        psmldof = self.number_of_local_dofs(p=p+1)
+
+        # # reconstruction matrix
+        Re = self.Re  # (psmldof,NC*Cldof), Cldof is the number of dofs in one cell
+
+        # # projection psmldof_to_smldof
+        psm2sm = self.projection_psmspace_to_smspace()  # (NC,smldof,psmldof)
+
+        sm2edge, psm2edge = self.projection_sm_psm_space_to_edge()
+        # # sm2edge.shape: (eldof, sumNCE*smldof),    psm2edge.shape: (eldof, sumNCE*psmldof),
+        # # sumNCE is sum of (the number of edges of each cell)
+
+        NCE = mesh.number_of_edges_of_cells()  # (NC,)
+        NCEacc = np.add.accumulate(NCE)
+        sm2edgeS = np.hsplit(NCEacc[:-1]*smldof)
+        # # list, its length is NC, sm2edgeS[i].shape: (eldof,NEi*smldof), NEi is the number of edges in i-th cell
+        psm2edgeS = np.hsplit(NCEacc[:-1]*psmldof)
+
+
+
+
+
+
+
+
+
+
 
 
     def monomial_stiff_matrix(self, p=None):
@@ -470,10 +492,10 @@ class HHOScalarSpace2d():
 
     def array(self, dim=None):
         gdof = self.number_of_global_dofs()
-        if dim in [None, 1]:
+        if dim in {None, 1}:
             shape = gdof
         elif type(dim) is int:
             shape = (gdof, dim)
         elif type(dim) is tuple:
-            shape = (gdof,) + dim
+            shape = (gdof, ) + dim
         return np.zeros(shape, dtype=np.float)

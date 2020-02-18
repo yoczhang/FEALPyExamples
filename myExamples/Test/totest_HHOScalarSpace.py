@@ -76,6 +76,9 @@ multiIndex1d = hhodof.multi_index_matrix1d()
 Co = hhospace.construction_matrix()
 Re = hhospace.reconstruction_matrix()
 Rs = hhospace.reconstruction_stiff_matrix()
+Pp2s = hhospace.projection_psmspace_to_smspace()
+F, pF = hhospace.projection_sm_psm_space_to_edge()
+
 
 
 node = pmesh.entity('node')
