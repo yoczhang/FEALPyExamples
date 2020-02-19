@@ -113,6 +113,8 @@ class HHOScalarSpace2d():
         self.p = p
         self.mesh = mesh
         self.smspace = ScaledMonomialSpace2d(mesh, p, q=q)
+        self.smldof = self.smspace.number_of_local_dofs()
+        self.psmldof = self.smspace.number_of_local_dofs(p=p+1)
 
         self.cellsize = self.smspace.cellsize
 
@@ -189,8 +191,8 @@ class HHOScalarSpace2d():
         ephi = self.edge_basis(ps)  # (NQ,NE,eldof), eldof is the number of local 1D dofs on one edge
 
         # --- construct different matrix --- #
-        smldof = self.smspace.number_of_local_dofs()
-        psmldof = self.smspace.number_of_local_dofs(p=p + 1)
+        smldof = self.smldof
+        psmldof = self.psmldof
         eldof = p + 1  # the number of local 1D dofs on one edge
         cell2dof, cell2dofLocation = self.dof.cell2dof, self.dof.cell2dofLocation
         Co = np.zeros((psmldof, len(cell2dof)),
@@ -234,7 +236,7 @@ class HHOScalarSpace2d():
         p = self.p
         Co = self.Co
         cell2dofLocation = self.dof.cell2dofLocation
-        smldof = self.smspace.number_of_local_dofs()
+        smldof = self.smldof
 
         # --- left stiff matrix and the additional condition --- #
         # def f(x, index):
@@ -328,8 +330,8 @@ class HHOScalarSpace2d():
         ephi = self.edge_basis(ps)  # (NQ,NE,eldof), eldof is the number of local 1D dofs on one edge
 
         # --- construct different matrix --- #
-        smldof = self.smspace.number_of_local_dofs()
-        psmldof = self.smspace.number_of_local_dofs(p=p + 1)
+        smldof = self.smldof
+        psmldof = self.psmldof
         eldof = p + 1  # the number of local 1D dofs on one edge
 
         # --- edge integration --- #
@@ -388,8 +390,8 @@ class HHOScalarSpace2d():
     def stabilizer_matrix(self):
         p = self.p
         mesh = self.mesh
-        smldof = self.number_of_local_dofs(p=p)
-        psmldof = self.number_of_local_dofs(p=p+1)
+        smldof = self.smldof
+        psmldof = self.psmldof
 
         # # reconstruction matrix
         Re = self.Re  # (psmldof,NC*Cldof), Cldof is the number of dofs in one cell
@@ -403,9 +405,17 @@ class HHOScalarSpace2d():
 
         NCE = mesh.number_of_edges_of_cells()  # (NC,)
         NCEacc = np.add.accumulate(NCE)
-        sm2edgeS = np.hsplit(NCEacc[:-1]*smldof)
-        # # list, its length is NC, sm2edgeS[i].shape: (eldof,NEi*smldof), NEi is the number of edges in i-th cell
-        psm2edgeS = np.hsplit(NCEacc[:-1]*psmldof)
+        sm2edgeS = np.hsplit(sm2edge, NCEacc[:-1]*smldof)
+        # # list, its length is NC, each-term.shape: (eldof,NEi*smldof), NEi is the number of edges in i-th cell
+        psm2edgeS = np.hsplit(psm2edge, NCEacc[:-1]*psmldof)
+
+        # f = lambda x: x[0] @ x[1]
+        # Re = np.concatenate(list(map(f, zip(invls, Csplit))), axis=1)  # (psmldof,NC*Cldof)
+        f = lambda x: x[0] - x[1]@x[2]
+        r = list(map(f, zip(psm2edgeS, sm2edgeS, psm2sm)))  # list, its len is NC, each-term.shape: (eldof, psmldof)
+
+        return r
+
 
 
 

@@ -78,6 +78,7 @@ Re = hhospace.reconstruction_matrix()
 Rs = hhospace.reconstruction_stiff_matrix()
 Pp2s = hhospace.projection_psmspace_to_smspace()
 F, pF = hhospace.projection_sm_psm_space_to_edge()
+S = hhospace.stabilizer_matrix()
 
 
 
