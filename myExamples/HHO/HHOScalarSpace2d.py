@@ -392,6 +392,7 @@ class HHOScalarSpace2d():
         mesh = self.mesh
         smldof = self.smldof
         psmldof = self.psmldof
+        eldof = p + 1  # the number of local 1D dofs on one edge
 
         # # reconstruction matrix
         Re = self.Re  # (psmldof,NC*Cldof), Cldof is the number of dofs in one cell
@@ -411,8 +412,19 @@ class HHOScalarSpace2d():
 
         # f = lambda x: x[0] @ x[1]
         # Re = np.concatenate(list(map(f, zip(invls, Csplit))), axis=1)  # (psmldof,NC*Cldof)
-        f = lambda x: x[0] - x[1]@x[2]
-        r = list(map(f, zip(psm2edgeS, sm2edgeS, psm2sm)))  # list, its len is NC, each-term.shape: (eldof, psmldof)
+        def f(x):
+            # # x[0].shape: (ldof,NEi*psmldof)
+            # # x[1].shape: (ldof,NEi*smldof)
+            # # x[2].shape: (smldof,psmldof)
+            # # x[3].shape: (1,)
+            idx = smldof*np.arange(x[3])  #
+            t1 = np.tile(x[2], (x[3], 1))  # (NEi*smldof,psmldof)
+            t2 = np.einsum('ij, jk->ijk', x[1], t1)  # (eldof,NEi*smldof,psmldof)
+            t2 = np.concatenate(np.split(t2, idx[1:], axis=1), axis=2)
+            t2 = t2.sum(axis=1)  # (eldof,smldof,NEi*psmldof) => (eldof,NEi*psmldof)
+            return x[0] - t2  # (eldof,NEi*psmldof)
+        # f = lambda x: x[0] - x[1]@np.tile(x[2], (x[3], 1))
+        r = list(map(f, zip(psm2edgeS, sm2edgeS, psm2sm, list(NCE))))  # list, its len is NC, each-term.shape: (eldof, psmldof)
 
         return r
 
