@@ -12,6 +12,7 @@
 
 import numpy as np
 from numpy.linalg import inv
+from fealpy.common import block
 from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, spdiags, eye
 
 from fealpy.functionspace.function import Function
@@ -125,9 +126,9 @@ class HHOScalarSpace2d():
 
         self.integralalg = self.smspace.integralalg
 
-        self.Co = self.construction_matrix()  # (psmldof,NC*Cldof)
+        self.CRM = self.construct_righthand_matrix()  # (psmldof,NC*Cldof)
 
-        self.Re = self.reconstruction_matrix()  # (psmldof,NC*Cldof)
+        self.RM = self.reconstruction_matrix()  # (psmldof,NC*Cldof)
 
         self.CM = self.smspace.cell_mass_matrix()  # (NC,smldof,smldof), smldof is the number of local dofs of smspace
         self.EM = self.smspace.edge_mass_matrix()  # (NE,eldof,eldof), eldof is the number of local 1D dofs on one edge
@@ -157,7 +158,7 @@ class HHOScalarSpace2d():
             cell2dof = NE * (p + 1) + np.arange(NC * idof).reshape(NC, idof)
             return cell2dof
 
-    def construction_matrix(self):
+    def construct_righthand_matrix(self):
         p = self.p
         mesh = self.mesh
         NC = mesh.number_of_cells()
@@ -195,7 +196,7 @@ class HHOScalarSpace2d():
         psmldof = self.psmldof
         eldof = p + 1  # the number of local 1D dofs on one edge
         cell2dof, cell2dofLocation = self.dof.cell2dof, self.dof.cell2dofLocation
-        Co = np.zeros((psmldof, len(cell2dof)),
+        CRM = np.zeros((psmldof, len(cell2dof)),
                      dtype=np.float)  # (psmldof,NC*Cldof), Cldof is the number of dofs in one cell
 
         # --- edge integration. Part I: (-v_T, \nabla w\cdot n)_{\partial T}
@@ -213,11 +214,11 @@ class HHOScalarSpace2d():
 
         idx = cell2dofLocation[edge2cell[:, [0]]] + edge2cell[:, [2]] * eldof + np.arange(eldof)  # (NE,eldof)
         idx += smldof  # rearrange the dofs
-        Co[:, idx] = F0  # (psmldof,NC*Cldof), Cldof is the number of dofs in one cell
+        CRM[:, idx] = F0  # (psmldof,NC*Cldof), Cldof is the number of dofs in one cell
         idx = cell2dofLocation[edge2cell[isInEdge, 1]].reshape(-1, 1) + \
               eldof * edge2cell[isInEdge, [3]].reshape(-1, 1) + np.arange(eldof)  # (NInE,eldof)
         idx += smldof  # rearrange the dofs
-        Co[:, idx] = F1
+        CRM[:, idx] = F1
 
         # --- the stiff matrix, (\nabla v, \nabla w)_T
         def f(x, index):
@@ -228,13 +229,13 @@ class HHOScalarSpace2d():
         S = self.integralalg.integral(f, celltype=True)  # (NC,psmldof,smldof)
         np.add.at(T, np.arange(NC), S)  # T.shape: (NC,psmldof,smldof)
         idx = cell2dofLocation[0:-1].reshape(-1, 1) + np.arange(smldof)  # (NC,smldof)
-        Co[:, idx] = T.swapaxes(0, 1)  # Co.shape: (psmldof,NC*Cldof)
+        CRM[:, idx] = T.swapaxes(0, 1)  # Co.shape: (psmldof,NC*Cldof)
 
-        return Co
+        return CRM
 
     def reconstruction_matrix(self):
         p = self.p
-        Co = self.Co
+        CRM = self.CRM
         cell2dofLocation = self.dof.cell2dofLocation
         smldof = self.smldof
 
@@ -256,29 +257,29 @@ class HHOScalarSpace2d():
         # --- modify the matrix --- #
         ls[:, 0, :] = l1
         idx = cell2dofLocation[0:-1].reshape(-1, 1) + np.arange(smldof)  # (NC,smldof)
-        Co[0, idx] = r1  # (NC,NC*Cldof), Cldof is the number of dofs in one cell
+        CRM[0, idx] = r1  # (NC,NC*Cldof), Cldof is the number of dofs in one cell
 
         # --- reconstruction matrix --- #
         invls = inv(ls)  # (NC,psmldof,psmldof)
-        Csplit = np.hsplit(Co, cell2dofLocation[1:-1])  # list, len(Csplit) is NC, Csplit[i].shape is (psmldof,Cldof)
+        Csplit = np.hsplit(CRM, cell2dofLocation[1:-1])  # list, len(Csplit) is NC, Csplit[i].shape is (psmldof,Cldof)
 
         f = lambda x: x[0] @ x[1]
-        Re = np.concatenate(list(map(f, zip(invls, Csplit))), axis=1)  # (psmldof,NC*Cldof)
+        RM = np.concatenate(list(map(f, zip(invls, Csplit))), axis=1)  # (psmldof,NC*Cldof)
 
-        return Re  # (psmldof,NC*Cldof)
+        return RM  # (psmldof,NC*Cldof)
 
     def reconstruction_stiff_matrix(self):
         p = self.p
-        Re = self.Re  # (psmldof,NC*Cldof), Cldof is the number of dofs in one cell
+        RM = self.RM  # (psmldof,NC*Cldof), Cldof is the number of dofs in one cell
         Sp = self.monomial_stiff_matrix(p=p+1)  # (NC,psmldof,psmldof)
 
         cell2dofLocation = self.dof.cell2dofLocation
-        Rsplit = np.hsplit(Re, cell2dofLocation[1:-1])  # list, len(Rsplit) is NC, Rsplit[i].shape is (psmldof,Cldof)
+        Rsplit = np.hsplit(RM, cell2dofLocation[1:-1])  # list, len(Rsplit) is NC, Rsplit[i].shape is (psmldof,Cldof)
 
         f = lambda x: np.transpose(x[1]) @ x[0] @ x[1]
-        RS = np.concatenate(list(map(f, zip(Sp, Rsplit))), axis=1)  # (Cldof,NC*Cldof)
+        RSM = np.concatenate(list(map(f, zip(Sp, Rsplit))), axis=1)  # (Cldof,NC*Cldof)
 
-        return RS
+        return RSM
 
     def projection_psmspace_to_smspace(self):
         p = self.p
@@ -387,7 +388,7 @@ class HHOScalarSpace2d():
 
         return invlm@rm  # (NC,to_ldof,from_ldof)
 
-    def stabilizer_matrix(self):
+    def construct_stabilizer_matrix(self):
         p = self.p
         mesh = self.mesh
         smldof = self.smldof
@@ -395,7 +396,9 @@ class HHOScalarSpace2d():
         eldof = p + 1  # the number of local 1D dofs on one edge
 
         # # reconstruction matrix
-        Re = self.Re  # (psmldof,NC*Cldof), Cldof is the number of dofs in one cell
+        RM = self.RM  # (psmldof,NC*Cldof), Cldof is the number of dofs in one cell
+        cell2dofLocation = self.dof.cell2dofLocation
+        Rsplit = np.hsplit(RM, cell2dofLocation[1:-1])  # list, len(Rsplit) is NC, each-term.shape is (psmldof,Cldof)
 
         # # projection psmldof_to_smldof
         psm2sm = self.projection_psmspace_to_smspace()  # (NC,smldof,psmldof)
@@ -423,22 +426,25 @@ class HHOScalarSpace2d():
             t2 = np.concatenate(np.split(t2, idx[1:], axis=1), axis=2)
             t2 = t2.sum(axis=1)  # (eldof,smldof,NEi*psmldof) => (eldof,NEi*psmldof)
             return x[0] - t2  # (eldof,NEi*psmldof)
-        # f = lambda x: x[0] - x[1]@np.tile(x[2], (x[3], 1))
-        r = list(map(f, zip(psm2edgeS, sm2edgeS, psm2sm, list(NCE))))  # list, its len is NC, each-term.shape: (eldof, psmldof)
+        PR = list(map(f, zip(psm2edgeS, sm2edgeS, psm2sm, list(NCE))))  # list, its len is NC, each-term.shape: (eldof, NCE*psmldof)
 
-        return r
+        # --- construct the stiffness matrix
+        def f(x):
+            # # x[3] is the number of edges in this cell
+            l = np.arange(x[3])*smldof
+            t = np.concatenate(np.hsplit(x[0], l[1:]), axis=0)
+            t = np.concatenate([t, -np.eye(eldof*x[3])], axis=1)  # the eye()-matrix needs to add minus
+            l = np.arange(x[3])*eldof
+            t = np.concatenate(np.vsplit(t, l[1:]), axis=1)
 
+            l = [([0] * x[3]) for i in range(x[3])]
+            for i in range(x[3]):
+                l[i][i] = x[2]
+            return t + x[1]@block(l)
+        CSM = np.concatenate(list(map(f, zip(sm2edgeS, PR, Rsplit, list(NCE)))), axis=1)
+        # # CSM.shape: (eldof,NC*(NCE*Cldof))
 
-
-
-
-
-
-
-
-
-
-
+        return CSM
 
     def monomial_stiff_matrix(self, p=None):
         """
