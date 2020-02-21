@@ -195,7 +195,7 @@ class HHOScalarSpace2d():
         smldof = self.smldof
         psmldof = self.psmldof
         eldof = p + 1  # the number of local 1D dofs on one edge
-        cell2dof, cell2dofLocation = self.dof.cell2dof, self.dof.cell2dofLocation
+        cell2dof, cell2dofLocation = self.dof.cell2dof, self.dof.cell2dofLocation  # cell2dof.shape: (NC*Cldof,)
         CRM = np.zeros((psmldof, len(cell2dof)),
                      dtype=np.float)  # (psmldof,NC*Cldof), Cldof is the number of dofs in one cell
 
@@ -229,7 +229,7 @@ class HHOScalarSpace2d():
         S = self.integralalg.integral(f, celltype=True)  # (NC,psmldof,smldof)
         np.add.at(T, np.arange(NC), S)  # T.shape: (NC,psmldof,smldof)
         idx = cell2dofLocation[0:-1].reshape(-1, 1) + np.arange(smldof)  # (NC,smldof)
-        CRM[:, idx] = T.swapaxes(0, 1)  # Co.shape: (psmldof,NC*Cldof)
+        CRM[:, idx] = T.swapaxes(0, 1)  # CRM.shape: (psmldof,NC*Cldof)
 
         return CRM
 
@@ -277,9 +277,9 @@ class HHOScalarSpace2d():
         Rsplit = np.hsplit(RM, cell2dofLocation[1:-1])  # list, len(Rsplit) is NC, Rsplit[i].shape is (psmldof,Cldof)
 
         f = lambda x: np.transpose(x[1]) @ x[0] @ x[1]
-        RSM = np.concatenate(list(map(f, zip(Sp, Rsplit))), axis=1)  # (Cldof,NC*Cldof)
+        StiffM = np.concatenate(list(map(f, zip(Sp, Rsplit))), axis=1)  # (Cldof,NC*Cldof)
 
-        return RSM
+        return StiffM
 
     def projection_psmspace_to_smspace(self):
         p = self.p
@@ -296,7 +296,7 @@ class HHOScalarSpace2d():
 
     def projection_sm_psm_space_to_edge(self):
         """
-        projection from smspace
+        projection from smspace, psmsace to edge 1d space
         """
         p = self.p
         mesh = self.mesh
@@ -342,58 +342,43 @@ class HHOScalarSpace2d():
         pF0 = invEM@np.einsum('i, ijk, ijm, j->jmk', ws, pphi0, ephi, hE)  # (NE,eldof,psmldof)
         pF1 = invEM[isInEdge, ...]@np.einsum('i, ijk, ijm, j->jmk', ws, pphi1, ephi[:, isInEdge, :], hE[isInEdge])  # (NInE,eldof,psmldof)
 
-        sumNCE = mesh.number_of_edges_of_cells().sum()  # sumNCE is sum of (the number of edges of each cell)
-        F = np.zeros((eldof, sumNCE*smldof), dtype=np.float)
-        pF = np.zeros((eldof, sumNCE*psmldof), dtype=np.float)
+        NCE = mesh.number_of_edges_of_cells()
+        sumNCE = NCE.sum()  # sumNCE is sum of (the number of edges of each cell)
+        sm2E = np.zeros((eldof, sumNCE*smldof), dtype=np.float)
+        psm2E = np.zeros((eldof, sumNCE*psmldof), dtype=np.float)
 
-        celledgedofs = self.number_of_local_dofs() - smldof
+        # celledgedofs = self.number_of_local_dofs() - smldof
+        celledgedofs = NCE * smldof
         cell2dofLocation = np.zeros(NC + 1, dtype=np.int)
         cell2dofLocation[1:] = np.add.accumulate(celledgedofs)
 
-        celledgedofs = self.number_of_local_dofs(p=p+1) - psmldof
+        # celledgedofs = self.number_of_local_dofs(p=p+1) - psmldof
+        celledgedofs = NCE * psmldof
         pcell2dofLocation = np.zeros(NC + 1, dtype=np.int)
         pcell2dofLocation[1:] = np.add.accumulate(celledgedofs)
 
         # --- add to corresponding cells --- #
         idx = cell2dofLocation[edge2cell[:, [0]]] + edge2cell[:, [2]] * smldof + np.arange(smldof)  # (NE,smldof)
-        F[:, idx] = F0.swapaxes(0, 1)
-        idx = cell2dofLocation[edge2cell[:, [0]]] + edge2cell[:, [2]] * psmldof + np.arange(psmldof)  # (NE,psmldof)
-        pF[:, idx] = pF0.swapaxes(0, 1)
+        sm2E[:, idx] = F0.swapaxes(0, 1)
+        idx = pcell2dofLocation[edge2cell[:, [0]]] + edge2cell[:, [2]] * psmldof + np.arange(psmldof)  # (NE,psmldof)
+        psm2E[:, idx] = pF0.swapaxes(0, 1)
 
         idx = cell2dofLocation[edge2cell[isInEdge, 1]].reshape(-1, 1) + \
               smldof * edge2cell[isInEdge, [3]].reshape(-1, 1) + np.arange(smldof)  # (NInE,smldof)
-        F[:, idx] = F1.swapaxes(0, 1)
-        idx = cell2dofLocation[edge2cell[isInEdge, 1]].reshape(-1, 1) + \
+        sm2E[:, idx] = F1.swapaxes(0, 1)
+        idx = pcell2dofLocation[edge2cell[isInEdge, 1]].reshape(-1, 1) + \
               psmldof * edge2cell[isInEdge, [3]].reshape(-1, 1) + np.arange(psmldof)  # (NInE,smldof)
-        pF[:, idx] = pF1.swapaxes(0, 1)
+        psm2E[:, idx] = pF1.swapaxes(0, 1)
 
-        # # F.shape: (eldof, sumNCE*smldof),    pF.shape: (eldof, sumNCE*psmldof)
-        return F, pF
+        # # sm2E.shape: (eldof, sumNCE*smldof),    psm2E.shape: (eldof, sumNCE*psmldof)
+        return sm2E, psm2E
 
-    def projection_on_cell_space(self, p_from, p_to):  # this function may-not used
-        mesh = self.mesh
-
-        def rf(x, index):
-            test_phi = self.basis(x, index=index, p=p_to)  # (NQ,...,to_ldof)
-            trial_phi = self.basis(x, index=index, p=p_from)  # (NQ,...,from_ldof)
-            return np.einsum('...m, ...n->...nm', trial_phi, test_phi)
-        rm = self.integralalg.integral(rf, celltype=True)  # (NC,to_ldof,from_ldof)
-
-        def lf(x, index):
-            phi = self.basis(x, index=index, p=p_to)  # (NQ,...,to_ldof)
-            return np.einsum('...m, ...n->...nm', phi, phi)  # (NC,...,to_ldof)
-        lm = self.integralalg.integral(lf, celltype=True)  # (NC,to_ldof,to_ldof)
-
-        invlm = inv(lm)  # (NC,to_ldof,to_ldof)
-
-        return invlm@rm  # (NC,to_ldof,from_ldof)
-
-    def construct_stabilizer_matrix(self):
+    def reconstruction_stabilizer_matrix(self):
         p = self.p
-        mesh = self.mesh
         smldof = self.smldof
         psmldof = self.psmldof
         eldof = p + 1  # the number of local 1D dofs on one edge
+        EM = self.EM  # (NE,ldof,ldof)
 
         # # reconstruction matrix
         RM = self.RM  # (psmldof,NC*Cldof), Cldof is the number of dofs in one cell
@@ -407,7 +392,7 @@ class HHOScalarSpace2d():
         # # sm2edge.shape: (eldof, sumNCE*smldof),    psm2edge.shape: (eldof, sumNCE*psmldof),
         # # sumNCE is sum of (the number of edges of each cell)
 
-        NCE = mesh.number_of_edges_of_cells()  # (NC,)
+        NCE = self.mesh.number_of_edges_of_cells()  # (NC,)
         NCEacc = np.add.accumulate(NCE)
         sm2edgeS = np.hsplit(sm2edge, NCEacc[:-1]*smldof)
         # # list, its length is NC, each-term.shape: (eldof,NEi*smldof), NEi is the number of edges in i-th cell
@@ -429,8 +414,13 @@ class HHOScalarSpace2d():
         PR = list(map(f, zip(psm2edgeS, sm2edgeS, psm2sm, list(NCE))))  # list, its len is NC, each-term.shape: (eldof, NCE*psmldof)
 
         # --- construct the stiffness matrix
+        cell2edge = self.mesh.ds.cell_to_edge()
+        NCEacc = np.concatenate([[0], NCEacc])
+        Cidx = np.arange(len(NCE))
+
         def f(x):
             # # x[3] is the number of edges in this cell
+            # # x[4] is the current cell index
             l = np.arange(x[3])*smldof
             t = np.concatenate(np.hsplit(x[0], l[1:]), axis=0)
             t = np.concatenate([t, -np.eye(eldof*x[3])], axis=1)  # the eye()-matrix needs to add minus
@@ -440,11 +430,21 @@ class HHOScalarSpace2d():
             l = [([0] * x[3]) for i in range(x[3])]
             for i in range(x[3]):
                 l[i][i] = x[2]
-            return t + x[1]@block(l)
-        CSM = np.concatenate(list(map(f, zip(sm2edgeS, PR, Rsplit, list(NCE)))), axis=1)
-        # # CSM.shape: (eldof,NC*(NCE*Cldof))
+            t = t + x[1]@block(l)  # (eldof, NCE*Cldof)
 
-        return CSM
+            l = np.arange(x[3])*(smldof+eldof*x[3])
+            tsplit = np.hsplit(t, l[1:])  # list, its len is NCE, each-term.shape: (eldof,Cldof)
+
+            eidx = cell2edge[NCEacc[x[4]]:NCEacc[x[4]+1]]
+            CEM = EM[eidx, ...]  # (NCE,eldof,eldof)
+
+            f2 = lambda y: np.transpose(y[1]) @ y[0] @ y[1]
+            sm = np.sum(list(map(f2, zip(CEM, tsplit))), axis=0)
+            return sm
+        StabM = np.concatenate(list(map(f, zip(sm2edgeS, PR, Rsplit, list(NCE), list(Cidx)))), axis=1)
+        # # StabM.shape: (Cldof,NC*Cldof)
+
+        return StabM
 
     def monomial_stiff_matrix(self, p=None):
         """

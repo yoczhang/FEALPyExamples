@@ -60,7 +60,8 @@ pmesh = qtree.to_pmesh()  # Excuse me?! It has this operator!
 # plt.show()
 # plt.close()
 # -------------------
-
+# pmesh.ds.cell_to_edge()
+edge2cell = pmesh.ds.edge2cell
 
 # #
 # #
@@ -73,12 +74,13 @@ multiIndex1d = hhodof.multi_index_matrix1d()
 
 
 # --- test begin --- #
+psm2sm = hhospace.projection_psmspace_to_smspace()
 CRM = hhospace.construct_righthand_matrix()
 Re = hhospace.reconstruction_matrix()
-Rs = hhospace.reconstruction_stiff_matrix()
+StiffM = hhospace.reconstruction_stiff_matrix()
 Pp2s = hhospace.projection_psmspace_to_smspace()
 F, pF = hhospace.projection_sm_psm_space_to_edge()
-S = hhospace.construct_stabilizer_matrix()
+StabM = hhospace.reconstruction_stabilizer_matrix()
 
 
 
