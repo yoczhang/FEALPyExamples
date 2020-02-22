@@ -347,7 +347,7 @@ class HHOScalarSpace2d():
         sm2E = np.zeros((eldof, sumNCE*smldof), dtype=np.float)
         psm2E = np.zeros((eldof, sumNCE*psmldof), dtype=np.float)
 
-        # celledgedofs = self.number_of_local_dofs() - smldof
+        # # celledgedofs = self.number_of_local_dofs() - smldof
         celledgedofs = NCE * smldof
         cell2dofLocation = np.zeros(NC + 1, dtype=np.int)
         cell2dofLocation[1:] = np.add.accumulate(celledgedofs)
@@ -398,22 +398,27 @@ class HHOScalarSpace2d():
         # # list, its length is NC, each-term.shape: (eldof,NEi*smldof), NEi is the number of edges in i-th cell
         psm2edgeS = np.hsplit(psm2edge, NCEacc[:-1]*psmldof)
 
-        # f = lambda x: x[0] @ x[1]
-        # Re = np.concatenate(list(map(f, zip(invls, Csplit))), axis=1)  # (psmldof,NC*Cldof)
         def f(x):
-            # # x[0].shape: (ldof,NEi*psmldof)
-            # # x[1].shape: (ldof,NEi*smldof)
+            # # x[0].shape: (eldof,NEi*psmldof)
+            # # x[1].shape: (eldof,NEi*smldof)
             # # x[2].shape: (smldof,psmldof)
             # # x[3].shape: (1,)
-            idx = smldof*np.arange(x[3])  #
-            t1 = np.tile(x[2], (x[3], 1))  # (NEi*smldof,psmldof)
-            t2 = np.einsum('ij, jk->ijk', x[1], t1)  # (eldof,NEi*smldof,psmldof)
-            t2 = np.concatenate(np.split(t2, idx[1:], axis=1), axis=2)
-            t2 = t2.sum(axis=1)  # (eldof,smldof,NEi*psmldof) => (eldof,NEi*psmldof)
-            return x[0] - t2  # (eldof,NEi*psmldof)
+            # idx = smldof*np.arange(x[3])  # (NEi,)
+            # t1 = np.tile(x[2], (x[3], 1))  # (NEi*smldof,psmldof)
+            # t2 = np.einsum('ij, jk->ijk', x[1], t1)  # (eldof,NEi*smldof,psmldof)
+            # t2 = np.concatenate(np.split(t2, idx[1:], axis=1), axis=2)  # (eldof,smldof,NEi*psmldof)
+            # t2 = t2.sum(axis=1)  # (eldof,smldof,NEi*psmldof) => (eldof,NEi*psmldof)
+
+            l = [([0] * x[3]) for i in range(x[3])]
+            for i in range(x[3]):
+                l[i][i] = x[2]
+            t = x[1] @ block(l)  # (eldof,NEi*psmldof)
+
+            # return x[0] - t2  # (eldof,NEi*psmldof)
+            return x[0] - t
         PR = list(map(f, zip(psm2edgeS, sm2edgeS, psm2sm, list(NCE))))  # list, its len is NC, each-term.shape: (eldof, NCE*psmldof)
 
-        # --- construct the stiffness matrix
+        # --- construct the reconstruction-stabilizer matrix
         cell2edge = self.mesh.ds.cell_to_edge()
         NCEacc = np.concatenate([[0], NCEacc])
         Cidx = np.arange(len(NCE))
@@ -439,7 +444,7 @@ class HHOScalarSpace2d():
             CEM = EM[eidx, ...]  # (NCE,eldof,eldof)
 
             f2 = lambda y: np.transpose(y[1]) @ y[0] @ y[1]
-            sm = np.sum(list(map(f2, zip(CEM, tsplit))), axis=0)
+            sm = np.sum(list(map(f2, zip(CEM, tsplit))), axis=0)  # (Cldof,Cldof)
             return sm
         StabM = np.concatenate(list(map(f, zip(sm2edgeS, PR, Rsplit, list(NCE), list(Cidx)))), axis=1)
         # # StabM.shape: (Cldof,NC*Cldof)
