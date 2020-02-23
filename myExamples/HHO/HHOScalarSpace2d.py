@@ -278,6 +278,7 @@ class HHOScalarSpace2d():
 
         f = lambda x: np.transpose(x[1]) @ x[0] @ x[1]
         StiffM = np.concatenate(list(map(f, zip(Sp, Rsplit))), axis=1)  # (Cldof,NC*Cldof)
+        # # this data-structure of final StiffM maybe wrong, because Cldof can be change each cell
 
         return StiffM
 
@@ -379,6 +380,7 @@ class HHOScalarSpace2d():
         psmldof = self.psmldof
         eldof = p + 1  # the number of local 1D dofs on one edge
         EM = self.EM  # (NE,ldof,ldof)
+        h = self.mesh.edge_length()
 
         # # reconstruction matrix
         RM = self.RM  # (psmldof,NC*Cldof), Cldof is the number of dofs in one cell
@@ -442,14 +444,26 @@ class HHOScalarSpace2d():
 
             eidx = cell2edge[NCEacc[x[4]]:NCEacc[x[4]+1]]
             CEM = EM[eidx, ...]  # (NCE,eldof,eldof)
+            CEh = h[eidx]
 
-            f2 = lambda y: np.transpose(y[1]) @ y[0] @ y[1]
-            sm = np.sum(list(map(f2, zip(CEM, tsplit))), axis=0)  # (Cldof,Cldof)
+            f2 = lambda y: 1./y[2]*(np.transpose(y[1]) @ y[0] @ y[1])
+            sm = np.sum(list(map(f2, zip(CEM, tsplit, CEh))), axis=0)  # (Cldof,Cldof)
             return sm
         StabM = np.concatenate(list(map(f, zip(sm2edgeS, PR, Rsplit, list(NCE), list(Cidx)))), axis=1)
         # # StabM.shape: (Cldof,NC*Cldof)
 
         return StabM
+
+    def using_static_condensation(self, M, F):
+        """
+        Using static condensation
+
+        M, is the final left matirx, (Cldof, )
+        F, is the final right vector.
+        """
+
+
+
 
     def monomial_stiff_matrix(self, p=None):
         """
