@@ -21,7 +21,7 @@ from fealpy.quadrature import PolygonMeshIntegralAlg
 from fealpy.functionspace.ScaledMonomialSpace2d import SMDof2d, ScaledMonomialSpace2d
 
 
-class HHODof2d():
+class HHODof2d(object):
     """
     The dof manager of HHO 2d space.
     """
@@ -109,7 +109,7 @@ class HHODof2d():
         return ldofs
 
 
-class HHOScalarSpace2d():
+class HHOScalarSpace2d(object):
     def __init__(self, mesh, p, q=None):
         self.p = p
         self.mesh = mesh
@@ -277,8 +277,7 @@ class HHOScalarSpace2d():
         Rsplit = np.hsplit(RM, cell2dofLocation[1:-1])  # list, len(Rsplit) is NC, Rsplit[i].shape is (psmldof,Cldof)
 
         f = lambda x: np.transpose(x[1]) @ x[0] @ x[1]
-        StiffM = np.concatenate(list(map(f, zip(Sp, Rsplit))), axis=1)  # (Cldof,NC*Cldof)
-        # # this data-structure of final StiffM maybe wrong, because Cldof can be change each cell
+        StiffM = list(map(f, zip(Sp, Rsplit)))  # list, its len is NC, each-term.shape: (Cldof,Cldof)
 
         return StiffM
 
@@ -449,21 +448,22 @@ class HHOScalarSpace2d():
             f2 = lambda y: 1./y[2]*(np.transpose(y[1]) @ y[0] @ y[1])
             sm = np.sum(list(map(f2, zip(CEM, tsplit, CEh))), axis=0)  # (Cldof,Cldof)
             return sm
-        StabM = np.concatenate(list(map(f, zip(sm2edgeS, PR, Rsplit, list(NCE), list(Cidx)))), axis=1)
-        # # StabM.shape: (Cldof,NC*Cldof)
+        StabM = list(map(f, zip(sm2edgeS, PR, Rsplit, list(NCE), list(Cidx))))
+        # # list, its len is NC, each-term.shape: (Cldof,Cldof)
 
         return StabM
 
-    def using_static_condensation(self, M, F):
-        """
-        Using static condensation
+    def source_vector(self, f):
+        phi = self.basis  # basis is inherited from class ScaledMonomialSpace2d()
 
-        M, is the final left matirx, (Cldof, )
-        F, is the final right vector.
-        """
+        def u(x, index):
+            return np.einsum('ij, ijm->ijm', f(x), phi(x, index=index))
+            # # f(x).shape: (NQ,NC).    phi(x,...).shape: (NQ,NC,ldof)
 
+        fh = self.integralalg.integral(u, celltype=True)  # (NC,ldof)
+        # # integralalg is inherited from class ScaledMonomialSpace2d()
 
-
+        return fh  # (NC,ldof)
 
     def monomial_stiff_matrix(self, p=None):
         """
