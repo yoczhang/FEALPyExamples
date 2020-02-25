@@ -51,8 +51,10 @@ class HHODof2d(object):
     def edge_to_dof(self):
         p = self.p
         mesh = self.mesh
+        NC = mesh.number_of_cells()
+        cdof = (p + 1) * (p + 2) // 2
         NE = mesh.number_of_edges()
-        edge2dof = np.arange(NE * (p + 1)).reshape(NE, p + 1)
+        edge2dof = NC*cdof + np.arange(NE * (p + 1)).reshape(NE, p + 1)
         return edge2dof
 
     def cell_to_dof(self):
@@ -80,7 +82,7 @@ class HHODof2d(object):
         cell2dofLocation[1:] = np.add.accumulate(ldof)
         cell2dof = np.zeros(cell2dofLocation[-1], dtype=np.int)
 
-        edge2dof = NC*idof + self.edge_to_dof()
+        edge2dof = self.edge_to_dof()
         edge2cell = mesh.ds.edge_to_cell()
         idx = cell2dofLocation[edge2cell[:, [0]]] + edge2cell[:, [2]] * eldof + np.arange(eldof)
         idx += idof

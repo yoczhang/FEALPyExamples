@@ -76,6 +76,7 @@ smspace = ScaledMonomialSpace2d(pmesh, p)
 integralalg = smspace.integralalg
 hhospace = HHOScalarSpace2d(pmesh, p)
 hhodof = HHODof2d(pmesh, p)
+edge_to_dof = hhodof.edge_to_dof()
 cell2dof, doflocation = hhodof.cell_to_dof()
 multiIndex1d = hhodof.multi_index_matrix1d()
 
