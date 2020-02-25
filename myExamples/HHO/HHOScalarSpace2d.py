@@ -84,14 +84,12 @@ class HHODof2d(object):
 
         edge2dof = self.edge_to_dof()
         edge2cell = mesh.ds.edge_to_cell()
-        idx = cell2dofLocation[edge2cell[:, [0]]] + edge2cell[:, [2]] * eldof + np.arange(eldof)
-        idx += idof
+        idx = cell2dofLocation[edge2cell[:, [0]]] + edge2cell[:, [2]] * eldof + np.arange(eldof) + idof
         cell2dof[idx] = edge2dof
 
         isInEdge = (edge2cell[:, 0] != edge2cell[:, 1])
         idx = (cell2dofLocation[edge2cell[isInEdge, 1]] + edge2cell[isInEdge, 3] * eldof).reshape(-1, 1) + np.arange(
-            eldof)
-        idx += idof
+            eldof) + idof
         cell2dof[idx] = edge2dof[isInEdge]
 
         idx = cell2dofLocation[:-1].reshape(-1, 1) + np.arange(idof)  # (NC,smldof)
