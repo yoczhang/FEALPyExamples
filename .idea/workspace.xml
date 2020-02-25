@@ -206,38 +206,38 @@
       <screen x="0" y="23" width="1280" height="734" />
     </state>
     <state x="104" y="52" width="1071" height="696" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.23.1280.734@0.23.1280.734" timestamp="1580462002823" />
-    <state width="1259" height="120" key="GridCell.Tab.0.bottom" timestamp="1582469394454">
+    <state width="1259" height="284" key="GridCell.Tab.0.bottom" timestamp="1582616064481">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="120" key="GridCell.Tab.0.bottom/0.23.1280.734@0.23.1280.734" timestamp="1582469394454" />
-    <state width="1259" height="120" key="GridCell.Tab.0.center" timestamp="1582469394453">
+    <state width="1259" height="284" key="GridCell.Tab.0.bottom/0.23.1280.734@0.23.1280.734" timestamp="1582616064481" />
+    <state width="1259" height="284" key="GridCell.Tab.0.center" timestamp="1582616064480">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="120" key="GridCell.Tab.0.center/0.23.1280.734@0.23.1280.734" timestamp="1582469394453" />
-    <state width="1259" height="120" key="GridCell.Tab.0.left" timestamp="1582469394452">
+    <state width="1259" height="284" key="GridCell.Tab.0.center/0.23.1280.734@0.23.1280.734" timestamp="1582616064480" />
+    <state width="1259" height="284" key="GridCell.Tab.0.left" timestamp="1582616064479">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="120" key="GridCell.Tab.0.left/0.23.1280.734@0.23.1280.734" timestamp="1582469394452" />
-    <state width="1259" height="120" key="GridCell.Tab.0.right" timestamp="1582469394453">
+    <state width="1259" height="284" key="GridCell.Tab.0.left/0.23.1280.734@0.23.1280.734" timestamp="1582616064479" />
+    <state width="1259" height="284" key="GridCell.Tab.0.right" timestamp="1582616064480">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="120" key="GridCell.Tab.0.right/0.23.1280.734@0.23.1280.734" timestamp="1582469394453" />
-    <state width="1259" height="120" key="GridCell.Tab.1.bottom" timestamp="1582469394455">
+    <state width="1259" height="284" key="GridCell.Tab.0.right/0.23.1280.734@0.23.1280.734" timestamp="1582616064480" />
+    <state width="1259" height="284" key="GridCell.Tab.1.bottom" timestamp="1582616061158">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="120" key="GridCell.Tab.1.bottom/0.23.1280.734@0.23.1280.734" timestamp="1582469394455" />
-    <state width="1259" height="120" key="GridCell.Tab.1.center" timestamp="1582469394454">
+    <state width="1259" height="284" key="GridCell.Tab.1.bottom/0.23.1280.734@0.23.1280.734" timestamp="1582616061158" />
+    <state width="1259" height="284" key="GridCell.Tab.1.center" timestamp="1582616061158">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="120" key="GridCell.Tab.1.center/0.23.1280.734@0.23.1280.734" timestamp="1582469394454" />
-    <state width="1259" height="120" key="GridCell.Tab.1.left" timestamp="1582469394454">
+    <state width="1259" height="284" key="GridCell.Tab.1.center/0.23.1280.734@0.23.1280.734" timestamp="1582616061158" />
+    <state width="1259" height="284" key="GridCell.Tab.1.left" timestamp="1582616061157">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="120" key="GridCell.Tab.1.left/0.23.1280.734@0.23.1280.734" timestamp="1582469394454" />
-    <state width="1259" height="120" key="GridCell.Tab.1.right" timestamp="1582469394455">
+    <state width="1259" height="284" key="GridCell.Tab.1.left/0.23.1280.734@0.23.1280.734" timestamp="1582616061157" />
+    <state width="1259" height="284" key="GridCell.Tab.1.right" timestamp="1582616061158">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="120" key="GridCell.Tab.1.right/0.23.1280.734@0.23.1280.734" timestamp="1582469394455" />
+    <state width="1259" height="284" key="GridCell.Tab.1.right/0.23.1280.734@0.23.1280.734" timestamp="1582616061158" />
     <state x="141" y="29" key="SettingsEditor" timestamp="1580458963320">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
@@ -353,7 +353,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/myExamples/Test/totest_HHOScalarSpace.py</url>
-          <line>106</line>
+          <line>113</line>
           <option name="timeStamp" value="97" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -363,7 +363,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/myExamples/Test/totest_HHOScalarSpace.py</url>
-          <line>86</line>
+          <line>93</line>
           <option name="timeStamp" value="100" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -378,8 +378,18 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/myExamples/HHO/HHOScalarSpace2d.py</url>
-          <line>384</line>
+          <line>387</line>
           <option name="timeStamp" value="105" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/myExamples/Test/totest_HHOScalarSpace.py</url>
+          <line>83</line>
+          <option name="timeStamp" value="106" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/myExamples/Test/totest_HHOScalarSpace.py</url>
+          <line>79</line>
+          <option name="timeStamp" value="107" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

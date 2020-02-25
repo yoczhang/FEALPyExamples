@@ -42,11 +42,17 @@ node = np.array([
 # mesh.uniform_refine(n)
 # ------------------
 
+# --- poly mesh ---
+h = 0.6
+box = [0, 1, 0, 1]  # [0, 1]^2 domain
+pmesh = triangle(box, h, meshtype='polygon')
+# -----------------
+
 # --- quad-tree mesh ---
-cell = np.array([(0, 1, 2, 3)], dtype=np.int)  # quad mesh
-qtree = Quadtree(node, cell)
-qtree.uniform_refine(n)
-pmesh = qtree.to_pmesh()  # Excuse me?! It has this operator!
+# cell = np.array([(0, 1, 2, 3)], dtype=np.int)  # quad mesh
+# qtree = Quadtree(node, cell)
+# qtree.uniform_refine(n)
+# pmesh = qtree.to_pmesh()  # Excuse me?! It has this operator!
 # -----------------------
 
 
@@ -61,7 +67,7 @@ pmesh = qtree.to_pmesh()  # Excuse me?! It has this operator!
 # plt.close()
 # -------------------
 # pmesh.ds.cell_to_edge()
-edge2cell = pmesh.ds.edge2cell
+# edge2cell = pmesh.ds.edge2cell
 
 # #
 # #
@@ -70,6 +76,7 @@ smspace = ScaledMonomialSpace2d(pmesh, p)
 integralalg = smspace.integralalg
 hhospace = HHOScalarSpace2d(pmesh, p)
 hhodof = HHODof2d(pmesh, p)
+cell2dof, doflocation = hhodof.cell_to_dof()
 multiIndex1d = hhodof.multi_index_matrix1d()
 
 

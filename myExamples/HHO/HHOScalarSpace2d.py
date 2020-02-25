@@ -62,10 +62,14 @@ class HHODof2d(object):
 
         The following code give the dofs of i-th cell.
 
+        In each cell, the cell-dofs is the first, then is the edge-dofs.
+
         cell2dof[cell2dofLocation[i]:cell2dofLocation[i+1]]
         """
         p = self.p
         mesh = self.mesh
+        idof = (p + 1) * (p + 2) // 2
+        eldof = p + 1
         cellLocation = mesh.ds.cellLocation
         cell2edge = mesh.ds.cell_to_edge(sparse=False)
 
@@ -76,21 +80,20 @@ class HHODof2d(object):
         cell2dofLocation[1:] = np.add.accumulate(ldof)
         cell2dof = np.zeros(cell2dofLocation[-1], dtype=np.int)
 
-        edge2dof = self.edge_to_dof()
+        edge2dof = NC*idof + self.edge_to_dof()
         edge2cell = mesh.ds.edge_to_cell()
-        idx = cell2dofLocation[edge2cell[:, [0]]] + edge2cell[:, [2]] * (p + 1) + np.arange(p + 1)
+        idx = cell2dofLocation[edge2cell[:, [0]]] + edge2cell[:, [2]] * eldof + np.arange(eldof)
+        idx += idof
         cell2dof[idx] = edge2dof
 
         isInEdge = (edge2cell[:, 0] != edge2cell[:, 1])
-        idx = (cell2dofLocation[edge2cell[isInEdge, 1]] + edge2cell[isInEdge, 3] * (p + 1)).reshape(-1, 1) + np.arange(
-            p + 1)
+        idx = (cell2dofLocation[edge2cell[isInEdge, 1]] + edge2cell[isInEdge, 3] * eldof).reshape(-1, 1) + np.arange(
+            eldof)
+        idx += idof
         cell2dof[idx] = edge2dof[isInEdge]
 
-        NV = mesh.number_of_vertices_of_cells()
-        NE = mesh.number_of_edges()
-        idof = (p + 1) * (p + 2) // 2
-        idx = (cell2dofLocation[:-1] + NV * (p + 1)).reshape(-1, 1) + np.arange(idof)
-        cell2dof[idx] = NE * (p + 1) + np.arange(NC * idof).reshape(NC, idof)
+        idx = cell2dofLocation[:-1].reshape(-1, 1) + np.arange(idof)  # (NC,smldof)
+        cell2dof[idx] = np.arange(NC * idof).reshape(NC, idof)
         return cell2dof, cell2dofLocation
 
     def number_of_global_dofs(self):
