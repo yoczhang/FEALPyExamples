@@ -31,12 +31,12 @@ n = 2  # the number of refine mesh
 maxit = 5  # the max iteration of the mesh
 
 pde = PDE()  # create pde model
-pde.epsilon = -1  # setting the DG-scheme parameter
+pde.epsilon = 0  # setting the DG-scheme parameter
 # # epsilon maybe take -1, 0, 1,
 # # the corresponding DG-scheme is called symmetric interior penalty Galerkin (SIPG),
 # # incomplete interior penalty Galerkin (IIPG) and nonsymmetric interior penalty Galerkin (NIPG)
 
-pde.eta = 16  # setting the penalty parameter
+pde.eta = 166  # setting the penalty parameter
 # # eta may change corresponding to the polynomial order 'p' and 'epsilon'
 
 # # error settings
@@ -53,15 +53,15 @@ Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
 
 # # mesh 2:
 # # tri mesh
-# h = 1./4
-# box = [0, 1, 0, 1]  # [0, 1]^2 domain
-# mesh = triangle(box, h, meshtype='tri')
+h = 1./4
+box = [0, 1, 0, 1]  # [0, 1]^2 domain
+mesh = triangle(box, h, meshtype='tri')
 
 # # mesh 3:
 # # polygon mesh
-h = 1./4
-box = [0, 1, 0, 1]  # [0, 1]^2 domain
-mesh = triangle(box, h, meshtype='polygon')
+# h = 1./4
+# box = [0, 1, 0, 1]  # [0, 1]^2 domain
+# mesh = triangle(box, h, meshtype='polygon')
 
 # # TODO: import mesh from other files
 
