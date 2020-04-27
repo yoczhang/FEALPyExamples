@@ -90,7 +90,7 @@ class DGScalarSpace2d(ScaledMonomialSpace2d):
         # # phi1 is the value of the cell basis functions on the other-side of the corresponding edges.
 
         gphi0 = self.grad_basis(ps[:, isInEdge, :], index=edge2cell[isInEdge, 0])
-        # # gphi0.shape: (NQ,NInE,ldof,2), NInE is the number of interior edges, lodf is the number of local DOFs
+        # # gphi0.shape: (NQ,NInE,ldof,2), NInE is the number of interior edges, ldof is the number of local DOFs
         # # gphi0 is the grad-value of the cell basis functions on the one-side of the corresponding edges.
         gphi1 = self.grad_basis(ps[:, isInEdge, :], index=edge2cell[isInEdge, 1])
 
