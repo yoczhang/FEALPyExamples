@@ -13,6 +13,7 @@ import numpy as np
 
 from HHOScalarSpace2d import HHOScalarSpace2d
 from numpy.linalg import inv
+from scipy.sparse import csr_matrix
 from scipy.sparse.linalg import spsolve
 from timeit import default_timer as timer
 
@@ -54,16 +55,16 @@ class hhoPoissonModel2d(object):
         lM = self.get_left_matrix()  # list, its len is NC, each-term.shape (Cldof,Cldof)
         RV = self.get_right_vector()  # (NC,ldof)
 
-        NE = self.mesh
+        NE = self.mesh.number_of_edges()
         NCE = self.mesh.number_of_edges_of_cells()  # (NC,)
 
         smldof = self.smspace.number_of_local_dofs()
         psmldof = self.smspace.number_of_local_dofs(p=p + 1)
         eldof = p + 1
+        egdof = NE * eldof
 
-        ME = np.zeros((NE*eldof, NE*eldof), dtype=np.float)
-        VE = np.zeros((NE*eldof, 1), dtype=np.float)
-
+        # ME = np.zeros((egdof, egdof), dtype=np.float)
+        # VE = np.zeros((egdof, 1), dtype=np.float)
 
         def s_c(x):
             # # x[0], the left matrix in current cell
@@ -71,7 +72,9 @@ class hhoPoissonModel2d(object):
             # # x[2], the edges index in current cell
             LM_C = x[0]  # the left matrix at this cell
             RV_C = x[1]
-            CurrE = x[2]
+            idx_E = x[2]
+
+            NCEdof = len(idx_E)*eldof
 
             A = LM_C[:smldof, :smldof]
             B = LM_C[:smldof, smldof:]
@@ -86,15 +89,41 @@ class hhoPoissonModel2d(object):
             # # (C*invA*B - D)*u_F = C*invA*f_T
             # # the matrix (C*invA*B - D) and the vector C*invA*f_T are what we want to get in this function
             CinvA = C@inv(A)
-            m = CinvA@B - D
-            v = CinvA@RV_C.reshape(-1, 1)
+            m = CinvA@B - D  # (NCEdof,NCEdof)
+            v = CinvA@RV_C.reshape(-1, 1)  # (NCEdof,)
+            m_v = np.concatenate([m, v], axis=1)
 
             # --- get the dof location --- #
-            
+            edofs = eldof*idx_E.reshape(-1, 1) + np.arange(eldof)
+            edofs = edofs.reshape(1, -1)  # (NCEdof,1)
 
+            rowIndex = np.einsum('ij, k->ik', edofs, np.ones(NCEdof))
+            colIndex = np.transpose(rowIndex)
+            addcol = egdof*np.ones((colIndex.shape[0], 1))
+
+            rowIndex = np.concatenate([rowIndex, edofs], axis=1)
+            colIndex = np.concatenate([colIndex, addcol], axis=1)
 
             # --- add to the global matrix and vector --- #
-            np.add.at(ME, edge2cell[:, 0], M)
+            # global ME, VE
+            # ME[rowIndex.flat, colIndex.flat] += m.flat
+            # VE[rowIndex[:, 0]] += v
+            r = csr_matrix((m_v.flat, (rowIndex.flat, colIndex.flat)), shape=(egdof, egdof+1))
+            return r
+
+        MV = sum(list(map(s_c, zip(lM, RV, NCE))))
+        M = MV[:egdof, :egdof]
+        V = MV[:, -1]
+
+        # --- set boundary condition --- #
+
+        # --- solve the edges system --- #
+        # np.linalg.solve(A, b)
+
+
+
+
+
 
 
 

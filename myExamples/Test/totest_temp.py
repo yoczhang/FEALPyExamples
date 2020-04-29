@@ -17,14 +17,26 @@ aa = [a1, a2]
 
 bb = np.array([[0.1, 0.1, 0.1], [0.2, 0.2, 0.2]])
 
+cc = 0
+
 
 def sum_t(x):
     r = x[0] + x[1]
-    return r
+
+    global cc
+    cc += sum(r)
+    # return r
+
+# map(sum_t, zip(aa, bb))
+dd = list(map(sum_t, zip(aa, bb)))
 
 
-cc = list(map(sum_t, zip(aa, bb)))
 
+# --- another test --- #
+z1 = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+z2 = np.array([[0.1, 0.2], [0.3, 0.4]])
+rowIndx = np.array([[0, 0], [1, 1]])
+colIndx = np.array([[0, 1], [0, 1]])
 
 # ------------------------------------------------- #
 print("End of this test file")
