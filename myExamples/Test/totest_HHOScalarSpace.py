@@ -110,6 +110,5 @@ ephi = smspace.edge_basis(ps)  # (NQ,NE,ldof1d)
 cell2dof, cell2dofLocation = hhospace.dof.cell2dof, hhospace.dof.cell2dofLocation
 idx = cell2dofLocation[edge2cell[:, [0]]] + edge2cell[:, [2]] * (p + 1) + np.arange(p + 1)  # (NE,eldof)
 
-
 # ------------------------------------------------- #
 print("End of this test file")

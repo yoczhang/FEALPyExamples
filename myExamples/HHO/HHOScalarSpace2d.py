@@ -380,7 +380,7 @@ class HHOScalarSpace2d(object):
         smldof = self.smldof
         psmldof = self.psmldof
         eldof = p + 1  # the number of local 1D dofs on one edge
-        EM = self.EM  # (NE,ldof,ldof)
+        EM = self.EM  # EM is the smspace.edge_mass_matrix(), (NE,eldof,eldof)
         h = self.mesh.edge_length()
 
         # # reconstruction matrix
@@ -398,28 +398,35 @@ class HHOScalarSpace2d(object):
         NCE = self.mesh.number_of_edges_of_cells()  # (NC,)
         NCEacc = np.add.accumulate(NCE)
         sm2edgeS = np.hsplit(sm2edge, NCEacc[:-1]*smldof)
-        # # list, its length is NC, each-term.shape: (eldof,NEi*smldof), NEi is the number of edges in i-th cell
+        # # list, its length is NC, each-term.shape: (eldof,NE_C*smldof), NE_C is the number of edges in one cell
         psm2edgeS = np.hsplit(psm2edge, NCEacc[:-1]*psmldof)
 
         def f(x):
-            # # x[0].shape: (eldof,NEi*psmldof)
-            # # x[1].shape: (eldof,NEi*smldof)
+            # # x[0].shape: (eldof,NE_C*psmldof), NE_C is the number of edges in one cell
+            # # x[1].shape: (eldof,NE_C*smldof)
             # # x[2].shape: (smldof,psmldof)
             # # x[3].shape: (1,)
-            # idx = smldof*np.arange(x[3])  # (NEi,)
-            # t1 = np.tile(x[2], (x[3], 1))  # (NEi*smldof,psmldof)
-            # t2 = np.einsum('ij, jk->ijk', x[1], t1)  # (eldof,NEi*smldof,psmldof)
-            # t2 = np.concatenate(np.split(t2, idx[1:], axis=1), axis=2)  # (eldof,smldof,NEi*psmldof)
-            # t2 = t2.sum(axis=1)  # (eldof,smldof,NEi*psmldof) => (eldof,NEi*psmldof)
 
+            # --- one way --- #
+            # idx = smldof*np.arange(x[3])  # (NE_C,)
+            # t1 = np.tile(x[2], (x[3], 1))  # (NE_C*smldof,psmldof)
+            # t2 = np.einsum('ij, jk->ijk', x[1], t1)  # (eldof,NE_C*smldof,psmldof)
+            # t2 = np.concatenate(np.split(t2, idx[1:], axis=1), axis=2)  # (eldof,smldof,NE_C*psmldof)
+            # t2 = t2.sum(axis=1)  # (eldof,smldof,NE_C*psmldof) => (eldof,NE_C*psmldof)
+            # return x[0] - t2  # (eldof,NE_C*psmldof)
+
+            # --- another way --- #
+            # # construct the block matrix
             l = [([0] * x[3]) for i in range(x[3])]
             for i in range(x[3]):
                 l[i][i] = x[2]
-            t = x[1] @ block(l)  # (eldof,NEi*psmldof)
+            # # compute the product of the matrix
+            t = x[1] @ block(l)  # (eldof,NE_C*psmldof)
+            return x[0] - t  # (eldof,NE_C*psmldof)
 
-            # return x[0] - t2  # (eldof,NEi*psmldof)
-            return x[0] - t
-        PR = list(map(f, zip(psm2edgeS, sm2edgeS, psm2sm, list(NCE))))  # list, its len is NC, each-term.shape: (eldof, NCE*psmldof)
+        # # get the projection to edge matrix,
+        # # the aim is to compute the matrix: J_{1m}^{-1}*H_{3_m} - J_{1m}^{-1}*H_{2_m}*G_{4}^{-1}*G_5
+        P2E = list(map(f, zip(psm2edgeS, sm2edgeS, psm2sm, list(NCE))))  # list, its len is NC, each-term.shape: (eldof, NCE*psmldof)
 
         # --- construct the reconstruction-stabilizer matrix
         cell2edge = self.mesh.ds.cell_to_edge()
@@ -427,18 +434,21 @@ class HHOScalarSpace2d(object):
         Cidx = np.arange(len(NCE))
 
         def f(x):
-            # # x[3] is the number of edges in this cell
+            # # x[3] is the number of edges in this cell, i.e., NCE
             # # x[4] is the current cell index
-            l = np.arange(x[3])*smldof
-            t = np.concatenate(np.hsplit(x[0], l[1:]), axis=0)
-            t = np.concatenate([t, -np.eye(eldof*x[3])], axis=1)  # the eye()-matrix needs to add minus
+            l = np.arange(x[3])*smldof  # (NCE*smldof,)
+            t = np.concatenate(np.hsplit(x[0], l[1:]), axis=0)  # (NCE*eldof, smldof), x[0] is the sm2edge_in_one_cell
+            t = np.concatenate([t, -np.eye(eldof*x[3])], axis=1)  # (NCE*eldof, Cldof), Cldof = smldof + NCE*eldof, the eye()-matrix needs to add minus
             l = np.arange(x[3])*eldof
-            t = np.concatenate(np.vsplit(t, l[1:]), axis=1)
+            t = np.concatenate(np.vsplit(t, l[1:]), axis=1)  # (eldof, NCE*Cldof)
 
             l = [([0] * x[3]) for i in range(x[3])]
             for i in range(x[3]):
-                l[i][i] = x[2]
-            t = t + x[1]@block(l)  # (eldof, NCE*Cldof)
+                l[i][i] = x[2]  # x[2] is the RM in one cell, x[2].shape: (psmldof, Cldof)
+            t = t + x[1]@block(l)
+            # # x[1] is the P2E in one cell, x[1].shape: (eldof, NCE*psmldof)
+            # # block(l).shape: (NCE*psmldof, NCE*Cldof)
+            # # t.shape: (eldof, NCE*Cldof)
 
             l = np.arange(x[3])*(smldof+eldof*x[3])
             tsplit = np.hsplit(t, l[1:])  # list, its len is NCE, each-term.shape: (eldof,Cldof)
@@ -447,10 +457,10 @@ class HHOScalarSpace2d(object):
             CEM = EM[eidx, ...]  # (NCE,eldof,eldof)
             CEh = h[eidx]
 
-            f2 = lambda y: 1./y[2]*(np.transpose(y[1]) @ y[0] @ y[1])
+            f2 = lambda y: 1./y[2]*(np.transpose(y[1]) @ y[0] @ y[1])  # each-time, result.shape: (Cldof,Clodf)
             sm = np.sum(list(map(f2, zip(CEM, tsplit, CEh))), axis=0)  # (Cldof,Cldof)
             return sm
-        StabM = list(map(f, zip(sm2edgeS, PR, Rsplit, list(NCE), list(Cidx))))
+        StabM = list(map(f, zip(sm2edgeS, P2E, Rsplit, list(NCE), list(Cidx))))
         # # list, its len is NC, each-term.shape: (Cldof,Cldof)
 
         return StabM

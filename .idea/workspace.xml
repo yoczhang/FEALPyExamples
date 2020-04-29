@@ -7,9 +7,6 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="FavoritesManager">
-    <favorites_list name="FEALPyExamples" />
-  </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
@@ -34,7 +31,7 @@
     <property name="restartRequiresConfirmation" value="false" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
-  <component name="RunManager" selected="Python.totest_HHOScalarSpace">
+  <component name="RunManager" selected="Python.totest_temp">
     <configuration name="HHOScalarSpace2d" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="FEALPyExamples" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -69,27 +66,6 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/myExamples/DG_Poisson/PoissonDGRate2d.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="totest_DGScalarSpace" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="FEALPyExamples" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/myExamples/Test" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/myExamples/Test/totest_DGScalarSpace.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -140,20 +116,41 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="totest_temp" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="FEALPyExamples" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/myExamples/Test" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/myExamples/Test/totest_temp.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <list>
       <item itemvalue="Python.HHOScalarSpace2d" />
       <item itemvalue="Python.PoissonDGRate2d" />
-      <item itemvalue="Python.totest_DGScalarSpace" />
       <item itemvalue="Python.totest_HHOScalarSpace" />
       <item itemvalue="Python.totest_WGSpace" />
+      <item itemvalue="Python.totest_temp" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.totest_temp" />
         <item itemvalue="Python.totest_HHOScalarSpace" />
         <item itemvalue="Python.HHOScalarSpace2d" />
         <item itemvalue="Python.PoissonDGRate2d" />
         <item itemvalue="Python.totest_WGSpace" />
-        <item itemvalue="Python.totest_DGScalarSpace" />
       </list>
     </recent_temporary>
   </component>
@@ -192,42 +189,42 @@
       <screen x="0" y="23" width="1280" height="734" />
     </state>
     <state x="104" y="52" width="1071" height="696" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.23.1280.734@0.23.1280.734" timestamp="1580462002823" />
-    <state width="1259" height="161" key="GridCell.Tab.0.bottom" timestamp="1587979089147">
+    <state width="1259" height="157" key="GridCell.Tab.0.bottom" timestamp="1588090294334">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="161" key="GridCell.Tab.0.bottom/0.23.1280.734@0.23.1280.734" timestamp="1587979089147" />
-    <state width="1259" height="161" key="GridCell.Tab.0.center" timestamp="1587979089146">
+    <state width="1259" height="157" key="GridCell.Tab.0.bottom/0.23.1280.734@0.23.1280.734" timestamp="1588090294334" />
+    <state width="1259" height="157" key="GridCell.Tab.0.center" timestamp="1588090294334">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="161" key="GridCell.Tab.0.center/0.23.1280.734@0.23.1280.734" timestamp="1587979089146" />
-    <state width="1259" height="161" key="GridCell.Tab.0.left" timestamp="1587979089145">
+    <state width="1259" height="157" key="GridCell.Tab.0.center/0.23.1280.734@0.23.1280.734" timestamp="1588090294334" />
+    <state width="1259" height="157" key="GridCell.Tab.0.left" timestamp="1588090294333">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="161" key="GridCell.Tab.0.left/0.23.1280.734@0.23.1280.734" timestamp="1587979089145" />
-    <state width="1259" height="161" key="GridCell.Tab.0.right" timestamp="1587979089146">
+    <state width="1259" height="157" key="GridCell.Tab.0.left/0.23.1280.734@0.23.1280.734" timestamp="1588090294333" />
+    <state width="1259" height="157" key="GridCell.Tab.0.right" timestamp="1588090294334">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="161" key="GridCell.Tab.0.right/0.23.1280.734@0.23.1280.734" timestamp="1587979089146" />
-    <state width="1259" height="161" key="GridCell.Tab.1.bottom" timestamp="1587979078181">
+    <state width="1259" height="157" key="GridCell.Tab.0.right/0.23.1280.734@0.23.1280.734" timestamp="1588090294334" />
+    <state width="1259" height="157" key="GridCell.Tab.1.bottom" timestamp="1588090294335">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="161" key="GridCell.Tab.1.bottom/0.23.1280.734@0.23.1280.734" timestamp="1587979078181" />
-    <state width="1259" height="161" key="GridCell.Tab.1.center" timestamp="1587979078180">
+    <state width="1259" height="157" key="GridCell.Tab.1.bottom/0.23.1280.734@0.23.1280.734" timestamp="1588090294335" />
+    <state width="1259" height="157" key="GridCell.Tab.1.center" timestamp="1588090294335">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="161" key="GridCell.Tab.1.center/0.23.1280.734@0.23.1280.734" timestamp="1587979078180" />
-    <state width="1259" height="161" key="GridCell.Tab.1.left" timestamp="1587979078179">
+    <state width="1259" height="157" key="GridCell.Tab.1.center/0.23.1280.734@0.23.1280.734" timestamp="1588090294335" />
+    <state width="1259" height="157" key="GridCell.Tab.1.left" timestamp="1588090294335">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="161" key="GridCell.Tab.1.left/0.23.1280.734@0.23.1280.734" timestamp="1587979078179" />
-    <state width="1259" height="161" key="GridCell.Tab.1.right" timestamp="1587979078180">
+    <state width="1259" height="157" key="GridCell.Tab.1.left/0.23.1280.734@0.23.1280.734" timestamp="1588090294335" />
+    <state width="1259" height="157" key="GridCell.Tab.1.right" timestamp="1588090294335">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="161" key="GridCell.Tab.1.right/0.23.1280.734@0.23.1280.734" timestamp="1587979078180" />
-    <state x="141" y="29" key="SettingsEditor" timestamp="1580458963320">
+    <state width="1259" height="157" key="GridCell.Tab.1.right/0.23.1280.734@0.23.1280.734" timestamp="1588090294335" />
+    <state x="141" y="29" key="SettingsEditor" timestamp="1588088087094">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state x="141" y="29" key="SettingsEditor/0.23.1280.734@0.23.1280.734" timestamp="1580458963320" />
+    <state x="141" y="29" key="SettingsEditor/0.23.1280.734@0.23.1280.734" timestamp="1588088087094" />
     <state width="500" height="445" key="SwitcherDM" timestamp="1580724237845">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
@@ -339,7 +336,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/myExamples/Test/totest_HHOScalarSpace.py</url>
-          <line>114</line>
+          <line>113</line>
           <option name="timeStamp" value="97" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -364,18 +361,28 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/myExamples/Test/totest_HHOScalarSpace.py</url>
-          <line>84</line>
-          <option name="timeStamp" value="106" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/Test/totest_HHOScalarSpace.py</url>
           <line>80</line>
           <option name="timeStamp" value="107" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/myExamples/HHO/HHOScalarSpace2d.py</url>
-          <line>216</line>
-          <option name="timeStamp" value="109" />
+          <line>265</line>
+          <option name="timeStamp" value="110" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/myExamples/Test/totest_HHOScalarSpace.py</url>
+          <line>75</line>
+          <option name="timeStamp" value="111" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/myExamples/HHO/HHOScalarSpace2d.py</url>
+          <line>431</line>
+          <option name="timeStamp" value="112" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/myExamples/Test/totest_temp.py</url>
+          <line>29</line>
+          <option name="timeStamp" value="113" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
