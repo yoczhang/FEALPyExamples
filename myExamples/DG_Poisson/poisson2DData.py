@@ -3,7 +3,7 @@
 # ---
 # @Software: PyCharm
 # @Site: 
-# @File: poisson2DData.py
+# @File: Poisson2DData.py
 # @Author: Yongchao Zhang
 # @E-mail: yoczhang@126.com
 # @Time: Jan 27, 2020

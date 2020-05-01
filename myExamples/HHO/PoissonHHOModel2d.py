@@ -3,7 +3,7 @@
 # ---
 # @Software: PyCharm
 # @Site: 
-# @File: hhoPoissonModel2d.py
+# @File: PoissonHHOModel2d.py
 # @Author: Yongchao Zhang
 # @E-mail: yoczhang@126.com
 # @Time: Feb 24, 2020
@@ -125,6 +125,7 @@ class hhoPoissonModel2d(object):
         dofFree[dofDir] = False  # 1-D array, (egdof,)
 
         V = V - M[:, dofDir]@V[dofDir]
+
         # --- solve the edges system --- #
         # np.linalg.solve(A, b)
 
@@ -136,6 +137,8 @@ class hhoPoissonModel2d(object):
         isDirEdge = bdEdge  # here, we set all the boundary edges are Dir edges
 
         return isDirEdge
+
+
 
 
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # 
 
-from poisson2DData import CosCosData as PDE
+from Poisson2DData import CosCosData as PDE
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.io as sio
