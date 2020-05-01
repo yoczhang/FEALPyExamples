@@ -95,7 +95,7 @@ class hhoPoissonModel2d(object):
 
             # --- get the dof location --- #
             edofs = eldof*idx_E.reshape(-1, 1) + np.arange(eldof)
-            edofs = edofs.reshape(1, -1)  # (NCEdof,1)
+            edofs = np.transpose(edofs.reshape(1, -1))  # (NCEdof,1)
 
             rowIndex = np.einsum('ij, k->ik', edofs, np.ones(NCEdof))
             colIndex = np.transpose(rowIndex)
@@ -111,17 +111,31 @@ class hhoPoissonModel2d(object):
             r = csr_matrix((m_v.flat, (rowIndex.flat, colIndex.flat)), shape=(egdof, egdof+1))
             return r
 
-        MV = sum(list(map(s_c, zip(lM, RV, NCE))))
+        MV = sum(list(map(s_c, zip(lM, RV, NCE)))).todense()
+
         M = MV[:egdof, :egdof]
         V = MV[:, -1]
 
-        # --- set boundary condition --- #
+        # --- treat Dirichlet boundary condition --- #
+        isDirEdge = self.set_Dirichlet_edge()
+        idxDirEdge = np.arange(NE)[isDirEdge]
+        dofDir = eldof*idxDirEdge.reshape(-1, 1) + np.arange(eldof)
+        dofDir = np.squeeze(dofDir.reshape(1, -1))  # np.squeeze transform 2-D array (NdofDir,1) into 1-D (NdofDir,)
+        dofFree = np.ones(egdof).astype(np.bool)  # 1-D array, (egdof,)
+        dofFree[dofDir] = False  # 1-D array, (egdof,)
 
+        V = V - M[:, dofDir]@V[dofDir]
         # --- solve the edges system --- #
         # np.linalg.solve(A, b)
 
+    def set_Dirichlet_edge(self):
+        mesh = self.mesh
+        edge2cell = mesh.ds.edge_to_cell()
+        bdEdge = (edge2cell[:, 0] == edge2cell[:, 1])  # the bool vars, to get the boundary edges
 
+        isDirEdge = bdEdge  # here, we set all the boundary edges are Dir edges
 
+        return isDirEdge
 
 
 
