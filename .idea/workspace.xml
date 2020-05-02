@@ -381,7 +381,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/myExamples/Test/totest_temp.py</url>
-          <line>43</line>
+          <line>47</line>
           <option name="timeStamp" value="113" />
         </line-breakpoint>
       </breakpoints>

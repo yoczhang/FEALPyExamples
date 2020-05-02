@@ -38,7 +38,11 @@ z2 = np.array([[0.1, 0.2], [0.3, 0.4]])
 rowIndx = np.array([[0, 0], [1, 1]])
 colIndx = np.array([[0, 1], [0, 1]])
 
-zz = csr_matrix((z2.flat, (rowIndx.flat, colIndx.flat)), shape=(5, 5))
+# zz = csr_matrix((z2.flat, (rowIndx.flat, colIndx.flat)), shape=(5, 5))
+
+A = np.array([[[1, 2, 3], [4, 5, 6], [7, 8, 9]], [[0.1, 0.2, 0.3], [0.4, 0.5, 0.6], [0.7, 0.8, 0.9]]])
+b = np.array([[1, 2, 3], [4, 5, 6]])
+x = np.einsum('ijk, ik->ij', A, b)
 
 # ------------------------------------------------- #
 print("End of this test file")
