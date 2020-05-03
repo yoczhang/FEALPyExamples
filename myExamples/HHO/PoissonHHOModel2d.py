@@ -12,6 +12,7 @@
 import numpy as np
 
 from HHOScalarSpace2d import HHOScalarSpace2d
+from HHOBoundaryCondition import HHOBoundaryCondition
 from numpy.linalg import inv
 from scipy.sparse import csr_matrix
 from scipy.sparse.linalg import spsolve
@@ -55,8 +56,9 @@ class hhoPoissonModel2d(object):
         lM = self.get_left_matrix()  # list, its len is NC, each-term.shape (Cldof,Cldof)
         RV = self.get_right_vector()  # (NC,ldof)
 
+        NC = self.mesh.number_of_cells()
         NE = self.mesh.number_of_edges()
-        NCE = self.mesh.number_of_edges_of_cells()  # (NC,)
+        NCE = self.mesh.ds.number_of_edges_of_cells()  # (NC,)
 
         smldof = self.smspace.number_of_local_dofs()
         psmldof = self.smspace.number_of_local_dofs(p=p + 1)
@@ -117,17 +119,24 @@ class hhoPoissonModel2d(object):
         V = MV[:, -1]
 
         # --- treat Dirichlet boundary condition --- #
-        isDirEdge = self.set_Dirichlet_edge()
-        idxDirEdge = np.arange(NE)[isDirEdge]
-        dofDir = eldof*idxDirEdge.reshape(-1, 1) + np.arange(eldof)
-        dofDir = np.squeeze(dofDir.reshape(1, -1))  # np.squeeze transform 2-D array (NdofDir,1) into 1-D (NdofDir,)
-        dofFree = np.ones(egdof).astype(np.bool)  # 1-D array, (egdof,)
-        dofFree[dofDir] = False  # 1-D array, (egdof,)
-
-        V = V - M[:, dofDir]@V[dofDir]
+        hhobc = HHOBoundaryCondition(self.space, self.pde.dirichlet)
+        MD, VD = hhobc.applyDirichletBC(M, V)
 
         # --- solve the edges system --- #
-        # np.linalg.solve(A, b)
+        ub = np.linalg.solve(MD, VD)  # (egdof,)
+
+        # --- solve the cell dofs --- #
+        # ub = ub.reshape(NE, eldof)  # (NE,eldof)
+        cell2edge = self.mesh.ds.cell2edge()
+        cell2dof, doflocation = self.space.dof.cell_to_dof()
+        cell2dofSp = np.hsplit(cell2dof, doflocation[1:-1])
+        cellgdof = NC * smldof
+
+
+
+
+
+
 
     def set_Dirichlet_edge(self):
         mesh = self.mesh
