@@ -90,8 +90,6 @@ Pp2s = hhospace.projection_psmspace_to_smspace()
 F, pF = hhospace.projection_sm_psm_space_to_edge()
 StabM = hhospace.reconstruction_stabilizer_matrix()
 
-
-
 node = pmesh.entity('node')
 edge = pmesh.entity('edge')
 edge2cell = pmesh.ds.edge_to_cell()

@@ -55,7 +55,6 @@ class PoissonDGModel2d(object):
         A = self.get_left_matrix()
         b = self.get_right_vector()
         end = timer()
-        self.A = A
         print("Construct linear system time:", end - start)
 
         start = timer()
