@@ -110,3 +110,4 @@ idx = cell2dofLocation[edge2cell[:, [0]]] + edge2cell[:, [2]] * (p + 1) + np.ara
 
 # ------------------------------------------------- #
 print("End of this test file")
+
