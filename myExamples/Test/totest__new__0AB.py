@@ -15,10 +15,7 @@ from totest__new__A import totest__new__A
 
 A = totest__new__A('yc', 18)
 
-BB = A.myprintA()
-
-BB.myprintB(content='s')
-
+ageplus = A.call__new__B()
 
 # ------------------------------------------------- #
 print("End of this test file")

@@ -10,10 +10,17 @@
 # ---
 
 
-class totest__new__B:
-    def __new__(cls, new_A):
-        self = new_A
-        return self
+import numpy as np
 
-    def myprintB(self, content='in BBB'):
-        return self.myprintB(content)
+
+class totest__new__B:
+    def __init__(self, spaceA, uh):
+        self.age = spaceA.age
+        self.uh = uh
+
+    def add_one(self):
+        uh = self.uh
+        age = self.age
+        uh[0] = 1
+        return age+1
+

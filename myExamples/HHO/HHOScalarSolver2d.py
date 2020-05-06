@@ -19,9 +19,21 @@ from timeit import default_timer as timer
 
 
 class HHOScalarSolver2d:
-    def __new__(cls, model):
-        self = model.view(cls)
-        return self
+    def __init__(self, pdemodel, uh):
+        self.pdemodel = pdemodel
+        self.space = pdemodel.space
+        self.smspace = pdemodel.smspace
+        self.p = pdemodel.p
+        self.pde = pdemodel.pde
+        self.mesh = pdemodel.mesh
+        self.uh = uh
+
+        self.lM = pdemodel.get_left_matrix()  # list, its len is NC, each-term.shape (Cldof,Cldof)
+        self.RV = pdemodel.get_right_vector()  # (NC,ldof)
+
+        self.NC = pdemodel.mesh.number_of_cells()
+        self.NE = pdemodel.mesh.number_of_edges()
+        self.NCE = pdemodel.mesh.ds.number_of_edges_of_cells()  # (NC,)
 
     def solving_by_static_condensation(self):
         """
@@ -29,12 +41,12 @@ class HHOScalarSolver2d:
         """
         p = self.p
 
-        lM = self.get_left_matrix()  # list, its len is NC, each-term.shape (Cldof,Cldof)
-        RV = self.get_right_vector()  # (NC,ldof)
+        lM = self.lM  # list, its len is NC, each-term.shape (Cldof,Cldof)
+        RV = self.RV  # (NC,ldof)
 
-        NC = self.mesh.number_of_cells()
-        NE = self.mesh.number_of_edges()
-        NCE = self.mesh.ds.number_of_edges_of_cells()  # (NC,)
+        NC = self.NC
+        NE = self.NE
+        NCE = self.NCE  # (NC,)
 
         smldof = self.smspace.number_of_local_dofs()
         eldof = p + 1
@@ -133,4 +145,4 @@ class HHOScalarSolver2d:
             u0cell = invA@(RV_C - B@ubcell)  # (smldof,)
             return np.concatenate([u0cell, ubcell])
 
-        return np.concatenate(list(map(cell_solve, zip(lM, RV, NCE))))
+        self.uh[:] = np.concatenate(list(map(cell_solve, zip(lM, RV, NCE))))

@@ -18,16 +18,13 @@ class totest__new__A(object):
     def __init__(self, name, age):
         self.name = name
         self.age = age
+        self.uh = np.zeros(5)
 
-    def myprintA(self):
-        BB = totest__new__B(self)
-        return BB
-
-    def myprintB(self, content=None):
-        if content is None:
-            print('in AAA')
-        else:
-            print(content)
+    def call__new__B(self):
+        uh = self.uh
+        BB = totest__new__B(self, uh)
+        ageplus = BB.add_one()
+        return ageplus
 
 
 

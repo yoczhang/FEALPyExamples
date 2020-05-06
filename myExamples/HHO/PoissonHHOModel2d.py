@@ -12,6 +12,7 @@
 import numpy as np
 
 from HHOScalarSpace2d import HHOScalarSpace2d
+from HHOScalarSolver2d import HHOScalarSolver2d
 from HHOBoundaryCondition import HHOBoundaryCondition
 from numpy.linalg import inv
 from scipy.sparse import csr_matrix
@@ -47,9 +48,13 @@ class hhoPoissonModel2d(object):
 
         return RV  # (NC,ldof)
 
-
-
-
+    def solve(self, solver='StaticCondensation'):
+        uh = self.uh
+        hhosolver = HHOScalarSolver2d(self, uh)
+        if solver == 'StaticCondensation':
+            hhosolver.solving_by_static_condensation()
+        elif solver == 'direct':
+            hhosolver.solving_by_direct()
 
 
 
