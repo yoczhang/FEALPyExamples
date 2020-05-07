@@ -72,8 +72,8 @@ class HHODof2d(object):
         mesh = self.mesh
         idof = (p + 1) * (p + 2) // 2
         eldof = p + 1
-        cellLocation = mesh.ds.cellLocation
-        cell2edge = mesh.ds.cell_to_edge(return_sparse=False)
+        # cellLocation = mesh.ds.cellLocation
+        # cell2edge = mesh.ds.cell_to_edge(return_sparse=False)
 
         NC = mesh.number_of_cells()
 
@@ -108,6 +108,10 @@ class HHODof2d(object):
         p = self.p if p is None else p
         mesh = self.mesh
         NCE = mesh.number_of_edges_of_cells()
+        # # if mesh is triangular or quadrilateral mesh, NCE will be the int value
+        if isinstance(NCE, int):
+            NC = mesh.number_of_cells()
+            NCE = NCE*np.ones((NC,), dtype=int)
         ldofs = NCE * (p + 1) + (p + 1) * (p + 2) // 2
         return ldofs
 
@@ -345,6 +349,9 @@ class HHOScalarSpace2d(object):
         pF1 = invEM[isInEdge, ...]@np.einsum('i, ijk, ijm, j->jmk', ws, pphi1, ephi[:, isInEdge, :], hE[isInEdge])  # (NInE,eldof,psmldof)
 
         NCE = mesh.number_of_edges_of_cells()
+        if isinstance(NCE, int):
+            NC = mesh.number_of_cells()
+            NCE = NCE*np.ones((NC,), dtype=int)
         sumNCE = NCE.sum()  # sumNCE is sum of (the number of edges of each cell)
         sm2E = np.zeros((eldof, sumNCE*smldof), dtype=np.float)
         psm2E = np.zeros((eldof, sumNCE*psmldof), dtype=np.float)

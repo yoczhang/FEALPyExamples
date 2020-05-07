@@ -20,7 +20,7 @@ from scipy.sparse.linalg import spsolve
 from timeit import default_timer as timer
 
 
-class hhoPoissonModel2d(object):
+class PoissonHHOModel2d(object):
     def __init__(self, pde, mesh, p):
         self.p = p
         self.space = HHOScalarSpace2d(mesh, p)
@@ -48,17 +48,23 @@ class hhoPoissonModel2d(object):
 
         return RV  # (NC,ldof)
 
-    def solve(self, solver='StaticCondensation'):
+    def solve(self, solver='direct'):
         uh = self.uh
         hhosolver = HHOScalarSolver2d(self, uh)
+
+        start = timer()
         if solver == 'StaticCondensation':
             hhosolver.solving_by_static_condensation()
         elif solver == 'direct':
             hhosolver.solving_by_direct()
+        end = timer()
+        print("Solve time:", end - start)
 
+    def L2_error(self):
+        pass
 
-
-
+    def H1_semi_error(self):
+        pass
 
 
     def set_Dirichlet_edge(self):

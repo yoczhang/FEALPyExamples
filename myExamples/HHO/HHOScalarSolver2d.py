@@ -15,7 +15,6 @@ from HHOBoundaryCondition import HHOBoundaryCondition
 from numpy.linalg import inv
 from scipy.sparse import csr_matrix
 from scipy.sparse.linalg import spsolve
-from timeit import default_timer as timer
 
 
 class HHOScalarSolver2d:
@@ -23,6 +22,7 @@ class HHOScalarSolver2d:
         self.pdemodel = pdemodel
         self.space = pdemodel.space
         self.smspace = pdemodel.smspace
+        self.dof = pdemodel.dof
         self.p = pdemodel.p
         self.pde = pdemodel.pde
         self.mesh = pdemodel.mesh
@@ -55,7 +55,7 @@ class HHOScalarSolver2d:
         # ME = np.zeros((egdof, egdof), dtype=np.float)
         # VE = np.zeros((egdof, 1), dtype=np.float)
 
-        def s_c(x):
+        def s_c_solver(x):
             # # x[0], the left matrix in current cell
             # # x[1], the right vector in current cell
             # # x[2], the edges index in current cell
@@ -100,7 +100,7 @@ class HHOScalarSolver2d:
             r = csr_matrix((m_v.flat, (rowIndex.flat, colIndex.flat)), shape=(egdof, egdof+1))
             return r
 
-        MV = sum(list(map(s_c, zip(lM, RV, NCE)))).todense()
+        MV = sum(list(map(s_c_solver, zip(lM, RV, NCE)))).todense()
 
         M = MV[:egdof, :egdof]
         V = MV[:, -1]
@@ -113,13 +113,7 @@ class HHOScalarSolver2d:
         ub = np.linalg.solve(MD, VD)  # (egdof,)
 
         # --- solve the cell dofs --- #
-        # ub = ub.reshape(NE, eldof)  # (NE,eldof)
-        cell2edge = self.mesh.ds.cell2edge()
-        cell2dof, doflocation = self.space.dof.cell_to_dof()
-        cell2dofSp = np.hsplit(cell2dof, doflocation[1:-1])
-        cellgdof = NC * smldof
-
-        def cell_solve(x):
+        def cell_solver(x):
             # # x[0], the left matrix in current cell
             # # x[1], the right vector in current cell
             # # x[2], the edges index in current cell
@@ -145,4 +139,48 @@ class HHOScalarSolver2d:
             u0cell = invA@(RV_C - B@ubcell)  # (smldof,)
             return np.concatenate([u0cell, ubcell])
 
-        self.uh[:] = np.concatenate(list(map(cell_solve, zip(lM, RV, NCE))))
+        self.uh[:] = np.concatenate(list(map(cell_solver, zip(lM, RV, NCE))))
+
+    def solving_by_direct(self):
+        dof = self.dof
+        gdof = dof.number_of_global_dofs()
+
+        lM = self.lM  # list, its len is NC, each-term.shape (Cldof,Cldof)
+        RV = self.RV  # (NC,ldof)
+
+        cell2dof, doflocation = dof.cell_to_dof()
+        cell2dof_split = np.hsplit(cell2dof, doflocation[1:-1])
+
+        def global_matrix(x):
+            # # x[0], the left matrix in current cell
+            # # x[1], the right vector in current cell
+            # # x[2], the dofs-index in current cell
+            LM_C = x[0]  # the left matrix at this cell
+            RV_C = x[1]
+            dof_C = x[2]  # (NCdof,)
+            Ndof_C = len(dof_C)
+
+            # --- get the row and col index --- #
+            rowIndex = np.einsum('i, k->ik', dof_C, np.ones(Ndof_C,))
+            colIndex = np.transpose(rowIndex)
+            addcol = gdof*np.ones((colIndex.shape[0], 1))
+
+            rowIndex = np.concatenate([rowIndex, dof_C.reshape(-1, 1)], axis=1)
+            colIndex = np.concatenate([colIndex, addcol], axis=1)
+
+            # --- add to the global matrix and vector --- #
+            m_v = np.concatenate([LM_C, RV_C.reshape(-1, 1)], axis=1)
+            r = csr_matrix((m_v.flat, (rowIndex.flat, colIndex.flat)), shape=(gdof, gdof + 1))
+            return r
+
+        MV = sum(list(map(global_matrix, zip(lM, RV, cell2dof_split))))
+
+        M = MV[:gdof, :gdof]
+        V = MV[:, -1]
+
+        R = spsolve(M, V)  # note that, in R, the dofs are arrangeed as [celldofs, edgedofs]
+
+        self.uh[:] = R[cell2dof]  # rearrange the values by the cell2dof
+
+
+
