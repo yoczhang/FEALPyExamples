@@ -160,6 +160,9 @@ class HHOScalarSolver2d:
             dof_C = x[2]  # (NCdof,)
             Ndof_C = len(dof_C)
 
+            lenRV_V = len(RV_C)
+            RV_C = np.concatenate([RV_C, np.zeros(Ndof_C-lenRV_V,)])
+
             # --- get the row and col index --- #
             rowIndex = np.einsum('i, k->ik', dof_C, np.ones(Ndof_C,))
             colIndex = np.transpose(rowIndex)

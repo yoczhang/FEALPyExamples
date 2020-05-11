@@ -138,11 +138,11 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Python.totest_HHOScalarSpace" />
-      <item itemvalue="Python.totest__new__0AB" />
-      <item itemvalue="Python.PoissonNCVEMRate2d" />
       <item itemvalue="Python.PoissonDGRate2d" />
       <item itemvalue="Python.PoissonHHORate2d" />
+      <item itemvalue="Python.PoissonNCVEMRate2d" />
+      <item itemvalue="Python.totest_HHOScalarSpace" />
+      <item itemvalue="Python.totest__new__0AB" />
     </list>
     <recent_temporary>
       <list>
@@ -189,38 +189,38 @@
       <screen x="0" y="23" width="1280" height="734" />
     </state>
     <state x="104" y="52" width="1071" height="696" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.23.1280.734@0.23.1280.734" timestamp="1580462002823" />
-    <state width="1259" height="225" key="GridCell.Tab.0.bottom" timestamp="1588868710475">
+    <state width="1259" height="156" key="GridCell.Tab.0.bottom" timestamp="1589123094637">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="225" key="GridCell.Tab.0.bottom/0.23.1280.734@0.23.1280.734" timestamp="1588868710475" />
-    <state width="1259" height="225" key="GridCell.Tab.0.center" timestamp="1588868710474">
+    <state width="1259" height="156" key="GridCell.Tab.0.bottom/0.23.1280.734@0.23.1280.734" timestamp="1589123094637" />
+    <state width="1259" height="156" key="GridCell.Tab.0.center" timestamp="1589123094636">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="225" key="GridCell.Tab.0.center/0.23.1280.734@0.23.1280.734" timestamp="1588868710474" />
-    <state width="1259" height="225" key="GridCell.Tab.0.left" timestamp="1588868710474">
+    <state width="1259" height="156" key="GridCell.Tab.0.center/0.23.1280.734@0.23.1280.734" timestamp="1589123094636" />
+    <state width="1259" height="156" key="GridCell.Tab.0.left" timestamp="1589123094636">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="225" key="GridCell.Tab.0.left/0.23.1280.734@0.23.1280.734" timestamp="1588868710474" />
-    <state width="1259" height="225" key="GridCell.Tab.0.right" timestamp="1588868710474">
+    <state width="1259" height="156" key="GridCell.Tab.0.left/0.23.1280.734@0.23.1280.734" timestamp="1589123094636" />
+    <state width="1259" height="156" key="GridCell.Tab.0.right" timestamp="1589123094637">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="225" key="GridCell.Tab.0.right/0.23.1280.734@0.23.1280.734" timestamp="1588868710474" />
-    <state width="1259" height="225" key="GridCell.Tab.1.bottom" timestamp="1588868710476">
+    <state width="1259" height="156" key="GridCell.Tab.0.right/0.23.1280.734@0.23.1280.734" timestamp="1589123094637" />
+    <state width="1259" height="156" key="GridCell.Tab.1.bottom" timestamp="1589123094639">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="225" key="GridCell.Tab.1.bottom/0.23.1280.734@0.23.1280.734" timestamp="1588868710476" />
-    <state width="1259" height="225" key="GridCell.Tab.1.center" timestamp="1588868710475">
+    <state width="1259" height="156" key="GridCell.Tab.1.bottom/0.23.1280.734@0.23.1280.734" timestamp="1589123094639" />
+    <state width="1259" height="156" key="GridCell.Tab.1.center" timestamp="1589123094638">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="225" key="GridCell.Tab.1.center/0.23.1280.734@0.23.1280.734" timestamp="1588868710475" />
-    <state width="1259" height="225" key="GridCell.Tab.1.left" timestamp="1588868710475">
+    <state width="1259" height="156" key="GridCell.Tab.1.center/0.23.1280.734@0.23.1280.734" timestamp="1589123094638" />
+    <state width="1259" height="156" key="GridCell.Tab.1.left" timestamp="1589123094638">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="225" key="GridCell.Tab.1.left/0.23.1280.734@0.23.1280.734" timestamp="1588868710475" />
-    <state width="1259" height="225" key="GridCell.Tab.1.right" timestamp="1588868710475">
+    <state width="1259" height="156" key="GridCell.Tab.1.left/0.23.1280.734@0.23.1280.734" timestamp="1589123094638" />
+    <state width="1259" height="156" key="GridCell.Tab.1.right" timestamp="1589123094639">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="225" key="GridCell.Tab.1.right/0.23.1280.734@0.23.1280.734" timestamp="1588868710475" />
+    <state width="1259" height="156" key="GridCell.Tab.1.right/0.23.1280.734@0.23.1280.734" timestamp="1589123094639" />
     <state x="141" y="29" key="SettingsEditor" timestamp="1588088087094">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
@@ -360,11 +360,6 @@
           <option name="timeStamp" value="107" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/HHO/HHOScalarSpace2d.py</url>
-          <line>438</line>
-          <option name="timeStamp" value="112" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/myExamples/Test/totest_temp.py</url>
           <line>47</line>
           <option name="timeStamp" value="113" />
@@ -395,9 +390,14 @@
           <option name="timeStamp" value="122" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/HHO/HHOScalarSpace2d.py</url>
-          <line>354</line>
-          <option name="timeStamp" value="125" />
+          <url>file://$PROJECT_DIR$/myExamples/HHO/HHOScalarSolver2d.py</url>
+          <line>180</line>
+          <option name="timeStamp" value="132" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/myExamples/HHO/PoissonHHOModel2d.py</url>
+          <line>60</line>
+          <option name="timeStamp" value="133" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

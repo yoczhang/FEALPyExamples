@@ -403,6 +403,9 @@ class HHOScalarSpace2d(object):
         # # sumNCE is sum of (the number of edges of each cell)
 
         NCE = self.mesh.number_of_edges_of_cells()  # (NC,)
+        if isinstance(NCE, int):
+            NC = self.mesh.number_of_cells()
+            NCE = NCE*np.ones((NC,), dtype=int)
         NCEacc = np.add.accumulate(NCE)
         sm2edgeS = np.hsplit(sm2edge, NCEacc[:-1]*smldof)
         # # list, its length is NC, each-term.shape: (eldof,NE_C*smldof), NE_C is the number of edges in one cell
@@ -448,7 +451,7 @@ class HHOScalarSpace2d(object):
             t = np.concatenate([t, -np.eye(eldof*x[3])], axis=1)  # (NCE*eldof, Cldof), Cldof = smldof + NCE*eldof, the eye()-matrix needs to add minus
             l = np.arange(x[3])*eldof
             t = np.concatenate(np.vsplit(t, l[1:]), axis=1)  # (eldof, NCE*Cldof)
-
+            
             l = [([0] * x[3]) for i in range(x[3])]
             for i in range(x[3]):
                 l[i][i] = x[2]  # x[2] is the RM in one cell, x[2].shape: (psmldof, Cldof)
@@ -460,11 +463,13 @@ class HHOScalarSpace2d(object):
             l = np.arange(x[3])*(smldof+eldof*x[3])
             tsplit = np.hsplit(t, l[1:])  # list, its len is NCE, each-term.shape: (eldof,Cldof)
 
-            eidx = cell2edge[NCEacc[x[4]]:NCEacc[x[4]+1]]
+            eidx = cell2edge.flatten()[NCEacc[x[4]]:NCEacc[x[4]+1]]
             CEM = EM[eidx, ...]  # (NCE,eldof,eldof)
             CEh = h[eidx]
 
-            f2 = lambda y: 1./y[2]*(np.transpose(y[1]) @ y[0] @ y[1])  # each-time, result.shape: (Cldof,Clodf)
+            def f2(y):
+                r = 1./y[2]*(np.transpose(y[1]) @ y[0] @ y[1])  # each-time, result.shape: (Cldof,Clodf)
+                return r
             sm = np.sum(list(map(f2, zip(CEM, tsplit, CEh))), axis=0)  # (Cldof,Cldof)
             return sm
         StabM = list(map(f, zip(sm2edgeS, P2E, Rsplit, list(NCE), list(Cidx))))
