@@ -36,7 +36,7 @@ class PoissonHHOModel2d(object):
         StiffM = space.reconstruction_stiff_matrix()  # list, its len is NC, each-term.shape (Cldof,Cldof)
         StabM = space.reconstruction_stabilizer_matrix()  # list, its len is NC, each-term.shape (Cldof,Cldof)
 
-        f = lambda x: x[0]+x[1]
+        def f(x): return x[0]+x[1]
         lM = list(map(f, zip(StiffM, StabM)))
 
         return lM  # list, its len is NC, each-term.shape (Cldof,Cldof)
@@ -65,7 +65,6 @@ class PoissonHHOModel2d(object):
 
     def H1_semi_error(self):
         pass
-
 
     def set_Dirichlet_edge(self):
         mesh = self.mesh

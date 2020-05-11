@@ -282,7 +282,7 @@ class HHOScalarSpace2d(object):
         cell2dofLocation = self.dof.cell2dofLocation
         Rsplit = np.hsplit(RM, cell2dofLocation[1:-1])  # list, len(Rsplit) is NC, Rsplit[i].shape is (psmldof,Cldof)
 
-        f = lambda x: np.transpose(x[1]) @ x[0] @ x[1]
+        def f(x): return np.transpose(x[1]) @ x[0] @ x[1]
         StiffM = list(map(f, zip(Sp, Rsplit)))  # list, its len is NC, each-term.shape: (Cldof,Cldof)
 
         return StiffM
@@ -451,7 +451,7 @@ class HHOScalarSpace2d(object):
             t = np.concatenate([t, -np.eye(eldof*x[3])], axis=1)  # (NCE*eldof, Cldof), Cldof = smldof + NCE*eldof, the eye()-matrix needs to add minus
             l = np.arange(x[3])*eldof
             t = np.concatenate(np.vsplit(t, l[1:]), axis=1)  # (eldof, NCE*Cldof)
-            
+
             l = [([0] * x[3]) for i in range(x[3])]
             for i in range(x[3]):
                 l[i][i] = x[2]  # x[2] is the RM in one cell, x[2].shape: (psmldof, Cldof)
@@ -467,14 +467,11 @@ class HHOScalarSpace2d(object):
             CEM = EM[eidx, ...]  # (NCE,eldof,eldof)
             CEh = h[eidx]
 
-            def f2(y):
-                r = 1./y[2]*(np.transpose(y[1]) @ y[0] @ y[1])  # each-time, result.shape: (Cldof,Clodf)
-                return r
+            def f2(y): return 1./y[2]*(np.transpose(y[1]) @ y[0] @ y[1])  # each-time, result.shape: (Cldof,Clodf)
             sm = np.sum(list(map(f2, zip(CEM, tsplit, CEh))), axis=0)  # (Cldof,Cldof)
             return sm
         StabM = list(map(f, zip(sm2edgeS, P2E, Rsplit, list(NCE), list(Cidx))))
         # # list, its len is NC, each-term.shape: (Cldof,Cldof)
-
         return StabM
 
     def source_vector(self, f):
@@ -485,7 +482,7 @@ class HHOScalarSpace2d(object):
             # # f(x).shape: (NQ,NC).    phi(x,...).shape: (NQ,NC,ldof)
 
         fh = self.integralalg.integral(u, celltype=True)  # (NC,ldof)
-        # # integralalg is inherited from class ScaledMonomialSpace2d()
+        # # integralalg.integral() is inherited from class ScaledMonomialSpace2d()
 
         return fh  # (NC,ldof)
 
@@ -562,7 +559,8 @@ class HHOScalarSpace2d(object):
         return f
 
     def array(self, dim=None):
-        gdof = self.number_of_global_dofs()
+        # gdof = self.number_of_global_dofs()
+        gdof = len(self.dof.cell2dof)
         if dim in {None, 1}:
             shape = gdof
         elif type(dim) is int:
@@ -570,3 +568,28 @@ class HHOScalarSpace2d(object):
         elif type(dim) is tuple:
             shape = (gdof, ) + dim
         return np.zeros(shape, dtype=np.float)
+
+    def project_oncell(self, u):
+        phi = self.basis  # basis is inherited from class ScaledMonomialSpace2d()
+
+        def func_u(x, index):
+            return np.einsum('ij, ijm->ijm', u(x), phi(x, index=index))
+            # # u(x).shape: (NQ,NC).    phi(x,...).shape: (NQ,NC,ldof)
+        b = self.integralalg.integral(func_u, celltype=True)  # (NC,ldof)
+
+        invCM = self.invCM  # (NC,ldof,ldof)
+        uh = invCM@b[..., np.newaxis]  # (NC,ldof,1)
+        return np.squeeze(uh)  # (NC,ldof)
+
+    def globaldof2celldof(self, globaldof):
+        """
+        This function maybe not used.
+        :param globaldof: here, the gloabl-dof means that all the dofs are arranged as [all-celldofs, all-edgedofs]
+        :return: celldof, the cell-dof means that all the dofs are arranged as in one cell [celldofs, edgedofs]_{T\in T_h}
+        """
+        cell2dof = self.dof.cell2dof
+        celldof = globaldof[cell2dof]
+        return celldof
+
+
+

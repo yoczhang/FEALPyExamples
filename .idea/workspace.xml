@@ -31,7 +31,7 @@
     <property name="restartRequiresConfirmation" value="false" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
-  <component name="RunManager" selected="Python.PoissonHHORate2d">
+  <component name="RunManager" selected="Python.totest_NCVEMspace">
     <configuration name="PoissonDGRate2d" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="FEALPyExamples" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -74,27 +74,6 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="PoissonNCVEMRate2d" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="FEALPyExamples" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/example" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/example/PoissonNCVEMRate2d.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
     <configuration name="totest_HHOScalarSpace" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="FEALPyExamples" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -108,6 +87,27 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/myExamples/Test/totest_HHOScalarSpace.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="totest_NCVEMspace" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="FEALPyExamples" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/myExamples/Test" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/myExamples/Test/totest_NCVEMspace.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -138,19 +138,19 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Python.PoissonDGRate2d" />
-      <item itemvalue="Python.PoissonHHORate2d" />
-      <item itemvalue="Python.PoissonNCVEMRate2d" />
       <item itemvalue="Python.totest_HHOScalarSpace" />
       <item itemvalue="Python.totest__new__0AB" />
+      <item itemvalue="Python.PoissonDGRate2d" />
+      <item itemvalue="Python.PoissonHHORate2d" />
+      <item itemvalue="Python.totest_NCVEMspace" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.PoissonHHORate2d" />
+        <item itemvalue="Python.totest_NCVEMspace" />
         <item itemvalue="Python.totest_HHOScalarSpace" />
+        <item itemvalue="Python.PoissonHHORate2d" />
         <item itemvalue="Python.totest__new__0AB" />
         <item itemvalue="Python.PoissonDGRate2d" />
-        <item itemvalue="Python.PoissonNCVEMRate2d" />
       </list>
     </recent_temporary>
   </component>
@@ -185,42 +185,38 @@
     </ignored-roots>
   </component>
   <component name="WindowStateProjectService">
-    <state x="104" y="52" width="1071" height="696" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1580462002823">
+    <state width="1259" height="156" key="GridCell.Tab.0.bottom" timestamp="1589184200257">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state x="104" y="52" width="1071" height="696" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.23.1280.734@0.23.1280.734" timestamp="1580462002823" />
-    <state width="1259" height="156" key="GridCell.Tab.0.bottom" timestamp="1589123094637">
+    <state width="1259" height="156" key="GridCell.Tab.0.bottom/0.23.1280.734@0.23.1280.734" timestamp="1589184200257" />
+    <state width="1259" height="156" key="GridCell.Tab.0.center" timestamp="1589184200256">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="156" key="GridCell.Tab.0.bottom/0.23.1280.734@0.23.1280.734" timestamp="1589123094637" />
-    <state width="1259" height="156" key="GridCell.Tab.0.center" timestamp="1589123094636">
+    <state width="1259" height="156" key="GridCell.Tab.0.center/0.23.1280.734@0.23.1280.734" timestamp="1589184200256" />
+    <state width="1259" height="156" key="GridCell.Tab.0.left" timestamp="1589184200256">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="156" key="GridCell.Tab.0.center/0.23.1280.734@0.23.1280.734" timestamp="1589123094636" />
-    <state width="1259" height="156" key="GridCell.Tab.0.left" timestamp="1589123094636">
+    <state width="1259" height="156" key="GridCell.Tab.0.left/0.23.1280.734@0.23.1280.734" timestamp="1589184200256" />
+    <state width="1259" height="156" key="GridCell.Tab.0.right" timestamp="1589184200257">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="156" key="GridCell.Tab.0.left/0.23.1280.734@0.23.1280.734" timestamp="1589123094636" />
-    <state width="1259" height="156" key="GridCell.Tab.0.right" timestamp="1589123094637">
+    <state width="1259" height="156" key="GridCell.Tab.0.right/0.23.1280.734@0.23.1280.734" timestamp="1589184200257" />
+    <state width="1259" height="156" key="GridCell.Tab.1.bottom" timestamp="1589184151268">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="156" key="GridCell.Tab.0.right/0.23.1280.734@0.23.1280.734" timestamp="1589123094637" />
-    <state width="1259" height="156" key="GridCell.Tab.1.bottom" timestamp="1589123094639">
+    <state width="1259" height="156" key="GridCell.Tab.1.bottom/0.23.1280.734@0.23.1280.734" timestamp="1589184151268" />
+    <state width="1259" height="156" key="GridCell.Tab.1.center" timestamp="1589184151268">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="156" key="GridCell.Tab.1.bottom/0.23.1280.734@0.23.1280.734" timestamp="1589123094639" />
-    <state width="1259" height="156" key="GridCell.Tab.1.center" timestamp="1589123094638">
+    <state width="1259" height="156" key="GridCell.Tab.1.center/0.23.1280.734@0.23.1280.734" timestamp="1589184151268" />
+    <state width="1259" height="156" key="GridCell.Tab.1.left" timestamp="1589184151267">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="156" key="GridCell.Tab.1.center/0.23.1280.734@0.23.1280.734" timestamp="1589123094638" />
-    <state width="1259" height="156" key="GridCell.Tab.1.left" timestamp="1589123094638">
+    <state width="1259" height="156" key="GridCell.Tab.1.left/0.23.1280.734@0.23.1280.734" timestamp="1589184151267" />
+    <state width="1259" height="156" key="GridCell.Tab.1.right" timestamp="1589184151268">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="156" key="GridCell.Tab.1.left/0.23.1280.734@0.23.1280.734" timestamp="1589123094638" />
-    <state width="1259" height="156" key="GridCell.Tab.1.right" timestamp="1589123094639">
-      <screen x="0" y="23" width="1280" height="734" />
-    </state>
-    <state width="1259" height="156" key="GridCell.Tab.1.right/0.23.1280.734@0.23.1280.734" timestamp="1589123094639" />
+    <state width="1259" height="156" key="GridCell.Tab.1.right/0.23.1280.734@0.23.1280.734" timestamp="1589184151268" />
     <state x="141" y="29" key="SettingsEditor" timestamp="1588088087094">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
@@ -398,6 +394,11 @@
           <url>file://$PROJECT_DIR$/myExamples/HHO/PoissonHHOModel2d.py</url>
           <line>60</line>
           <option name="timeStamp" value="133" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/myExamples/HHO/HHOScalarSolver2d.py</url>
+          <line>185</line>
+          <option name="timeStamp" value="134" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
