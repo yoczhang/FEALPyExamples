@@ -47,6 +47,10 @@ if True:
     pde = CosCosData()
     box = pde.domain()
 
+    # # error settings
+    errorType = ['$|| u - u_h||_0$', '$||\\nabla u - \\nabla u_h||_E$', '$||\\nabla u - \\nabla u_h||_E0$', '$||\\nabla u - \\nabla u_h||_1$']
+    errorMatrix = np.zeros((len(errorType), maxit), dtype=np.float)
+
     for i in range(maxit):
         mesh = triangle(box, h/2**(i-1), meshtype='polygon')
         space = ConformingVirtualElementSpace2d(mesh, p=1)
@@ -57,16 +61,27 @@ if True:
         A0 = A0.toarray()
         S0 = S0.toarray()
 
-        A = space.stiff_matrix()
-        F = space.source_vector(pde.source)
+        A0 = space.stiff_matrix()
+        F0 = space.source_vector(pde.source)
 
-        A, F = bc.apply_dirichlet_bc(A, F, uh)
+        A, F = bc.apply_dirichlet_bc(A0, F0, uh)
 
         uh[:] = spsolve(A, F)
         sh = space.project_to_smspace(uh)
 
-        error = space.integralalg.L2_error(pde.solution, sh)
-        print(error)
+        # # L2-error
+        errorMatrix[0, i] = space.integralalg.L2_error(pde.solution, sh)
+
+        # # energy-error
+        uI = space.interpolation(pde.solution)
+        e = uh - uI
+        errorMatrix[1, i] = np.sqrt(e@A@e)
+        errorMatrix[2, i] = np.sqrt(e @ A0 @ e)
+
+        # # H1-semi-error
+        gu = pde.gradient
+        guh = sh.grad_value
+        errorMatrix[3, i] = space.integralalg.L2_error(gu, guh)
 
 
 fig = plt.figure()

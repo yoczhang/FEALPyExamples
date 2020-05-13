@@ -59,6 +59,7 @@ class PoissonHHOModel2d(object):
             hhosolver.solving_by_direct()
         end = timer()
         print("Solve time:", end - start)
+        return uh
 
     def L2_error(self):
         pass

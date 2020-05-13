@@ -46,7 +46,10 @@ class HHOScalarSolver2d:
 
         NC = self.NC
         NE = self.NE
-        NCE = self.NCE  # (NC,)
+        # NCE = self.NCE  # (NC,)
+        # if isinstance(NCE, int):
+        #     NCE = NCE*np.ones((NC,), dtype=int)
+        cell2edge = self.mesh.ds.cell_to_edge()
 
         smldof = self.smspace.number_of_local_dofs()
         eldof = p + 1
@@ -100,7 +103,7 @@ class HHOScalarSolver2d:
             r = csr_matrix((m_v.flat, (rowIndex.flat, colIndex.flat)), shape=(egdof, egdof+1))
             return r
 
-        MV = sum(list(map(s_c_solver, zip(lM, RV, NCE)))).todense()
+        MV = sum(list(map(s_c_solver, zip(lM, RV, cell2edge)))).todense()
 
         M = MV[:egdof, :egdof]
         V = MV[:, -1]
@@ -136,14 +139,16 @@ class HHOScalarSolver2d:
             invA = inv(A)
             ubcell = ub[edofs]
 
-            u0cell = invA@(RV_C - B@ubcell)  # (smldof,)
-            return np.concatenate([u0cell, ubcell])
+            u0cell = invA@(RV_C.reshape(-1, 1) - B@ubcell)  # (smldof,1)
+            return np.array(np.concatenate([u0cell, ubcell]))
 
-        self.uh[:] = np.concatenate(list(map(cell_solver, zip(lM, RV, NCE))))
+        self.uh[:] = (np.concatenate(list(map(cell_solver, zip(lM, RV, cell2edge))))).flatten()
 
     def solving_by_direct(self):
         dof = self.dof
         gdof = dof.number_of_global_dofs()
+        NC = self.space.mesh.number_of_cells()
+        ldof = self.smspace.number_of_local_dofs()
 
         lM = self.lM  # list, its len is NC, each-term.shape (Cldof,Cldof)
         RV = self.RV  # (NC,ldof)
@@ -181,7 +186,10 @@ class HHOScalarSolver2d:
         M = MV[:gdof, :gdof]
         V = MV[:, -1]
 
-        R = spsolve(M, V)  # note that, in R, the dofs are arrangeed as [celldofs, edgedofs]
+        hhobc = HHOBoundaryCondition(self.space, self.pde.dirichlet)
+        MD, VD = hhobc.applyDirichletBC(M, V.todense(), Ncelldof=NC*ldof)
+
+        R = spsolve(MD, VD)  # note that, in R, the dofs are arrangeed as [celldofs, edgedofs]
 
         self.uh[:] = R[cell2dof]  # rearrange the values by the cell2dof
 

@@ -69,6 +69,7 @@ mesh = triangle(box, h, meshtype='tri')
 for i in range(maxit):
     hho = PoissonHHOModel2d(pde, mesh, p)
     ls = hho.solve()
+    ls1 = hho.solve(solver='StaticCondensation')
     Ndof[i] = hho.smspace.number_of_global_dofs()  # get the number of dofs
     errorMatrix[0, i] = hho.L2_error()  # get the L2 error
     errorMatrix[1, i] = hho.H1_semi_error()  # get the H1-semi error

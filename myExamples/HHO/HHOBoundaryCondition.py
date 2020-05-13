@@ -129,17 +129,17 @@ class HHOBoundaryCondition:
         isDirEdge = self.set_Dirichlet_edge()  # (NE,)
         isDirDof = self.set_Dirichlet_dof()  # (egdof,)
         isCellDof = np.zeros((Ncelldof,)).astype(np.bool)
-        isDirEdge = np.concatenate([isCellDof, isDirEdge])
+        # isDirEdge = np.concatenate([isCellDof, isDirEdge])
+        isDirDof = np.concatenate([isCellDof, isDirDof])
 
         # --- project uD to uDP on Dirichlet edges --- #
         uDI = uD(ps[:, isDirEdge, :])  # (NQ,NE_Dir), get the Dirichlet values at physical integral points
         uDrhs = np.einsum('i, ij, ijm, j->jm', ws, uDI, ephi[:, isDirEdge, :], hE[isDirEdge])  # (NE_Dir,eldof)
         uDP = np.einsum('ijk, ik->ij', invEM[isDirEdge], uDrhs)  # (NE_Dir,eldof,eldof)x(NE_Dir,eldof)=>(NE_Dir,eldof)
-        uDP = np.squeeze(uDP.reshape(1, -1))  # (NE_Dir,eldof)=>(NE_Dir*eldof,)
 
         # --- apply to the left-matrix and right-vector --- #
-        x = np.zeros((Ndof,), dtype=np.float)
-        x[isDirDof] = uDP
+        x = np.zeros((Ndof, 1), dtype=np.float)
+        x[isDirDof].flat = uDP.flat
         b -= A@x
         bdIdx = np.zeros(Ndof, dtype=np.int)
         bdIdx[isDirDof] = 1
