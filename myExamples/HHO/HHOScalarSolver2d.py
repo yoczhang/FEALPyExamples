@@ -35,8 +35,9 @@ class HHOScalarSolver2d:
         self.NE = pdemodel.mesh.number_of_edges()
         self.NCE = pdemodel.mesh.ds.number_of_edges_of_cells()  # (NC,)
 
-    def solving_by_static_condensation(self):
+    def solving_by_static_condensation_1(self):
         """
+        This function maybe not used
         Solving system by static condensation
         """
         p = self.p
@@ -144,11 +145,50 @@ class HHOScalarSolver2d:
 
         self.uh[:] = (np.concatenate(list(map(cell_solver, zip(lM, RV, cell2edge))))).flatten()
 
-    def solving_by_direct(self):
-        dof = self.dof
-        gdof = dof.number_of_global_dofs()
+    def solving_by_static_condensation(self):
         NC = self.space.mesh.number_of_cells()
         ldof = self.smspace.number_of_local_dofs()
+        NE = self.NE
+        p = self.p
+
+        Ncelldof = NC*ldof
+        Nedgedof = NE*(p+1)
+
+        M, V = self.get_global_matrix()
+
+        A = M[:Ncelldof, :Ncelldof]
+        B = M[:Ncelldof, Ncelldof:]
+        C = M[Ncelldof:, :Ncelldof]
+        D = M[Ncelldof:, Ncelldof:]
+
+        R1 = V[:Ncelldof]
+        R2 = V[Ncelldof:]
+
+        CinvA = C @ inv(A)
+        m = CinvA @ B - D  # (Nedgedof,Nedgedof)
+        v = CinvA @ R1.reshape(-1, 1)  # (Nedgedof,)
+
+
+
+
+
+    def solving_by_direct(self):
+        NC = self.space.mesh.number_of_cells()
+        ldof = self.smspace.number_of_local_dofs()
+
+        M, V = self.get_global_matrix()
+
+        hhobc = HHOBoundaryCondition(self.space, self.pde.dirichlet)
+        MD, VD = hhobc.applyDirichletBC(M, V, Ncelldof=NC*ldof)
+
+        R = spsolve(MD, VD)  # note that, in R, the dofs are arrangeed as [celldofs, edgedofs]
+        self.uh[:] = R
+
+        return MD, VD
+
+    def get_global_matrix(self):
+        dof = self.dof
+        gdof = dof.number_of_global_dofs()
 
         lM = self.lM  # list, its len is NC, each-term.shape (Cldof,Cldof)
         RV = self.RV  # (NC,ldof)
@@ -166,12 +206,12 @@ class HHOScalarSolver2d:
             Ndof_C = len(dof_C)
 
             lenRV_V = len(RV_C)
-            RV_C = np.concatenate([RV_C, np.zeros(Ndof_C-lenRV_V,)])
+            RV_C = np.concatenate([RV_C, np.zeros(Ndof_C - lenRV_V, )])
 
             # --- get the row and col index --- #
-            rowIndex = np.einsum('i, k->ik', dof_C, np.ones(Ndof_C,))
+            rowIndex = np.einsum('i, k->ik', dof_C, np.ones(Ndof_C, ))
             colIndex = np.transpose(rowIndex)
-            addcol = gdof*np.ones((colIndex.shape[0], 1))
+            addcol = gdof * np.ones((colIndex.shape[0], 1))
 
             rowIndex = np.concatenate([rowIndex, dof_C.reshape(-1, 1)], axis=1)
             colIndex = np.concatenate([colIndex, addcol], axis=1)
@@ -184,14 +224,6 @@ class HHOScalarSolver2d:
         MV = sum(list(map(global_matrix, zip(lM, RV, cell2dof_split))))
 
         M = MV[:gdof, :gdof]
-        V = MV[:, -1]
-
-        hhobc = HHOBoundaryCondition(self.space, self.pde.dirichlet)
-        MD, VD = hhobc.applyDirichletBC(M, V.todense(), Ncelldof=NC*ldof)
-
-        R = spsolve(MD, VD)  # note that, in R, the dofs are arrangeed as [celldofs, edgedofs]
-
-        self.uh[:] = R[cell2dof]  # rearrange the values by the cell2dof
-
-
+        V = MV[:, -1].todense()
+        return M, V
 

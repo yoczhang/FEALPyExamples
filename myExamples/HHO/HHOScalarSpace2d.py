@@ -559,8 +559,8 @@ class HHOScalarSpace2d(object):
         return f
 
     def array(self, dim=None):
-        # gdof = self.number_of_global_dofs()
-        gdof = len(self.dof.cell2dof)
+        gdof = self.number_of_global_dofs()
+        # gdof = len(self.dof.cell2dof)
         if dim in {None, 1}:
             shape = gdof
         elif type(dim) is int:
@@ -580,6 +580,9 @@ class HHOScalarSpace2d(object):
         invCM = self.invCM  # (NC,ldof,ldof)
         uh = invCM@b[..., np.newaxis]  # (NC,ldof,1)
         return np.squeeze(uh)  # (NC,ldof)
+
+    def project_onedge(self, u):
+        pass
 
     def globaldof2celldof(self, globaldof):
         """
