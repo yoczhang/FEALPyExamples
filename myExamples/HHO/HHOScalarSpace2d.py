@@ -551,8 +551,64 @@ class HHOScalarSpace2d(object):
     def grad_basis(self, point, index=None, p=None):
         return self.smspace.grad_basis(point, index=index, p=p)
 
+    def value(self, uh, point, index=None):
+        NC = self.mesh.number_of_cells()
+        smldof = self.smldof
+        return self.smspace.value(uh[:NC*smldof, ...], point, index=index)
+
+    def grad_value(self, uh, point, index=None):
+        NC = self.mesh.number_of_cells()
+        smldof = self.smldof
+        return self.smspace.grad_value(uh[:NC*smldof, ...], point, index=index)
+
     def edge_basis(self, point, index=None, p=None):
         return self.smspace.edge_basis(point, index=index, p=p)
+
+    def edge_value(self, uh, bcs):
+        phi = self.edge_basis(bcs)
+        edge2dof = self.dof.edge_to_dof()
+
+        dim = len(uh.shape) - 1
+        s0 = 'abcdefg'[:dim]
+        s1 = '...ij, ij{}->...i{}'.format(s0, s0)
+        val = np.einsum(s1, phi, uh[edge2dof])
+        return val
+
+    def project(self, u, dim=1):
+        p = self.p
+        mesh = self.mesh
+        node = mesh.entity('node')
+        edge = mesh.entity('edge')
+        h = mesh.entity_measure('edge')
+        NC = mesh.number_of_cells()
+        smldof = self.smldof
+
+        uh = self.function(dim=dim)
+
+        qf = GaussLegendreQuadrature(p + 3)
+        bcs, ws = qf.quadpts, qf.weights
+        ps = np.einsum('ij, kjm->ikm', bcs, node[edge])
+        uI = u(ps)
+
+        ephi = self.edge_basis(ps)
+        b = np.einsum('i, ij..., ijk, j->jk...', ws, uI, ephi, h)
+        if dim == 1:
+            uh[NC*smldof:, ...].flat = (self.invEM@b[:, :, np.newaxis]).flat
+        else:
+            uh[NC*smldof:, ...].flat = (self.invEM@b).flat
+
+        t = 'd'
+        s = '...{}, ...m->...m{}'.format(t[:dim > 1], t[:dim > 1])
+
+        def f1(x, index):
+            phi = self.basis(x, index)
+            return np.einsum(s, u(x), phi)
+        b = self.integralalg.integral(f1, celltype=True)
+        if dim == 1:
+            uh[:NC*smldof, ...].flat = (self.invCM@b[:, :, np.newaxis]).flat
+        else:
+            uh[:NC*smldof, ...].flat = (self.invCM@b).flat
+        return uh
 
     def function(self, dim=None, array=None):
         f = Function(self, dim=dim, array=array)

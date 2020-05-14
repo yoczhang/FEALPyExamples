@@ -13,6 +13,7 @@
 import numpy as np
 from HHOBoundaryCondition import HHOBoundaryCondition
 from numpy.linalg import inv
+# from scipy.sparse.linalg import inv
 from scipy.sparse import csr_matrix
 from scipy.sparse.linalg import spsolve
 
@@ -22,6 +23,7 @@ class HHOScalarSolver2d:
         self.pdemodel = pdemodel
         self.space = pdemodel.space
         self.smspace = pdemodel.smspace
+        self.smldof = self.smspace.number_of_local_dofs()
         self.dof = pdemodel.dof
         self.p = pdemodel.p
         self.pde = pdemodel.pde
@@ -52,7 +54,7 @@ class HHOScalarSolver2d:
         #     NCE = NCE*np.ones((NC,), dtype=int)
         cell2edge = self.mesh.ds.cell_to_edge()
 
-        smldof = self.smspace.number_of_local_dofs()
+        smldof = self.smldof
         eldof = p + 1
         egdof = NE * eldof
 
@@ -147,12 +149,12 @@ class HHOScalarSolver2d:
 
     def solving_by_static_condensation(self):
         NC = self.space.mesh.number_of_cells()
-        ldof = self.smspace.number_of_local_dofs()
-        NE = self.NE
-        p = self.p
+        ldof = self.smldof
+        # NE = self.NE
+        # p = self.p
 
         Ncelldof = NC*ldof
-        Nedgedof = NE*(p+1)
+        # Nedgedof = NE*(p+1)
 
         M, V = self.get_global_matrix()
 
@@ -162,15 +164,23 @@ class HHOScalarSolver2d:
         D = M[Ncelldof:, Ncelldof:]
 
         R1 = V[:Ncelldof]
-        R2 = V[Ncelldof:]
+        # R2 = V[Ncelldof:]
 
-        CinvA = C @ inv(A)
-        m = CinvA @ B - D  # (Nedgedof,Nedgedof)
-        v = CinvA @ R1.reshape(-1, 1)  # (Nedgedof,)
+        invA = inv(A.todense())
+        CinvA = C@invA
+        ME = CinvA @ B - D  # (Nedgedof,Nedgedof)
+        VE = CinvA @ R1.reshape(-1, 1)  # (Nedgedof,)
 
+        # --- treat Dirichlet boundary condition --- #
+        hhobc = HHOBoundaryCondition(self.space, self.pde.dirichlet)
+        MD, VD = hhobc.applyDirichletBC(ME, VE, Ncelldof=0)
 
+        # --- solve the edges system --- #
+        Ub = np.linalg.solve(MD, VD)  # (egdof,)
+        U0 = invA@(R1 - B@Ub)
+        self.uh[:] = np.squeeze(np.concatenate([U0, Ub]))
 
-
+        return hhobc.applyDirichletBC(M, V, Ncelldof=NC*ldof)
 
     def solving_by_direct(self):
         NC = self.space.mesh.number_of_cells()

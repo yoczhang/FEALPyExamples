@@ -29,7 +29,9 @@ class PoissonHHOModel2d(object):
         self.dof = self.space.dof
         self.pde = pde
         self.uh = self.space.function()
+        self.uI = self.space.project(pde.solution)
         self.integralalg = self.space.integralalg
+        self.A = None
 
     def get_left_matrix(self):
         space = self.space
@@ -54,27 +56,27 @@ class PoissonHHOModel2d(object):
 
         start = timer()
         if solver == 'StaticCondensation':
-            hhosolver.solving_by_static_condensation()
+            self.A, b = hhosolver.solving_by_static_condensation()
         elif solver == 'direct':
-            hhosolver.solving_by_direct()
+            self.A, b = hhosolver.solving_by_direct()
         end = timer()
         print("Solve time:", end - start)
         return uh
 
     def L2_error(self):
-        pass
+        u = self.pde.solution
+        uh = self.uh.value
+        return self.space.integralalg.L2_error(u, uh)
 
     def H1_semi_error(self):
-        pass
+        gu = self.pde.gradient
+        guh = self.uh.grad_value
+        return self.space.integralalg.L2_error(gu, guh)
 
-    def set_Dirichlet_edge(self):
-        mesh = self.mesh
-        edge2cell = mesh.ds.edge_to_cell()
-        bdEdge = (edge2cell[:, 0] == edge2cell[:, 1])  # the bool vars, to get the boundary edges
+    def energy_error(self):
+        e = self.uh - self.uI
+        return np.sqrt(e@self.A@e)
 
-        isDirEdge = bdEdge  # here, we set all the boundary edges are Dir edges
-
-        return isDirEdge
 
 
 
