@@ -185,38 +185,38 @@
     </ignored-roots>
   </component>
   <component name="WindowStateProjectService">
-    <state width="1259" height="84" key="GridCell.Tab.0.bottom" timestamp="1589471651351">
+    <state width="1259" height="327" key="GridCell.Tab.0.bottom" timestamp="1589546982501">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="84" key="GridCell.Tab.0.bottom/0.23.1280.734@0.23.1280.734" timestamp="1589471651351" />
-    <state width="1259" height="84" key="GridCell.Tab.0.center" timestamp="1589471651348">
+    <state width="1259" height="327" key="GridCell.Tab.0.bottom/0.23.1280.734@0.23.1280.734" timestamp="1589546982501" />
+    <state width="1259" height="327" key="GridCell.Tab.0.center" timestamp="1589546982501">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="84" key="GridCell.Tab.0.center/0.23.1280.734@0.23.1280.734" timestamp="1589471651348" />
-    <state width="1259" height="84" key="GridCell.Tab.0.left" timestamp="1589471651348">
+    <state width="1259" height="327" key="GridCell.Tab.0.center/0.23.1280.734@0.23.1280.734" timestamp="1589546982501" />
+    <state width="1259" height="327" key="GridCell.Tab.0.left" timestamp="1589546982500">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="84" key="GridCell.Tab.0.left/0.23.1280.734@0.23.1280.734" timestamp="1589471651348" />
-    <state width="1259" height="84" key="GridCell.Tab.0.right" timestamp="1589471651350">
+    <state width="1259" height="327" key="GridCell.Tab.0.left/0.23.1280.734@0.23.1280.734" timestamp="1589546982500" />
+    <state width="1259" height="327" key="GridCell.Tab.0.right" timestamp="1589546982501">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="84" key="GridCell.Tab.0.right/0.23.1280.734@0.23.1280.734" timestamp="1589471651350" />
-    <state width="1259" height="84" key="GridCell.Tab.1.bottom" timestamp="1589471652735">
+    <state width="1259" height="327" key="GridCell.Tab.0.right/0.23.1280.734@0.23.1280.734" timestamp="1589546982501" />
+    <state width="1259" height="327" key="GridCell.Tab.1.bottom" timestamp="1589546980740">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="84" key="GridCell.Tab.1.bottom/0.23.1280.734@0.23.1280.734" timestamp="1589471652735" />
-    <state width="1259" height="84" key="GridCell.Tab.1.center" timestamp="1589471652735">
+    <state width="1259" height="327" key="GridCell.Tab.1.bottom/0.23.1280.734@0.23.1280.734" timestamp="1589546980740" />
+    <state width="1259" height="327" key="GridCell.Tab.1.center" timestamp="1589546980740">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="84" key="GridCell.Tab.1.center/0.23.1280.734@0.23.1280.734" timestamp="1589471652735" />
-    <state width="1259" height="84" key="GridCell.Tab.1.left" timestamp="1589471652734">
+    <state width="1259" height="327" key="GridCell.Tab.1.center/0.23.1280.734@0.23.1280.734" timestamp="1589546980740" />
+    <state width="1259" height="327" key="GridCell.Tab.1.left" timestamp="1589546980739">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="84" key="GridCell.Tab.1.left/0.23.1280.734@0.23.1280.734" timestamp="1589471652734" />
-    <state width="1259" height="84" key="GridCell.Tab.1.right" timestamp="1589471652735">
+    <state width="1259" height="327" key="GridCell.Tab.1.left/0.23.1280.734@0.23.1280.734" timestamp="1589546980739" />
+    <state width="1259" height="327" key="GridCell.Tab.1.right" timestamp="1589546980740">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="84" key="GridCell.Tab.1.right/0.23.1280.734@0.23.1280.734" timestamp="1589471652735" />
+    <state width="1259" height="327" key="GridCell.Tab.1.right/0.23.1280.734@0.23.1280.734" timestamp="1589546980740" />
     <state x="141" y="29" key="SettingsEditor" timestamp="1588088087094">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
@@ -233,6 +233,10 @@
       <screen x="0" y="23" width="1280" height="734" />
     </state>
     <state x="266" y="23" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/0.23.1280.734@0.23.1280.734" timestamp="1580887580653" />
+    <state x="164" y="126" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2" timestamp="1589471928475">
+      <screen x="0" y="23" width="1280" height="734" />
+    </state>
+    <state x="164" y="126" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2/0.23.1280.734@0.23.1280.734" timestamp="1589471928475" />
     <state x="298" y="147" width="683" height="486" key="find.popup" timestamp="1582546816285">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
@@ -242,169 +246,19 @@
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/ProjectMAC/MainStokesMAC.py</url>
-          <line>65</line>
-          <option name="timeStamp" value="15" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/Test/totest_PyClass_inherit.py</url>
-          <line>80</line>
-          <option name="timeStamp" value="38" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/Test/totest_edges_to_cells.py</url>
-          <line>71</line>
-          <option name="timeStamp" value="39" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/Test/totest_polymesh.py</url>
-          <line>49</line>
-          <option name="timeStamp" value="40" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/Test/totest_CFEM_dofs.py</url>
-          <line>88</line>
-          <option name="timeStamp" value="41" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/Test/totest_ScaledMonomialSpace.py</url>
-          <line>100</line>
-          <option name="timeStamp" value="42" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/Test/totest_DGScalarSpace.py</url>
-          <line>120</line>
-          <option name="timeStamp" value="44" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/Test/totest_DGScalarSpace.py</url>
-          <line>117</line>
-          <option name="timeStamp" value="45" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/Test/totest_PolyMeshIntergal.py</url>
-          <line>142</line>
-          <option name="timeStamp" value="46" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/../fealpy_install_folder/fealpy/fealpy/mesh/Quadtree.py</url>
-          <line>1</line>
-          <option name="timeStamp" value="53" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/../fealpy_install_folder/fealpy/fealpy/fem/PoissonFEMModel.py</url>
-          <line>86</line>
-          <option name="timeStamp" value="64" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/Test/totest_refine_qtree.py</url>
-          <line>137</line>
-          <option name="timeStamp" value="65" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/Test/totest_PolyMeshIntergal.py</url>
-          <line>75</line>
-          <option name="timeStamp" value="66" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/example/sfcavem/SFCAVEMRate.py</url>
-          <line>82</line>
-          <option name="timeStamp" value="71" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/Test/totest_WGSpace.py</url>
-          <line>159</line>
-          <option name="timeStamp" value="84" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/Test/totest_WGSpace.py</url>
-          <line>156</line>
-          <option name="timeStamp" value="91" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/Test/totest_DGScalarSpace.py</url>
-          <line>87</line>
-          <option name="timeStamp" value="93" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/Test/totest_HHOScalarSpace.py</url>
-          <line>111</line>
-          <option name="timeStamp" value="97" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/Test/totest_WGSpace.py</url>
-          <line>128</line>
-          <option name="timeStamp" value="98" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/Test/totest_WGSpace.py</url>
-          <line>108</line>
-          <option name="timeStamp" value="101" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/Test/totest_WGSpace.py</url>
-          <line>70</line>
-          <option name="timeStamp" value="104" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/Test/totest_HHOScalarSpace.py</url>
-          <line>80</line>
-          <option name="timeStamp" value="107" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/Test/totest_temp.py</url>
-          <line>47</line>
-          <option name="timeStamp" value="113" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/Test/totest_HHOScalarSpace.py</url>
-          <line>74</line>
-          <option name="timeStamp" value="114" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/Test/totest__new__0AB.py</url>
-          <line>20</line>
-          <option name="timeStamp" value="115" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/../fealpy_install_folder/fealpy/fealpy/fem/PoissonFEMModel.py</url>
-          <line>108</line>
-          <option name="timeStamp" value="116" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/../fealpy_install_folder/fealpy/fealpy/vem/PoissonNCVEMModel.py</url>
-          <line>51</line>
-          <option name="timeStamp" value="120" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/Test/totest_NCVEMspace.py</url>
-          <line>70</line>
-          <option name="timeStamp" value="135" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/example/PoissonNCVEMRate2d.py</url>
-          <line>38</line>
-          <option name="timeStamp" value="137" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/example/PoissonCVEMRate2d.py</url>
-          <line>52</line>
-          <option name="timeStamp" value="138" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/example/newexample/PoissonCVEM2d_example.py</url>
-          <line>86</line>
-          <option name="timeStamp" value="141" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/myExamples/HHO/PoissonHHORate2d.py</url>
-          <line>91</line>
-          <option name="timeStamp" value="145" />
+          <line>76</line>
+          <option name="timeStamp" value="149" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/HHO/PoissonHHORate2d.py</url>
-          <line>73</line>
-          <option name="timeStamp" value="146" />
+          <url>file://$PROJECT_DIR$/myExamples/HHO/PoissonHHOModel2d.py</url>
+          <line>43</line>
+          <option name="timeStamp" value="152" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/myExamples/HHO/HHOScalarSpace2d.py</url>
+          <line>289</line>
+          <option name="timeStamp" value="153" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

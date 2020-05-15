@@ -278,6 +278,8 @@ class HHOScalarSpace2d(object):
         p = self.p
         RM = self.RM  # (psmldof,\sum_C{Cldof}), Cldof is the number of dofs in one cell
         Sp = self.monomial_stiff_matrix(p=p+1)  # (NC,psmldof,psmldof)
+        sp1 = np.squeeze((self.stiff_matrix(p=p+1)).todense())
+
 
         cell2dofLocation = self.dof.cell2dofLocation
         Rsplit = np.hsplit(RM, cell2dofLocation[1:-1])  # list, len(Rsplit) is NC, Rsplit[i].shape is (psmldof,Cldof)
@@ -286,6 +288,26 @@ class HHOScalarSpace2d(object):
         StiffM = list(map(f, zip(Sp, Rsplit)))  # list, its len is NC, each-term.shape: (Cldof,Cldof)
 
         return StiffM
+
+    def stiff_matrix(self, p=None):
+        p = self.p if p is None else p
+        mesh = self.mesh
+        NC = mesh.number_of_cells()
+        ldof = self.smspace.number_of_local_dofs(p=p)
+
+        def f(x, index):
+            gphi = self.grad_basis(x, index=index, p=p)
+            return np.einsum('ijkm, ijpm->ijkp', gphi, gphi)
+
+        A = self.integralalg.integral(f, celltype=True, q=p + 2)
+        cell2dof = np.arange(NC*ldof).reshape(NC, ldof)
+        I = np.einsum('k, ij->ijk', np.ones(ldof), cell2dof)
+        J = I.swapaxes(-1, -2)
+        gdof = NC*ldof
+
+        # Construct the stiffness matrix
+        A = csr_matrix((A.flat, (I.flat, J.flat)), shape=(gdof, gdof))
+        return A
 
     def projection_psmspace_to_smspace(self):
         p = self.p

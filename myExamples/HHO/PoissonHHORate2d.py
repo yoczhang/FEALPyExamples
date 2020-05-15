@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 from fealpy.tools.show import showmultirate, show_error_table
 from PoissonHHOModel2d import PoissonHHOModel2d
 from fealpy.mesh.simple_mesh_generator import triangle
+from fealpy.mesh.mesh_tools import find_entity
 
 
 import os
@@ -40,14 +41,14 @@ Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
 # --- mesh setting --- #
 # # mesh 1:
 # # quad-tree mesh
-# qtree = pde.init_mesh(n, meshtype='quadtree')
-# mesh = qtree.to_pmesh()
+qtree = pde.init_mesh(n-2, meshtype='quadtree')
+mesh = qtree.to_pmesh()
 
 # # mesh 2:
 # # tri mesh
-h = 1./4
-box = [0, 1, 0, 1]  # [0, 1]^2 domain
-mesh = triangle(box, h, meshtype='tri')
+# h = 1./4
+# box = [0, 1, 0, 1]  # [0, 1]^2 domain
+# mesh = triangle(box, h, meshtype='tri')
 
 # # mesh 3:
 # # polygon mesh
@@ -59,9 +60,9 @@ mesh = triangle(box, h, meshtype='tri')
 # fig = plt.figure()
 # axes = fig.gca()
 # mesh.add_plot(axes, cellcolor='w')
-# find_entity(axes, mesh, entity='cell', index='all', showindex=True, color='b', markersize=10, fontsize=8)
-# find_entity(axes, mesh, entity='edge', index='all', showindex=True, color='r', markersize=10, fontsize=8)
-# find_entity(axes, mesh, entity='node', index='all', showindex=True, color='y', markersize=10, fontsize=8)
+# find_entity(axes, mesh, entity='cell', index=None, showindex=True, color='b', markersize=10, fontsize=8)
+# find_entity(axes, mesh, entity='edge', index=None, showindex=True, color='r', markersize=10, fontsize=8)
+# find_entity(axes, mesh, entity='node', index=None, showindex=True, color='y', markersize=10, fontsize=8)
 # plt.show()
 # plt.close()
 
