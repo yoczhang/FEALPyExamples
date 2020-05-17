@@ -31,8 +31,9 @@ class HHOBoundaryCondition:
         isBdEdge = (edge2cell[:, 0] == edge2cell[:, 1])  # (NE,), the bool vars, to get the boundary edges
 
         isDirEdge = isBdEdge  # here, we set all the boundary edges are Dir edges
+        idxDirEdge, = np.nonzero(isDirEdge)  # (NE_Dir,)
 
-        return isDirEdge
+        return idxDirEdge
 
     def set_Neumann_edge(self):
         mesh = self.mesh
@@ -45,47 +46,51 @@ class HHOBoundaryCondition:
         if issetNeuEdge == 'no':
             isNeuEdge = None
 
-        return isNeuEdge
+        idxNeuEdge, = np.nonzero(isNeuEdge)  # (NE_Dir,)
+
+        return idxNeuEdge
 
     def set_Dirichlet_dof(self):
         NE = self.NE
         eldof = self.eldof
         egdof = self.egdof
 
-        isDirDof = np.zeros(egdof).astype(np.bool)  # 1-D array, (egdof,)
+        idxDirEdge = self.set_Dirichlet_edge()  # (NEDir,)
+        idxDirDof = eldof * idxDirEdge.reshape(-1, 1) + np.arange(eldof)
+        idxDirDof = np.squeeze(idxDirDof.reshape(1, -1))  # np.squeeze transform 2-D array (NDirDof,1) into 1-D (NDirDof,)
 
-        isDirEdge = self.set_Dirichlet_edge()  # (NE,)
-        idxDirEdge, = np.nonzero(isDirEdge)  # (NE_Dir,)
-        DirDof = eldof * idxDirEdge.reshape(-1, 1) + np.arange(eldof)
-        DirDof = np.squeeze(DirDof.reshape(1, -1))  # np.squeeze transform 2-D array (NDirDof,1) into 1-D (NDirDof,)
-        isDirDof[DirDof] = True  # 1-D array, (egdof,)
-
-        return isDirDof
+        return idxDirDof
 
     def set_Neumann_dof(self):
         NE = self.NE
         eldof = self.eldof
         egdof = self.egdof
 
-        isNeuDof = np.zeros(egdof).astype(np.bool)  # 1-D array, (egdof,)
+        idxNeuEdge = self.set_Neumann_edge()
 
-        isNeuEdge = self.set_Neumann_edge()
+        idxNeuDof = None
+        if idxNeuEdge is not None:
+            idxNeuDof = eldof * idxNeuEdge.reshape(-1, 1) + np.arange(eldof)
+            idxNeuDof = np.squeeze(idxNeuDof.reshape(1, -1))  # np.squeeze transform 2-D array (NNeuDof,1) into 1-D (NNeuDof,)
 
-        if isNeuEdge is not None:
-            idxNeuEdge, = np.nonzero(isNeuEdge)
-            NeuDof = eldof * idxNeuEdge.reshape(-1, 1) + np.arange(eldof)
-            NeuDof = np.squeeze(NeuDof.reshape(1, -1))  # np.squeeze transform 2-D array (NNeuDof,1) into 1-D (NNeuDof,)
-            isNeuDof[NeuDof] = True  # 1-D array, (egdof,)
-
-        return isNeuDof
+        return idxNeuDof
 
     def set_Free_dof(self):
-        isDirDof = self.set_Dirichlet_dof()  # (egdof,)
-        isNeuDof = self.set_Neumann_dof()  # (egdof,)
+        NE = self.NE
+        eldof = self.eldof
+        geldof = NE*eldof
 
-        isFreeDof = ~(isDirDof + isNeuDof)  # (egdof,)
+        isFreeDof = np.ones([geldof, ], dtype=np.bool)
 
-        return isFreeDof
+        idxDirDof = self.set_Dirichlet_dof()  # (egdof,)
+        idxNeuDof = self.set_Neumann_dof()  # (egdof,)
+
+        isFreeDof[idxDirDof] = False
+        isFreeDof[idxNeuDof] = False
+
+        idxFreeDof, = np.nonzero(isFreeDof)
+
+        return idxFreeDof
 
     def applyDirichletBC(self, A, b, Ncelldof=0):
         """
@@ -116,38 +121,38 @@ class HHOBoundaryCondition:
         edge = mesh.entity('edge')
         hE = mesh.edge_length()
 
-        qf = GaussLegendreQuadrature(p + 1)  # the integral points on edges (1D)
+        qf = GaussLegendreQuadrature(p + 3)  # the integral points on edges (1D)
         bcs, ws = qf.quadpts, qf.weights  # bcs.shape: (NQ,2); ws.shape: (NQ,)
         ps = np.einsum('ij, kjm->ikm', bcs, node[edge])  # ps.shape: (NQ,NE,2), NE is the number of edges
 
-        ephi = smspace.edge_basis(ps, index=None, p=p)  # (NQ,NE,eldof), eldof is the number of local 1D dofs on one edge
-        EM = smspace.edge_mass_matrix()  # (NE,eldof,eldof), eldof is the number of local 1D dofs on one edge
-        invEM = inv(EM)  # (NE,eldof,eldof)
+        ephi = self.space.edge_basis(ps, index=None, p=p)  # (NQ,NE,eldof), eldof is the number of local 1D dofs on one edge
+        # EM = smspace.edge_mass_matrix()  # (NE,eldof,eldof), eldof is the number of local 1D dofs on one edge
+        invEM = self.space.invEM  # (NE,eldof,eldof)
 
         # ---               set isDirDof                --- #
         # --- and modify the isDirDof based on the Ndof --- #
-        isDirEdge = self.set_Dirichlet_edge()  # (NE,)
-        isDirDof = self.set_Dirichlet_dof()  # (egdof,)
-        isCellDof = np.zeros((Ncelldof,)).astype(np.bool)
-        # isDirEdge = np.concatenate([isCellDof, isDirEdge])
-        isDirDof = np.concatenate([isCellDof, isDirDof])
+        idxDirEdge = self.set_Dirichlet_edge()  # (NE,)
+        idxDirDof = self.set_Dirichlet_dof()  # (egdof,)
+        # isCellDof = np.zeros((Ncelldof,)).astype(np.bool)
+        # # isDirEdge = np.concatenate([isCellDof, isDirEdge])
+        idxDirDof = Ncelldof + idxDirDof
 
         # --- project uD to uDP on Dirichlet edges --- #
-        uDI = uD(ps[:, isDirEdge, :])  # (NQ,NE_Dir), get the Dirichlet values at physical integral points
-        uDrhs = np.einsum('i, ij, ijm, j->jm', ws, uDI, ephi[:, isDirEdge, :], hE[isDirEdge])  # (NE_Dir,eldof)
-        uDP = np.einsum('ijk, ik->ij', invEM[isDirEdge], uDrhs)  # (NE_Dir,eldof,eldof)x(NE_Dir,eldof)=>(NE_Dir,eldof)
+        uDI = uD(ps[:, idxDirEdge, :])  # (NQ,NE_Dir), get the Dirichlet values at physical integral points
+        uDrhs = np.einsum('i, ij, ijm, j->jm', ws, uDI, ephi[:, idxDirEdge, :], hE[idxDirEdge])  # (NE_Dir,eldof)
+        uDP = np.einsum('ijk, ik->ij', invEM[idxDirEdge, ...], uDrhs)  # (NE_Dir,eldof,eldof)x(NE_Dir,eldof)=>(NE_Dir,eldof)
 
         # --- apply to the left-matrix and right-vector --- #
         x = np.zeros((Ndof, 1), dtype=np.float)
-        x[isDirDof].flat = uDP.flat
+        x[idxDirDof, 0] = uDP.flatten()
         b -= A@x
         bdIdx = np.zeros(Ndof, dtype=np.int)
-        bdIdx[isDirDof] = 1
+        bdIdx[idxDirDof] = 1
         Tbd = spdiags(bdIdx, 0, Ndof, Ndof)
         T = spdiags(1 - bdIdx, 0, Ndof, Ndof)
         A = T@A@T + Tbd
 
-        b[isDirDof] = x[isDirDof]
+        b[idxDirDof] = x[idxDirDof]
         return A, b
 
 

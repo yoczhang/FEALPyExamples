@@ -222,7 +222,7 @@ class HHOScalarSpace2d(object):
         idx += smldof  # rearrange the dofs
         CRM[:, idx] = F0  # (psmldof,\sum_C{Cldof}), Cldof is the number of dofs in one cell
         idx = cell2dofLocation[edge2cell[isInEdge, 1]].reshape(-1, 1) + \
-              eldof * edge2cell[isInEdge, [3]].reshape(-1, 1) + np.arange(eldof)  # (NInE,eldof)
+              eldof * edge2cell[isInEdge, 3].reshape(-1, 1) + np.arange(eldof)  # (NInE,eldof)
         idx += smldof  # rearrange the dofs
         CRM[:, idx] = F1
 
@@ -278,8 +278,7 @@ class HHOScalarSpace2d(object):
         p = self.p
         RM = self.RM  # (psmldof,\sum_C{Cldof}), Cldof is the number of dofs in one cell
         Sp = self.monomial_stiff_matrix(p=p+1)  # (NC,psmldof,psmldof)
-        sp1 = np.squeeze((self.stiff_matrix(p=p+1)).todense())
-
+        # sp1 = np.squeeze((self.stiff_matrix(p=p+1)).todense())
 
         cell2dofLocation = self.dof.cell2dofLocation
         Rsplit = np.hsplit(RM, cell2dofLocation[1:-1])  # list, len(Rsplit) is NC, Rsplit[i].shape is (psmldof,Cldof)
@@ -296,8 +295,8 @@ class HHOScalarSpace2d(object):
         ldof = self.smspace.number_of_local_dofs(p=p)
 
         def f(x, index):
-            gphi = self.grad_basis(x, index=index, p=p)
-            return np.einsum('ijkm, ijpm->ijkp', gphi, gphi)
+            gphi = self.grad_basis(x, index=index, p=p)  # using the cell-integration, so gphi: (NQ,NC,ldof,2)
+            return np.einsum('...km, ...pm->...kp', gphi, gphi)
 
         A = self.integralalg.integral(f, celltype=True, q=p + 2)
         cell2dof = np.arange(NC*ldof).reshape(NC, ldof)
@@ -584,7 +583,19 @@ class HHOScalarSpace2d(object):
         return self.smspace.grad_value(uh[:NC*smldof, ...], point, index=index)
 
     def edge_basis(self, point, index=None, p=None):
-        return self.smspace.edge_basis(point, index=index, p=p)
+        p = self.p if p is None else p
+        index = index if index is not None else np.s_[:]
+        center = self.integralalg.edgebarycenter
+        h = self.integralalg.edgemeasure
+        t = self.mesh.edge_unit_tagent()
+        val = np.sum((point - center[index]) * t[index], axis=-1) / h[index]
+        phi = np.ones(val.shape + (p + 1,), dtype=self.ftype)
+        if p == 1:
+            phi[..., 1] = -val
+        else:
+            phi[..., 1:] = -val[..., np.newaxis]
+            np.multiply.accumulate(phi, axis=-1, out=phi)
+        return phi
 
     def edge_value(self, uh, bcs):
         phi = self.edge_basis(bcs)
