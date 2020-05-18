@@ -11,7 +11,8 @@
 
 
 import numpy as np
-from HHOBoundaryCondition import HHOBoundaryCondition
+# from HHOBoundaryCondition import HHOBoundaryCondition
+from HHOBoundaryCondition_new import HHOBoundaryCondition
 from numpy.linalg import inv
 # from scipy.sparse.linalg import inv
 from scipy.sparse import csr_matrix

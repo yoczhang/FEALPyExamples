@@ -95,7 +95,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="PoissonNCVEMRate2d" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="StokesDFNCVEM2d_example" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="FEALPyExamples" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -107,7 +107,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/example/PoissonNCVEMRate2d.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/example/StokesDFNCVEM2d_example.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -116,7 +116,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="totest_NCVEMspace" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="totest_VectorSpace" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="FEALPyExamples" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -128,7 +128,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/myExamples/Test/totest_NCVEMspace.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/myExamples/Test/totest_VectorSpace.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -138,19 +138,19 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Python.totest_NCVEMspace" />
-      <item itemvalue="Python.PoissonNCVEMRate2d" />
       <item itemvalue="Python.PoissonCVEMRate2d" />
       <item itemvalue="Python.PoissonCVEM2d_example" />
       <item itemvalue="Python.PoissonHHORate2d" />
+      <item itemvalue="Python.totest_VectorSpace" />
+      <item itemvalue="Python.StokesDFNCVEM2d_example" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Python.PoissonHHORate2d" />
+        <item itemvalue="Python.StokesDFNCVEM2d_example" />
+        <item itemvalue="Python.totest_VectorSpace" />
         <item itemvalue="Python.PoissonCVEM2d_example" />
         <item itemvalue="Python.PoissonCVEMRate2d" />
-        <item itemvalue="Python.PoissonNCVEMRate2d" />
-        <item itemvalue="Python.totest_NCVEMspace" />
       </list>
     </recent_temporary>
   </component>
@@ -185,38 +185,38 @@
     </ignored-roots>
   </component>
   <component name="WindowStateProjectService">
-    <state width="1259" height="206" key="GridCell.Tab.0.bottom" timestamp="1589786778223">
+    <state width="1259" height="175" key="GridCell.Tab.0.bottom" timestamp="1589814242625">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="206" key="GridCell.Tab.0.bottom/0.23.1280.734@0.23.1280.734" timestamp="1589786778223" />
-    <state width="1259" height="206" key="GridCell.Tab.0.center" timestamp="1589786778222">
+    <state width="1259" height="175" key="GridCell.Tab.0.bottom/0.23.1280.734@0.23.1280.734" timestamp="1589814242625" />
+    <state width="1259" height="175" key="GridCell.Tab.0.center" timestamp="1589814242625">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="206" key="GridCell.Tab.0.center/0.23.1280.734@0.23.1280.734" timestamp="1589786778222" />
-    <state width="1259" height="206" key="GridCell.Tab.0.left" timestamp="1589786778222">
+    <state width="1259" height="175" key="GridCell.Tab.0.center/0.23.1280.734@0.23.1280.734" timestamp="1589814242625" />
+    <state width="1259" height="175" key="GridCell.Tab.0.left" timestamp="1589814242625">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="206" key="GridCell.Tab.0.left/0.23.1280.734@0.23.1280.734" timestamp="1589786778222" />
-    <state width="1259" height="206" key="GridCell.Tab.0.right" timestamp="1589786778223">
+    <state width="1259" height="175" key="GridCell.Tab.0.left/0.23.1280.734@0.23.1280.734" timestamp="1589814242625" />
+    <state width="1259" height="175" key="GridCell.Tab.0.right" timestamp="1589814242625">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="206" key="GridCell.Tab.0.right/0.23.1280.734@0.23.1280.734" timestamp="1589786778223" />
-    <state width="1259" height="88" key="GridCell.Tab.1.bottom" timestamp="1589786741707">
+    <state width="1259" height="175" key="GridCell.Tab.0.right/0.23.1280.734@0.23.1280.734" timestamp="1589814242625" />
+    <state width="1259" height="175" key="GridCell.Tab.1.bottom" timestamp="1589814242626">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="88" key="GridCell.Tab.1.bottom/0.23.1280.734@0.23.1280.734" timestamp="1589786741707" />
-    <state width="1259" height="88" key="GridCell.Tab.1.center" timestamp="1589786741706">
+    <state width="1259" height="175" key="GridCell.Tab.1.bottom/0.23.1280.734@0.23.1280.734" timestamp="1589814242626" />
+    <state width="1259" height="175" key="GridCell.Tab.1.center" timestamp="1589814242625">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="88" key="GridCell.Tab.1.center/0.23.1280.734@0.23.1280.734" timestamp="1589786741706" />
-    <state width="1259" height="88" key="GridCell.Tab.1.left" timestamp="1589786741706">
+    <state width="1259" height="175" key="GridCell.Tab.1.center/0.23.1280.734@0.23.1280.734" timestamp="1589814242625" />
+    <state width="1259" height="175" key="GridCell.Tab.1.left" timestamp="1589814242625">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="88" key="GridCell.Tab.1.left/0.23.1280.734@0.23.1280.734" timestamp="1589786741706" />
-    <state width="1259" height="88" key="GridCell.Tab.1.right" timestamp="1589786741707">
+    <state width="1259" height="175" key="GridCell.Tab.1.left/0.23.1280.734@0.23.1280.734" timestamp="1589814242625" />
+    <state width="1259" height="175" key="GridCell.Tab.1.right" timestamp="1589814242626">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="88" key="GridCell.Tab.1.right/0.23.1280.734@0.23.1280.734" timestamp="1589786741707" />
+    <state width="1259" height="175" key="GridCell.Tab.1.right/0.23.1280.734@0.23.1280.734" timestamp="1589814242626" />
     <state x="141" y="29" key="SettingsEditor" timestamp="1588088087094">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
@@ -241,6 +241,31 @@
           <url>file://$PROJECT_DIR$/myExamples/HHO/PoissonHHORate2d.py</url>
           <line>79</line>
           <option name="timeStamp" value="191" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/myExamples/Test/totest_VectorSpace.py</url>
+          <line>95</line>
+          <option name="timeStamp" value="204" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/myExamples/Test/totest_VectorSpace.py</url>
+          <line>89</line>
+          <option name="timeStamp" value="207" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/example/StokesDFNCVEM2d_example.py</url>
+          <line>72</line>
+          <option name="timeStamp" value="209" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/../fealpy_install_folder/fealpy/fealpy/functionspace/DivFreeNonConformingVirtualElementSpace2d_new.py</url>
+          <line>681</line>
+          <option name="timeStamp" value="210" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/myExamples/HHO/HHOScalarSolver2d.py</url>
+          <line>191</line>
+          <option name="timeStamp" value="212" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

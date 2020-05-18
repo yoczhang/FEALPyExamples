@@ -658,6 +658,41 @@ class HHOScalarSpace2d(object):
             shape = (gdof, ) + dim
         return np.zeros(shape, dtype=np.float)
 
+    def get_global_matrix(self):
+        gdof = self.dof.number_of_global_dofs()
+        StiffM = self.reconstruction_stiff_matrix()  # list, its len is NC, each-term.shape (Cldof,Cldof)
+        StabM = self.reconstruction_stabilizer_matrix()  # list, its len is NC, each-term.shape (Cldof,Cldof)
+
+        cell2dof, doflocation = self.dof.cell_to_dof()
+        cell2dof_split = np.hsplit(cell2dof, doflocation[1:-1])
+
+        def global_matrix(x):
+            # # x[0], the stiff matrix in current cell
+            # # x[1], the stab matrix in current cell
+            # # x[2], the dofs-index in current cell
+            StiffM_C = x[0]  # the left matrix at this cell
+            StabM_C = x[1]
+            dof_C = x[2]  # (NCdof,)
+            Ndof_C = len(dof_C)
+
+            # --- get the row and col index --- #
+            rowIndex = np.einsum('i, k->ik', dof_C, np.ones(Ndof_C, ))
+            colIndex = np.transpose(rowIndex)
+
+            # --- add to the global matrix and vector --- #
+            r = csr_matrix(((StiffM_C+StabM_C).flat, (rowIndex.flat, colIndex.flat)), shape=(gdof, gdof), dtype=np.float)
+            return r
+        M = sum(list(map(global_matrix, zip(StiffM, StabM, cell2dof_split))))
+        return M
+
+    def get_global_vector(self, f):
+        gdof = self.dof.number_of_global_dofs()
+        fh = self.source_vector(f)  # (NC,ldof)
+        shape = fh.shape
+        V = np.zeros((gdof, 1), dtype=np.float)
+        V[:(shape[0]*shape[1]), 0] = fh.flatten()
+        return V
+
     def L2_error(self, uI, uh):
         eu = uI - uh
 
