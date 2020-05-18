@@ -185,38 +185,38 @@
     </ignored-roots>
   </component>
   <component name="WindowStateProjectService">
-    <state width="1259" height="207" key="GridCell.Tab.0.bottom" timestamp="1589784994711">
+    <state width="1259" height="206" key="GridCell.Tab.0.bottom" timestamp="1589786778223">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="207" key="GridCell.Tab.0.bottom/0.23.1280.734@0.23.1280.734" timestamp="1589784994711" />
-    <state width="1259" height="207" key="GridCell.Tab.0.center" timestamp="1589784994709">
+    <state width="1259" height="206" key="GridCell.Tab.0.bottom/0.23.1280.734@0.23.1280.734" timestamp="1589786778223" />
+    <state width="1259" height="206" key="GridCell.Tab.0.center" timestamp="1589786778222">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="207" key="GridCell.Tab.0.center/0.23.1280.734@0.23.1280.734" timestamp="1589784994709" />
-    <state width="1259" height="207" key="GridCell.Tab.0.left" timestamp="1589784994709">
+    <state width="1259" height="206" key="GridCell.Tab.0.center/0.23.1280.734@0.23.1280.734" timestamp="1589786778222" />
+    <state width="1259" height="206" key="GridCell.Tab.0.left" timestamp="1589786778222">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="207" key="GridCell.Tab.0.left/0.23.1280.734@0.23.1280.734" timestamp="1589784994709" />
-    <state width="1259" height="207" key="GridCell.Tab.0.right" timestamp="1589784994710">
+    <state width="1259" height="206" key="GridCell.Tab.0.left/0.23.1280.734@0.23.1280.734" timestamp="1589786778222" />
+    <state width="1259" height="206" key="GridCell.Tab.0.right" timestamp="1589786778223">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="207" key="GridCell.Tab.0.right/0.23.1280.734@0.23.1280.734" timestamp="1589784994710" />
-    <state width="1259" height="207" key="GridCell.Tab.1.bottom" timestamp="1589784994713">
+    <state width="1259" height="206" key="GridCell.Tab.0.right/0.23.1280.734@0.23.1280.734" timestamp="1589786778223" />
+    <state width="1259" height="88" key="GridCell.Tab.1.bottom" timestamp="1589786741707">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="207" key="GridCell.Tab.1.bottom/0.23.1280.734@0.23.1280.734" timestamp="1589784994713" />
-    <state width="1259" height="207" key="GridCell.Tab.1.center" timestamp="1589784994712">
+    <state width="1259" height="88" key="GridCell.Tab.1.bottom/0.23.1280.734@0.23.1280.734" timestamp="1589786741707" />
+    <state width="1259" height="88" key="GridCell.Tab.1.center" timestamp="1589786741706">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="207" key="GridCell.Tab.1.center/0.23.1280.734@0.23.1280.734" timestamp="1589784994712" />
-    <state width="1259" height="207" key="GridCell.Tab.1.left" timestamp="1589784994712">
+    <state width="1259" height="88" key="GridCell.Tab.1.center/0.23.1280.734@0.23.1280.734" timestamp="1589786741706" />
+    <state width="1259" height="88" key="GridCell.Tab.1.left" timestamp="1589786741706">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="207" key="GridCell.Tab.1.left/0.23.1280.734@0.23.1280.734" timestamp="1589784994712" />
-    <state width="1259" height="207" key="GridCell.Tab.1.right" timestamp="1589784994713">
+    <state width="1259" height="88" key="GridCell.Tab.1.left/0.23.1280.734@0.23.1280.734" timestamp="1589786741706" />
+    <state width="1259" height="88" key="GridCell.Tab.1.right" timestamp="1589786741707">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="207" key="GridCell.Tab.1.right/0.23.1280.734@0.23.1280.734" timestamp="1589784994713" />
+    <state width="1259" height="88" key="GridCell.Tab.1.right/0.23.1280.734@0.23.1280.734" timestamp="1589786741707" />
     <state x="141" y="29" key="SettingsEditor" timestamp="1588088087094">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
@@ -239,7 +239,7 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/myExamples/HHO/PoissonHHORate2d.py</url>
-          <line>78</line>
+          <line>79</line>
           <option name="timeStamp" value="191" />
         </line-breakpoint>
       </breakpoints>

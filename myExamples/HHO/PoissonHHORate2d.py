@@ -10,7 +10,8 @@
 # ---
 
 
-from fealpy.pde.poisson_2d import CosCosData as PDE
+# from fealpy.pde.poisson_2d import CosCosData as PDE
+from fealpy.pde.poisson_2d import SinSinData as PDE
 import numpy as np
 import matplotlib.pyplot as plt
 from fealpy.tools.show import showmultirate, show_error_table
@@ -41,7 +42,7 @@ Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
 # --- mesh setting --- #
 # # mesh 1:
 # # quad-tree mesh
-qtree = pde.init_mesh(n-1, meshtype='quadtree')
+qtree = pde.init_mesh(n, meshtype='quadtree')
 mesh = qtree.to_pmesh()
 
 # # mesh 2:
@@ -69,9 +70,9 @@ mesh = qtree.to_pmesh()
 # --- start for-loop --- #
 for i in range(maxit):
     hho = PoissonHHOModel2d(pde, mesh, p)
-    ls = hho.solve()
-    # ls1 = hho.solve(solver='StaticCondensation')
-    # ls2 = ls - ls1
+    uh = hho.solve()
+    # uh1 = hho.solve(solver='StaticCondensation')
+    # uh2 = uh - uh1
     Ndof[i] = hho.smspace.number_of_global_dofs()  # get the number of dofs
     errorMatrix[0, i] = hho.L2_error()  # get the L2 error
     # errorMatrix[1, i] = hho.H1_semi_error()  # get the H1-semi error
@@ -94,6 +95,6 @@ for i in range(maxit):
 show_error_table(Ndof, errorType, errorMatrix)
 
 # # plot the rate
-showmultirate(plt, 0, Ndof, errorMatrix, errorType)
-plt.show()
+# showmultirate(plt, 0, Ndof, errorMatrix, errorType)
+# plt.show()
 

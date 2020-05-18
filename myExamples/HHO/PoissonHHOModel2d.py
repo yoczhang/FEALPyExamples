@@ -100,8 +100,8 @@ class PoissonHHOModel2d(object):
         return self.space.H1_semi_error(uI, uh)
 
     def energy_error(self):
-        e = self.uh - self.uI
-        return np.sqrt(e@self.A@e)
+        eu = self.uh - self.uI
+        return np.sqrt(eu@self.A@eu)
 
 
 
