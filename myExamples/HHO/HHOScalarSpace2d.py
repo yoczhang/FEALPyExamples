@@ -658,6 +658,24 @@ class HHOScalarSpace2d(object):
             shape = (gdof, ) + dim
         return np.zeros(shape, dtype=np.float)
 
+    def L2_error(self, uI, uh):
+        eu = uI - uh
+
+        def f(x, index):
+            evalue = self.value(eu, x, index=index)  # the evalue has the same shape of x.
+            return evalue*evalue
+        err = self.integralalg.integral(f)
+        return np.sqrt(err)
+
+    def H1_semi_error(self, uI, uh):
+        eu = uI - uh
+
+        def f(x, index):
+            evalue = self.grad_value(eu, x, index=index)  # the evalue has the same shape of x.
+            return np.einsum('...n, ...n->...', evalue, evalue)
+        err = self.integralalg.integral(f)
+        return np.sqrt(err)
+
     # def project_oncell(self, u):
     #     phi = self.basis  # basis is inherited from class ScaledMonomialSpace2d()
     #

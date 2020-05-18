@@ -64,33 +64,40 @@ class PoissonHHOModel2d(object):
         return uh
 
     # def L2_error(self):
-    #     u = self.pde.solution
-    #     uh = self.uh.value
-    #     return self.space.integralalg.L2_error(u, uh)
+    #     NC = self.mesh.number_of_cells()
+    #     smldof = self.smspace.number_of_local_dofs()
+    #     uI_cell = self.uI[:NC*smldof]  # (NC*smldof,)
+    #     uh_cell = self.uh[:NC*smldof]  # (NC*smldof,)
+    #     eu = (uI_cell - uh_cell)
+    #
+    #     def f(x, index):
+    #         evalue = self.space.value(eu, x, index=index)  # the evalue has the same shape of x.
+    #         return evalue*evalue
+    #     err = self.integralalg.integral(f)
+    #     return np.sqrt(err)
 
     def L2_error(self):
-        NC = self.mesh.number_of_cells()
-        smldof = self.smspace.number_of_local_dofs()
-        uI_cell = self.uI[:NC*smldof]  # (NC*smldof,)
-        uh_cell = self.uh[:NC*smldof]  # (NC*smldof,)
-        eu = (uI_cell - uh_cell)
-        # eu = (uI_cell - uh_cell).reshape(NC, smldof)  # (NC,smldof)
+        uI = self.uI
+        uh = self.uh
+        return self.space.L2_error(uI, uh)
 
-        # def f(x, index):
-        #     phi = self.space.basis(x, index=index)  # using the cell-integration, so phi: (NQ,NC,ldof)
-        #     euphi = np.einsum('ijk, jk->ij', phi, eu)  # (NQ,NC)
-        #     return euphi*euphi
-        def f(x, index):
-            evalue = self.space.value(eu, x, index=index)
-            return evalue*evalue
-
-        err = self.integralalg.integral(f)  # (NC,smldof)
-        return np.sqrt(err)
+    # def H1_semi_error(self):
+    #     NC = self.mesh.number_of_cells()
+    #     smldof = self.smspace.number_of_local_dofs()
+    #     uI_cell = self.uI[:NC*smldof]  # (NC*smldof,)
+    #     uh_cell = self.uh[:NC*smldof]  # (NC*smldof,)
+    #     eu = (uI_cell - uh_cell)
+    #
+    #     def f(x, index):
+    #         evalue = self.space.grad_value(eu, x, index=index)  # the evalue has the same shape of x.
+    #         return np.einsum('...n, ...n->...', evalue, evalue)
+    #     err = self.integralalg.integral(f)
+    #     return np.sqrt(err)
 
     def H1_semi_error(self):
-        gu = self.pde.gradient
-        guh = self.uh.grad_value
-        return self.space.integralalg.L2_error(gu, guh)
+        uI = self.uI
+        uh = self.uh
+        return self.space.H1_semi_error(uI, uh)
 
     def energy_error(self):
         e = self.uh - self.uI

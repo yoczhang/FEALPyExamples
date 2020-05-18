@@ -75,7 +75,7 @@ for i in range(maxit):
     Ndof[i] = hho.smspace.number_of_global_dofs()  # get the number of dofs
     errorMatrix[0, i] = hho.L2_error()  # get the L2 error
     # errorMatrix[1, i] = hho.H1_semi_error()  # get the H1-semi error
-    errorMatrix[1, i] = hho.energy_error()  # get the H1-semi error
+    errorMatrix[1, i] = hho.energy_error()  # get the energy error
     if i < maxit - 1:
         if mesh.meshtype == 'polygon':
             if 'qtree' in locals().keys():
