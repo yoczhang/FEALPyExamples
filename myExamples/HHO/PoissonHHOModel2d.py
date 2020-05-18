@@ -63,10 +63,29 @@ class PoissonHHOModel2d(object):
         print("Solve time:", end - start)
         return uh
 
+    # def L2_error(self):
+    #     u = self.pde.solution
+    #     uh = self.uh.value
+    #     return self.space.integralalg.L2_error(u, uh)
+
     def L2_error(self):
-        u = self.pde.solution
-        uh = self.uh.value
-        return self.space.integralalg.L2_error(u, uh)
+        NC = self.mesh.number_of_cells()
+        smldof = self.smspace.number_of_local_dofs()
+        uI_cell = self.uI[:NC*smldof]  # (NC*smldof,)
+        uh_cell = self.uh[:NC*smldof]  # (NC*smldof,)
+        eu = (uI_cell - uh_cell)
+        # eu = (uI_cell - uh_cell).reshape(NC, smldof)  # (NC,smldof)
+
+        # def f(x, index):
+        #     phi = self.space.basis(x, index=index)  # using the cell-integration, so phi: (NQ,NC,ldof)
+        #     euphi = np.einsum('ijk, jk->ij', phi, eu)  # (NQ,NC)
+        #     return euphi*euphi
+        def f(x, index):
+            evalue = self.space.value(eu, x, index=index)
+            return evalue*evalue
+
+        err = self.integralalg.integral(f)  # (NC,smldof)
+        return np.sqrt(err)
 
     def H1_semi_error(self):
         gu = self.pde.gradient

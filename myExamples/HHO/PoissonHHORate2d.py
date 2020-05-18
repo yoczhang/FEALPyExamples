@@ -41,7 +41,7 @@ Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
 # --- mesh setting --- #
 # # mesh 1:
 # # quad-tree mesh
-qtree = pde.init_mesh(n-2, meshtype='quadtree')
+qtree = pde.init_mesh(n-1, meshtype='quadtree')
 mesh = qtree.to_pmesh()
 
 # # mesh 2:

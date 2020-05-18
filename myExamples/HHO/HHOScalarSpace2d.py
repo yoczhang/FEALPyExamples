@@ -228,8 +228,8 @@ class HHOScalarSpace2d(object):
 
         # --- the stiff matrix, (\nabla v, \nabla w)_T
         def f(x, index):
-            gphi = self.grad_basis(x, index=index)
-            gpphi = self.grad_basis(x, index=index, p=p + 1)
+            gphi = self.grad_basis(x, index=index)  # using the cell-integration, so gphi: (NQ,NC,ldof,2)
+            gpphi = self.grad_basis(x, index=index, p=p + 1)  # using the cell-integration, so gpphi: (NQ,NC,lpdof,2)
             return np.einsum('...mn, ...kn->...km', gphi, gpphi)
 
         S = self.integralalg.integral(f, celltype=True)  # (NC,psmldof,smldof)
@@ -287,26 +287,6 @@ class HHOScalarSpace2d(object):
         StiffM = list(map(f, zip(Sp, Rsplit)))  # list, its len is NC, each-term.shape: (Cldof,Cldof)
 
         return StiffM
-
-    def stiff_matrix(self, p=None):
-        p = self.p if p is None else p
-        mesh = self.mesh
-        NC = mesh.number_of_cells()
-        ldof = self.smspace.number_of_local_dofs(p=p)
-
-        def f(x, index):
-            gphi = self.grad_basis(x, index=index, p=p)  # using the cell-integration, so gphi: (NQ,NC,ldof,2)
-            return np.einsum('...km, ...pm->...kp', gphi, gphi)
-
-        A = self.integralalg.integral(f, celltype=True, q=p + 2)
-        cell2dof = np.arange(NC*ldof).reshape(NC, ldof)
-        I = np.einsum('k, ij->ijk', np.ones(ldof), cell2dof)
-        J = I.swapaxes(-1, -2)
-        gdof = NC*ldof
-
-        # Construct the stiffness matrix
-        A = csr_matrix((A.flat, (I.flat, J.flat)), shape=(gdof, gdof))
-        return A
 
     def projection_psmspace_to_smspace(self):
         p = self.p
@@ -507,6 +487,26 @@ class HHOScalarSpace2d(object):
 
         return fh  # (NC,ldof)
 
+    def stiff_matrix(self, p=None):
+        p = self.p if p is None else p
+        mesh = self.mesh
+        NC = mesh.number_of_cells()
+        ldof = self.smspace.number_of_local_dofs(p=p)
+
+        def f(x, index):
+            gphi = self.grad_basis(x, index=index, p=p)  # using the cell-integration, so gphi: (NQ,NC,ldof,2)
+            return np.einsum('...km, ...pm->...kp', gphi, gphi)
+
+        A = self.integralalg.integral(f, celltype=True, q=p + 2)
+        cell2dof = np.arange(NC*ldof).reshape(NC, ldof)
+        I = np.einsum('k, ij->ijk', np.ones(ldof), cell2dof)
+        J = I.swapaxes(-1, -2)
+        gdof = NC*ldof
+
+        # Construct the stiffness matrix
+        A = csr_matrix((A.flat, (I.flat, J.flat)), shape=(gdof, gdof))
+        return A
+
     def monomial_stiff_matrix(self, p=None):
         """
         Get the stiff matrix on ScaledMonomialSpace2d.
@@ -658,30 +658,30 @@ class HHOScalarSpace2d(object):
             shape = (gdof, ) + dim
         return np.zeros(shape, dtype=np.float)
 
-    def project_oncell(self, u):
-        phi = self.basis  # basis is inherited from class ScaledMonomialSpace2d()
+    # def project_oncell(self, u):
+    #     phi = self.basis  # basis is inherited from class ScaledMonomialSpace2d()
+    #
+    #     def func_u(x, index):
+    #         return np.einsum('ij, ijm->ijm', u(x), phi(x, index=index))
+    #         # # u(x).shape: (NQ,NC).    phi(x,...).shape: (NQ,NC,ldof)
+    #     b = self.integralalg.integral(func_u, celltype=True)  # (NC,ldof)
+    #
+    #     invCM = self.invCM  # (NC,ldof,ldof)
+    #     uh = invCM@b[..., np.newaxis]  # (NC,ldof,1)
+    #     return np.squeeze(uh)  # (NC,ldof)
 
-        def func_u(x, index):
-            return np.einsum('ij, ijm->ijm', u(x), phi(x, index=index))
-            # # u(x).shape: (NQ,NC).    phi(x,...).shape: (NQ,NC,ldof)
-        b = self.integralalg.integral(func_u, celltype=True)  # (NC,ldof)
+    # def project_onedge(self, u):
+    #     pass
 
-        invCM = self.invCM  # (NC,ldof,ldof)
-        uh = invCM@b[..., np.newaxis]  # (NC,ldof,1)
-        return np.squeeze(uh)  # (NC,ldof)
-
-    def project_onedge(self, u):
-        pass
-
-    def globaldof2celldof(self, globaldof):
-        """
-        This function maybe not used.
-        :param globaldof: here, the gloabl-dof means that all the dofs are arranged as [all-celldofs, all-edgedofs]
-        :return: celldof, the cell-dof means that all the dofs are arranged as in one cell [celldofs, edgedofs]_{T\in T_h}
-        """
-        cell2dof = self.dof.cell2dof
-        celldof = globaldof[cell2dof]
-        return celldof
+    # def globaldof2celldof(self, globaldof):
+    #     """
+    #     This function maybe not used.
+    #     :param globaldof: here, the gloabl-dof means that all the dofs are arranged as [all-celldofs, all-edgedofs]
+    #     :return: celldof, the cell-dof means that all the dofs are arranged as in one cell [celldofs, edgedofs]_{T\in T_h}
+    #     """
+    #     cell2dof = self.dof.cell2dof
+    #     celldof = globaldof[cell2dof]
+    #     return celldof
 
 
 
