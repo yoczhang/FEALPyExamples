@@ -233,6 +233,10 @@
       <screen x="0" y="23" width="1280" height="734" />
     </state>
     <state x="298" y="147" width="683" height="486" key="find.popup/0.23.1280.734@0.23.1280.734" timestamp="1582546816285" />
+    <state x="305" y="81" width="670" height="676" key="search.everywhere.popup" timestamp="1589879057880">
+      <screen x="0" y="23" width="1280" height="734" />
+    </state>
+    <state x="305" y="81" width="670" height="676" key="search.everywhere.popup/0.23.1280.734@0.23.1280.734" timestamp="1589879057880" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -244,12 +248,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/myExamples/Test/totest_VectorSpace.py</url>
-          <line>95</line>
+          <line>96</line>
           <option name="timeStamp" value="204" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/myExamples/Test/totest_VectorSpace.py</url>
-          <line>89</line>
+          <line>90</line>
           <option name="timeStamp" value="207" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">

@@ -139,8 +139,6 @@ class HHOBoundaryCondition:
         # --- and modify the isDirDof based on the Ndof --- #
         idxDirEdge = self.set_Dirichlet_edge()  # (NE,)
         idxDirDof = self.set_Dirichlet_dof()  # (egdof,)
-        # isCellDof = np.zeros((Ncelldof,)).astype(np.bool)
-        # # isDirEdge = np.concatenate([isCellDof, isDirEdge])
         idxDirDof = Ncelldof + idxDirDof
 
         # --- project uD to uDP on Dirichlet edges --- #

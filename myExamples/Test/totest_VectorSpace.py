@@ -11,6 +11,7 @@
 
 from fealpy.functionspace.LagrangeFiniteElementSpace import LagrangeFiniteElementSpace
 from fealpy.mesh.mesh_tools import find_node, find_entity
+from fealpy.common import block_diag
 from fealpy.mesh.simple_mesh_generator import triangle
 from scipy import sparse
 import matplotlib.pyplot as plt

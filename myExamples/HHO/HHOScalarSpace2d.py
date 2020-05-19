@@ -133,7 +133,7 @@ class HHOScalarSpace2d(object):
 
         self.integralalg = self.smspace.integralalg
 
-        self.CRM = self.construct_righthand_matrix()  # (psmldof,\sum_C{Cldof})
+        self.CRM = self.cell_righthand_matrix()  # (psmldof,\sum_C{Cldof})
 
         self.RM = self.reconstruction_matrix()  # (psmldof,\sum_C{Cldof})
 
@@ -165,7 +165,7 @@ class HHOScalarSpace2d(object):
             cell2dof = NE * (p + 1) + np.arange(NC * idof).reshape(NC, idof)
             return cell2dof
 
-    def construct_righthand_matrix(self):
+    def cell_righthand_matrix(self):
         p = self.p
         mesh = self.mesh
         NC = mesh.number_of_cells()
@@ -658,7 +658,7 @@ class HHOScalarSpace2d(object):
             shape = (gdof, ) + dim
         return np.zeros(shape, dtype=np.float)
 
-    def get_global_matrix(self):
+    def system_matrix(self):
         gdof = self.dof.number_of_global_dofs()
         StiffM = self.reconstruction_stiff_matrix()  # list, its len is NC, each-term.shape (Cldof,Cldof)
         StabM = self.reconstruction_stabilizer_matrix()  # list, its len is NC, each-term.shape (Cldof,Cldof)
@@ -666,7 +666,7 @@ class HHOScalarSpace2d(object):
         cell2dof, doflocation = self.dof.cell_to_dof()
         cell2dof_split = np.hsplit(cell2dof, doflocation[1:-1])
 
-        def global_matrix(x):
+        def get_system_matrix(x):
             # # x[0], the stiff matrix in current cell
             # # x[1], the stab matrix in current cell
             # # x[2], the dofs-index in current cell
@@ -682,10 +682,10 @@ class HHOScalarSpace2d(object):
             # --- add to the global matrix and vector --- #
             r = csr_matrix(((StiffM_C+StabM_C).flat, (rowIndex.flat, colIndex.flat)), shape=(gdof, gdof), dtype=np.float)
             return r
-        M = sum(list(map(global_matrix, zip(StiffM, StabM, cell2dof_split))))
+        M = sum(list(map(get_system_matrix, zip(StiffM, StabM, cell2dof_split))))
         return M
 
-    def get_global_vector(self, f):
+    def system_source(self, f):
         gdof = self.dof.number_of_global_dofs()
         fh = self.source_vector(f)  # (NC,ldof)
         shape = fh.shape
