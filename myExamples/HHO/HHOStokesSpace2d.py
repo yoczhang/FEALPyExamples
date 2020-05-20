@@ -228,6 +228,22 @@ class HHOStokesSapce2d:
         r = np.concatenate([r, pIn.T], axis=1)  # (1,2*vgdof+pgdof)
         return r
 
+    def function(self, dim=None, array=None):
+        f = Function(self, dim=dim, array=array)
+        return f
+
+    def array(self, dim=None):
+        vgdof = self.vSpace.number_of_global_dofs()
+        # # So, here, only used for the velocity variable
+        gdof = 2*vgdof
+        if dim in {None, 1}:
+            shape = gdof
+        elif type(dim) is int:
+            shape = (gdof, dim)
+        elif type(dim) is tuple:
+            shape = (gdof, ) + dim
+        return np.zeros(shape, dtype=self.ftype)
+
 
 
 

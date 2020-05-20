@@ -38,10 +38,29 @@ class StokesHHOModel2d:
         return V
 
     def solve(self, solver='direct'):
-        A = self.space.system_matrix(self.pde.nu)  # (2*vgdof+pgdof+1,2*vgdof+pgdof+1)
-        b = self.space.system_source(self.pde.source)  # (2*vgdof+pgdof+1,1)
+        space = self.space
+        vspace = space.vSpace
+        pspace = space.pSpace
+        vgdof = vspace.number_of_global_dofs()
+        pgdof = pspace.number_of_global_dofs()
+        A = space.system_matrix(self.pde.nu)  # (2*vgdof+pgdof+1,2*vgdof+pgdof+1)
+        b = space.system_source(self.pde.source)  # (2*vgdof+pgdof+1,1)
 
         AD, bD = self.applyDirichletBC(A, b)
+
+        uh1 = vspace.function()
+        uh2 = vspace.function()
+        ph = pspace.function()
+        z = np.zeros((1,), dtype=np.float)
+        x = np.concatenate([uh1, uh2, ph, z])  # (2*vgdof+pgdof+1,)
+
+        # --- solve the system --- #
+        x[:] = spsolve(AD, bD)
+        uh1[:] = x[:vgdof]
+        uh2[:] = x[vgdof:2*vgdof]
+        ph[:] = x[2*vgdof:-1]
+
+
 
 
 
