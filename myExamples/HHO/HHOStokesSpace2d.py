@@ -49,17 +49,20 @@ class HHOStokesSapce2d:
         self.pSpace = ScaledMonomialSpace2d(mesh, p)
         self.integralalg = self.vSpace.integralalg
 
-    def construct_system_matrix(self):
+    def system_matrix(self):
         mesh = self.mesh
         p = self.p
         vSpace = self.vSpace
-        Nsysdof = self.dof.number_of_global_dofs()  # the number of dofs of the all system
-        scalarM = vSpace.system_matrix()  # (sNdof,sNdof), here, sNdof is the number of dofs for Scalar hho-variable
+
+        A = self.velocity_matrix()  # (2*vgdof,2*vgdof)
+        B = self.divergence_matrix()  # (pgdof,2*vgdof)
+        P = self.pressure_correction()  # (1,pgdof+2*vgdof)
+
 
     def velocity_matrix(self):
         scalarM = self.vSpace.system_matrix()  # (vgdof,vgdof), here, vgdof is the number of dofs for Scalar hho-variable
 
-        velocityM = block_diag((scalarM, scalarM))  # (2*sNdof,2*sNdof)
+        velocityM = block_diag((scalarM, scalarM))  # (2*vgdof,2*vgdof)
         return velocityM
 
     def construct_velocity_source(self, f):
@@ -97,6 +100,8 @@ class HHOStokesSapce2d:
         cell2dof_split = np.hsplit(cell2dof, doflocation[1:-1])
 
         divM0, divM1 = self.cell_divergence_matrix()
+        divM0_split = np.hsplit(divM0, doflocation[1:-1])
+        divM1_split = np.hsplit(divM1, doflocation[1:-1])
 
         def f(x):
             divM0_C = x[0]
@@ -107,15 +112,15 @@ class HHOStokesSapce2d:
 
             # --- get the row and col index --- #
             ro = range(Cidx*pldof, (Cidx+1)*pldof)
-            rowIndex = np.einsum('i, k->ik', ro, np.ones(Ndof_C,))
+            rowIndex = np.einsum('i, k->ik', ro, np.ones(2*Ndof_C,))
             colIndex = np.einsum('i, k->ik', np.ones(len(ro),), dof_C)
+            colIndex = np.concatenate([colIndex, vgdof+colIndex], axis=1)
 
             # --- add to the global matrix and vector --- #
-            r0 = csr_matrix((divM0_C.flat, (rowIndex.flat, colIndex.flat)), shape=(pgdof, vgdof), dtype=np.float)
-            r1 = csr_matrix((divM1_C.flat, (rowIndex.flat, colIndex.flat)), shape=(pgdof, vgdof), dtype=np.float)
-
-            return np.bmat([r0, r1], format='csr')
-        divM = sum(list(map(f, zip(divM0, divM1, cell2dof_split, range(NC)))))
+            divM_C = np.concatenate([divM0_C, divM1_C], axis=1)
+            r = csr_matrix((divM_C.flat, (rowIndex.flat, colIndex.flat)), shape=(pgdof, 2*vgdof), dtype=np.float)
+            return r
+        divM = sum(list(map(f, zip(divM0_split, divM1_split, cell2dof_split, range(NC)))))
         return divM  # (pgdof,2*vgdof)
 
     def cell_divergence_matrix(self):
@@ -194,5 +199,32 @@ class HHOStokesSapce2d:
         divM0[:, idx] = F_1[..., 0]  # (pldof,\sum_C{Cldof}), Cldof is the number of dofs in one cell
         divM1[:, idx] = F_1[..., 1]  # (pldof,\sum_C{Cldof}), Cldof is the number of dofs in one cell
 
-        return divM0, divM1
+        return -divM0, -divM1
+
+    def pressure_correction(self):
+        p = self.p
+        pgdof = self.pSpace.number_of_global_dofs()
+        vgdof = self.vSpace.number_of_global_dofs()
+
+        pphi = self.pSpace.basis  # (NQ,NC,pldof)
+
+        def one_f(point):
+            x = point[..., 0]
+            return 1+0*x
+
+        def f(x, index):
+            return np.einsum('ijk, ij->jk', pphi(x, index=index), one_f(x))
+
+        pIn = self.integralalg.integral(f, celltype=True)  # (NC,pldof)
+        pIn = pIn.reshape(-1, 1)  # (pgdof,1)
+
+        r = np.zeros((1, 2*vgdof), dtype=np.float)
+        r = np.concatenate([r, pIn.T], axis=1)  # (1,2*vgdof+pgdof)
+        return r
+
+
+
+
+
+
 
