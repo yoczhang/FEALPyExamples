@@ -49,12 +49,12 @@ class HHOStokesSapce2d:
         self.pSpace = ScaledMonomialSpace2d(mesh, p)
         self.integralalg = self.vSpace.integralalg
 
-    def system_matrix(self):
+    def system_matrix(self, nu):
         A = self.velocity_matrix()  # (2*vgdof,2*vgdof)
         B = self.divergence_matrix()  # (pgdof,2*vgdof)
         P = self.pressure_correction()  # (1,2*vgdof+pgdof)
 
-        S0 = bmat([[A, B.T], [B, None]], format='csr')
+        S0 = bmat([[nu*A, B.T], [B, None]], format='csr')
         S = bmat([[S0, P.T], [P, None]], format='csr')  # (2*vgdof+pgdof+1, 2*vgdof+pgdof+1)
         return S
 
