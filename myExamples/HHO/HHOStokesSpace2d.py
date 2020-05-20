@@ -13,7 +13,7 @@
 import numpy as np
 from numpy.linalg import inv
 from fealpy.common import block, block_diag
-from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, spdiags, eye
+from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, spdiags, eye, bmat
 
 from fealpy.functionspace.function import Function
 from fealpy.quadrature import GaussLegendreQuadrature
@@ -50,14 +50,20 @@ class HHOStokesSapce2d:
         self.integralalg = self.vSpace.integralalg
 
     def system_matrix(self):
-        mesh = self.mesh
-        p = self.p
-        vSpace = self.vSpace
-
         A = self.velocity_matrix()  # (2*vgdof,2*vgdof)
         B = self.divergence_matrix()  # (pgdof,2*vgdof)
-        P = self.pressure_correction()  # (1,pgdof+2*vgdof)
+        P = self.pressure_correction()  # (1,2*vgdof+pgdof)
 
+        S0 = bmat([[A, B.T], [B, None]], format='csr')
+        S = bmat([[S0, P.T], [P, None]], format='csr')  # (2*vgdof+pgdof+1, 2*vgdof+pgdof+1)
+        return S
+
+    def system_source(self, f):
+        pgdof = self.pSpace.number_of_global_dofs()
+        vs = self.velocity_source(f)
+        z0 = np.zeros((pgdof, 1), dtype=np.float)
+        # return bmat([[vs], [z0]], format='csr')
+        return np.concatenate([vs, z0])
 
     def velocity_matrix(self):
         scalarM = self.vSpace.system_matrix()  # (vgdof,vgdof), here, vgdof is the number of dofs for Scalar hho-variable
@@ -65,18 +71,18 @@ class HHOStokesSapce2d:
         velocityM = block_diag((scalarM, scalarM))  # (2*vgdof,2*vgdof)
         return velocityM
 
-    def construct_velocity_source(self, f):
-        vNdof = self.vSpace.dof.number_of_global_dofs()
+    def velocity_source(self, f):
+        vgdof = self.vSpace.dof.number_of_global_dofs()
         fh = self.source_vector(f)  # (NC,ldof,2)
         fh1 = fh[..., 0]  # (NC,ldof)
         fh2 = fh[..., 1]  # (NC,ldof)
         shape = fh1.shape
-        v1 = np.zeros([vNdof, 1], dtype=np.float)
-        v2 = np.zeros([vNdof, 1], dtype=np.float)
+        v1 = np.zeros([vgdof, 1], dtype=np.float)
+        v2 = np.zeros([vgdof, 1], dtype=np.float)
         v1[:(shape[0]*shape[1]), 0] = fh1.flatten()
         v2[:(shape[0] * shape[1]), 0] = fh2.flatten()
 
-        sourceV = np.concatenate([v1, v2])  # (2*Ndof,1)
+        sourceV = np.concatenate([v1, v2])  # (2*vgdof,1)
         return sourceV
 
     def source_vector(self, f):
