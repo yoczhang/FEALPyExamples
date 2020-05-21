@@ -10,7 +10,7 @@
 # ---
 
 # 建立这个文件只是因为到目前 2020-5-21, 16:00 为止, fealpy 中的 ScaledMonomialSpace2d() 不可用,
-# 
+# 只能自己改成原来的 ScaledMonomialSpace2d(), 添加了 line: 88-91, 注释掉了 line: 93-103.
 
 import numpy as np
 from numpy.linalg import inv

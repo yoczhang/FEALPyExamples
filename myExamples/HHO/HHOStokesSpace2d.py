@@ -18,7 +18,8 @@ from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, spdiags, eye, bmat
 from fealpy.functionspace.function import Function
 from fealpy.quadrature import GaussLegendreQuadrature
 from fealpy.quadrature import PolygonMeshIntegralAlg
-from fealpy.functionspace.ScaledMonomialSpace2d import SMDof2d, ScaledMonomialSpace2d
+# from fealpy.functionspace.ScaledMonomialSpace2d import SMDof2d, ScaledMonomialSpace2d
+from myScaledMonomialSpace2d import SMDof2d, ScaledMonomialSpace2d
 from HHOScalarSpace2d import HHODof2d, HHOScalarSpace2d
 
 
@@ -64,14 +65,14 @@ class HHOStokesSapce2d:
     def system_source(self, f):
         pgdof = self.pSpace.number_of_global_dofs()
         vs = self.velocity_source(f)
-        z0 = np.zeros((pgdof, 1), dtype=np.float)
+        z0 = np.zeros((pgdof+1, 1), dtype=np.float)
         # return bmat([[vs], [z0]], format='csr')
         return np.concatenate([vs, z0])
 
     def velocity_matrix(self):
         scalarM = self.vSpace.system_matrix()  # (vgdof,vgdof), here, vgdof is the number of dofs for Scalar hho-variable
 
-        velocityM = block_diag((scalarM, scalarM))  # (2*vgdof,2*vgdof)
+        velocityM = bmat([[scalarM, None], [None, scalarM]], format='csr')  # (2*vgdof,2*vgdof)
         return velocityM
 
     def velocity_source(self, f):
@@ -216,15 +217,7 @@ class HHOStokesSapce2d:
         vgdof = self.vSpace.number_of_global_dofs()
 
         pphi = self.pSpace.basis  # (NQ,NC,pldof)
-
-        def one_f(point):
-            x = point[..., 0]
-            return 1+0*x
-
-        def f(x, index):
-            return np.einsum('ijk, ij->jk', pphi(x, index=index), one_f(x))
-
-        pIn = self.integralalg.integral(f, celltype=True)  # (NC,pldof)
+        pIn = self.integralalg.integral(pphi, celltype=True)  # (NC,pldof)
         pIn = pIn.reshape(-1, 1)  # (pgdof,1)
 
         r = np.zeros((1, 2*vgdof), dtype=np.float)
@@ -244,7 +237,7 @@ class HHOStokesSapce2d:
         phi = pspace.basis
 
         def f1(x, index):
-            return np.einsum('...d, ...m->...md', pressure(x), phi(x, index))
+            return np.einsum('..., ...m->...m', pressure(x), phi(x, index))
         b = self.integralalg.integral(f1, celltype=True)
 
         ph[:] = (invCM @ b[:, :, np.newaxis]).flatten()

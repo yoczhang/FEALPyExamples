@@ -10,8 +10,8 @@
 # ---
 
 
-# from fealpy.pde.poisson_2d import CosCosData as PDE
-from fealpy.pde.poisson_2d import SinSinData as PDE
+from fealpy.pde.poisson_2d import CosCosData as PDE
+# from fealpy.pde.poisson_2d import SinSinData as PDE
 import numpy as np
 import matplotlib.pyplot as plt
 from fealpy.tools.show import showmultirate, show_error_table
@@ -29,7 +29,7 @@ sys.path.append(cwd)
 d = 2  # the dimension
 p = 1  # the polynomial order
 n = 2  # the number of refine mesh
-maxit = 5  # the max iteration of the mesh
+maxit = 4  # the max iteration of the mesh
 
 pde = PDE()  # create pde model
 
@@ -42,7 +42,7 @@ Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
 # --- mesh setting --- #
 # # mesh 1:
 # # quad-tree mesh
-qtree = pde.init_mesh(n, meshtype='quadtree')
+qtree = pde.init_mesh(n-2, meshtype='quadtree')
 mesh = qtree.to_pmesh()
 
 # # mesh 2:

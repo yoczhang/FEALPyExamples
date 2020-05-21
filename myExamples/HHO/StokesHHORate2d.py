@@ -11,6 +11,7 @@
 
 from fealpy.pde.stokes_model_2d import StokesModelData_0, StokesModelData_1, StokesModelData_2, StokesModelData_3
 import numpy as np
+from fealpy.mesh.Quadtree import Quadtree
 import matplotlib.pyplot as plt
 from fealpy.tools.show import showmultirate, show_error_table
 from StokesHHOModel2d import StokesHHOModel2d
@@ -27,7 +28,7 @@ sys.path.append(cwd)
 d = 2  # the dimension
 p = 1  # the polynomial order
 n = 2  # the number of refine mesh
-maxit = 5  # the max iteration of the mesh
+maxit = 4  # the max iteration of the mesh
 
 pde = StokesModelData_0()  # create pde model
 
@@ -40,7 +41,16 @@ Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
 # --- mesh setting --- #
 # # mesh 1:
 # # quad-tree mesh
-qtree = pde.init_mesh(n, meshtype='quadtree')
+# qtree = pde.init_mesh(n, meshtype='quad')
+# mesh = qtree.to_pmesh()
+node = np.array([
+            (0, 0),
+            (1, 0),
+            (1, 1),
+            (0, 1)], dtype=np.float)
+cell = np.array([(0, 1, 2, 3)], dtype=np.int)
+qtree = Quadtree(node, cell)
+qtree.uniform_refine(n-2)
 mesh = qtree.to_pmesh()
 
 # # mesh 2:
@@ -65,7 +75,7 @@ mesh = qtree.to_pmesh()
 # plt.show()
 # plt.close()
 
-
+pde.nu = 1.0
 # --- start for-loop --- #
 for i in range(maxit):
     stokes = StokesHHOModel2d(pde, mesh, p)
