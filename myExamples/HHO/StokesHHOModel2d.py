@@ -28,6 +28,9 @@ class StokesHHOModel2d:
         self.pde = pde
         self.space = HHOStokesSapce2d(mesh, p)
         self.integralalg = self.space.integralalg
+        self.uh1 = self.space.vSpace.function()
+        self.uh2 = self.space.vSpace.function()
+        self.ph = self.space.pSpace.function()
 
     def get_left_matrix(self):
         M = self.space.system_matrix(self.pde.nu)
@@ -37,20 +40,19 @@ class StokesHHOModel2d:
         V = self.space.system_source(self.pde.source)
         return V
 
-    def solve(self, solver='direct'):
+    def solve(self):
         space = self.space
+        uh1 = self.uh1
+        uh2 = self.uh2
+        ph = self.ph
         vspace = space.vSpace
         pspace = space.pSpace
         vgdof = vspace.number_of_global_dofs()
         pgdof = pspace.number_of_global_dofs()
         A = space.system_matrix(self.pde.nu)  # (2*vgdof+pgdof+1,2*vgdof+pgdof+1)
         b = space.system_source(self.pde.source)  # (2*vgdof+pgdof+1,1)
-
         AD, bD = self.applyDirichletBC(A, b)
 
-        uh1 = vspace.function()
-        uh2 = vspace.function()
-        ph = pspace.function()
         z = np.zeros((1,), dtype=np.float)
         x = np.concatenate([uh1, uh2, ph, z])  # (2*vgdof+pgdof+1,)
 

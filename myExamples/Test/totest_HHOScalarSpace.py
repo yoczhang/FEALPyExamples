@@ -83,7 +83,7 @@ multiIndex1d = hhodof.multi_index_matrix1d()
 
 # --- test begin --- #
 psm2sm = hhospace.projection_psmspace_to_smspace()
-CRM = hhospace.construct_righthand_matrix()
+CRM = hhospace.cell_righthand_matrix()
 Re = hhospace.reconstruction_matrix()
 StiffM = hhospace.reconstruction_stiff_matrix()
 Pp2s = hhospace.projection_psmspace_to_smspace()
