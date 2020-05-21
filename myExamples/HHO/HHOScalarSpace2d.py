@@ -227,7 +227,7 @@ class HHOScalarSpace2d(object):
         CRM[:, idx] = F1
 
         # --- the stiff matrix, (\nabla v, \nabla w)_T
-        def f(x, index):
+        def f(x, index=None):
             gphi = self.grad_basis(x, index=index)  # using the cell-integration, so gphi: (NQ,NC,ldof,2)
             gpphi = self.grad_basis(x, index=index, p=p + 1)  # using the cell-integration, so gpphi: (NQ,NC,lpdof,2)
             return np.einsum('...mn, ...kn->...km', gphi, gpphi)
