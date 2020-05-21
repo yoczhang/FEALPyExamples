@@ -49,6 +49,9 @@ class HHOStokesSapce2d:
         self.pSpace = ScaledMonomialSpace2d(mesh, p)
         self.integralalg = self.vSpace.integralalg
 
+    def number_of_global_dofs(self):
+        return self.dof.number_of_global_dofs()
+
     def system_matrix(self, nu):
         A = self.velocity_matrix()  # (2*vgdof,2*vgdof)
         B = self.divergence_matrix()  # (pgdof,2*vgdof)
@@ -228,21 +231,42 @@ class HHOStokesSapce2d:
         r = np.concatenate([r, pIn.T], axis=1)  # (1,2*vgdof+pgdof)
         return r
 
-    def function(self, dim=None, array=None):
-        f = Function(self, dim=dim, array=array)
-        return f
+    def velocity_project(self, velocity):  # here, the velocity must be (u1, u2)
+        uh = self.vSpace.project(velocity, dim=2)
+        # # (vgdof,2), uh[:,0] is the project of u1, and uh[:,1] is the project of u2
+        return uh
 
-    def array(self, dim=None):
-        vgdof = self.vSpace.number_of_global_dofs()
-        # # So, here, only used for the velocity variable
-        gdof = 2*vgdof
-        if dim in {None, 1}:
-            shape = gdof
-        elif type(dim) is int:
-            shape = (gdof, dim)
-        elif type(dim) is tuple:
-            shape = (gdof, ) + dim
-        return np.zeros(shape, dtype=self.ftype)
+    def pressure_project(self, pressure):
+        pspace = self.pSpace
+        invCM = inv(pspace.cell_mass_matrix())  # (NC,smldof,smldof), smldof is the number of local dofs of smspace
+
+        ph = pspace.function()  # (pgdof,)
+        phi = pspace.basis
+
+        def f1(x, index):
+            return np.einsum('...d, ...m->...md', pressure(x), phi(x, index))
+        b = self.integralalg.integral(f1, celltype=True)
+
+        ph[:] = (invCM @ b[:, :, np.newaxis]).flatten()
+        return ph
+
+
+
+    # def function(self, dim=None, array=None):
+    #     f = Function(self, dim=dim, array=array)
+    #     return f
+    #
+    # def array(self, dim=None):
+    #     vgdof = self.vSpace.number_of_global_dofs()
+    #     # # So, here, only used for the velocity variable
+    #     gdof = 2*vgdof
+    #     if dim in {None, 1}:
+    #         shape = gdof
+    #     elif type(dim) is int:
+    #         shape = (gdof, dim)
+    #     elif type(dim) is tuple:
+    #         shape = (gdof, ) + dim
+    #     return np.zeros(shape, dtype=self.ftype)
 
 
 

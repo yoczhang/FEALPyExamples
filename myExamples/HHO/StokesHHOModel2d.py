@@ -28,9 +28,10 @@ class StokesHHOModel2d:
         self.pde = pde
         self.space = HHOStokesSapce2d(mesh, p)
         self.integralalg = self.space.integralalg
+        self.uh0 = self.space.vSpace.function()
         self.uh1 = self.space.vSpace.function()
-        self.uh2 = self.space.vSpace.function()
         self.ph = self.space.pSpace.function()
+        self.A = None
 
     def get_left_matrix(self):
         M = self.space.system_matrix(self.pde.nu)
@@ -42,8 +43,8 @@ class StokesHHOModel2d:
 
     def solve(self):
         space = self.space
+        uh0 = self.uh0
         uh1 = self.uh1
-        uh2 = self.uh2
         ph = self.ph
         vspace = space.vSpace
         pspace = space.pSpace
@@ -51,20 +52,19 @@ class StokesHHOModel2d:
         pgdof = pspace.number_of_global_dofs()
         A = space.system_matrix(self.pde.nu)  # (2*vgdof+pgdof+1,2*vgdof+pgdof+1)
         b = space.system_source(self.pde.source)  # (2*vgdof+pgdof+1,1)
-        AD, bD = self.applyDirichletBC(A, b)
+        self.A, b = self.applyDirichletBC(A, b)
 
         z = np.zeros((1,), dtype=np.float)
-        x = np.concatenate([uh1, uh2, ph, z])  # (2*vgdof+pgdof+1,)
+        x = np.concatenate([uh0, uh1, ph, z])  # (2*vgdof+pgdof+1,)
 
         # --- solve the system --- #
-        x[:] = spsolve(AD, bD)
-        uh1[:] = x[:vgdof]
-        uh2[:] = x[vgdof:2*vgdof]
+        x[:] = spsolve(A, b)
+        uh0[:] = x[:vgdof]
+        uh1[:] = x[vgdof:2*vgdof]
         ph[:] = x[2*vgdof:-1]
 
-
-
-
+        solution = {'uh0': uh0.copy(), 'uh1': uh1.copy(), 'ph': ph.copy()}
+        return solution
 
     def applyDirichletBC(self, A, b):
         p = self.p
@@ -135,6 +135,42 @@ class StokesHHOModel2d:
         isDirEdge = isBdEdge  # here, we set all the boundary edges are Dir edges
         idxDirEdge, = np.nonzero(isDirEdge)  # (NE_Dir,)
         return idxDirEdge
+
+    def velocity_L2_error(self):
+        uI = self.space.velocity_project(self.pde.velocity)
+        uI0 = uI[:, 0]
+        uI1 = uI[:, 1]
+
+        err0 = self.space.vSpace.L2_error(uI0, self.uh0)
+        err1 = self.space.vSpace.L2_error(uI1, self.uh1)
+        return np.sqrt(err0*err0 + err1*err1)
+
+    def pressure_L2_error(self):
+        pI = self.space.pressure_project(self.pde.pressure)
+        ep = pI - self.ph
+
+        def f(x, index):
+            evalue = self.space.pSpace.value(ep, x, index=index)  # the evalue has the same shape of x.
+            return evalue*evalue
+        err = self.integralalg.integral(f)
+        return np.sqrt(err)
+
+    def velocity_energy_error(self):
+        vgdof = self.space.vSpace.number_of_global_dofs()
+        uI = self.space.velocity_project(self.pde.velocity)
+        uI0 = uI[:, 0]
+        uI1 = uI[:, 1]
+
+        eu0 = uI0 - self.uh0
+        eu1 = uI1 - self.uh1
+        eu = np.concatenate([eu0, eu1])
+        eA = self.A[:2*vgdof, :2*vgdof]
+
+        return np.sqrt(eu@eA@eu)
+
+
+
+
 
 
 
