@@ -9,7 +9,8 @@
 # @Time: May 20, 2020
 # ---
 
-from fealpy.pde.stokes_model_2d import StokesModelData_0, StokesModelData_1, StokesModelData_2, StokesModelData_3
+# from fealpy.pde.stokes_model_2d import StokesModelData_0, StokesModelData_1, StokesModelData_2, StokesModelData_3
+from Stokes2DData import StokesModelData_0
 import numpy as np
 from fealpy.mesh.Quadtree import Quadtree
 import matplotlib.pyplot as plt

@@ -185,38 +185,38 @@
     </ignored-roots>
   </component>
   <component name="WindowStateProjectService">
-    <state width="1259" height="111" key="GridCell.Tab.0.bottom" timestamp="1590067302954">
+    <state width="1259" height="197" key="GridCell.Tab.0.bottom" timestamp="1590156535773">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="111" key="GridCell.Tab.0.bottom/0.23.1280.734@0.23.1280.734" timestamp="1590067302954" />
-    <state width="1259" height="111" key="GridCell.Tab.0.center" timestamp="1590067302953">
+    <state width="1259" height="197" key="GridCell.Tab.0.bottom/0.23.1280.734@0.23.1280.734" timestamp="1590156535773" />
+    <state width="1259" height="197" key="GridCell.Tab.0.center" timestamp="1590156535772">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="111" key="GridCell.Tab.0.center/0.23.1280.734@0.23.1280.734" timestamp="1590067302953" />
-    <state width="1259" height="111" key="GridCell.Tab.0.left" timestamp="1590067302953">
+    <state width="1259" height="197" key="GridCell.Tab.0.center/0.23.1280.734@0.23.1280.734" timestamp="1590156535772" />
+    <state width="1259" height="197" key="GridCell.Tab.0.left" timestamp="1590156535771">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="111" key="GridCell.Tab.0.left/0.23.1280.734@0.23.1280.734" timestamp="1590067302953" />
-    <state width="1259" height="111" key="GridCell.Tab.0.right" timestamp="1590067302954">
+    <state width="1259" height="197" key="GridCell.Tab.0.left/0.23.1280.734@0.23.1280.734" timestamp="1590156535771" />
+    <state width="1259" height="197" key="GridCell.Tab.0.right" timestamp="1590156535772">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="111" key="GridCell.Tab.0.right/0.23.1280.734@0.23.1280.734" timestamp="1590067302954" />
-    <state width="1259" height="111" key="GridCell.Tab.1.bottom" timestamp="1590067299849">
+    <state width="1259" height="197" key="GridCell.Tab.0.right/0.23.1280.734@0.23.1280.734" timestamp="1590156535772" />
+    <state width="1259" height="197" key="GridCell.Tab.1.bottom" timestamp="1590156525089">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="111" key="GridCell.Tab.1.bottom/0.23.1280.734@0.23.1280.734" timestamp="1590067299849" />
-    <state width="1259" height="111" key="GridCell.Tab.1.center" timestamp="1590067299849">
+    <state width="1259" height="197" key="GridCell.Tab.1.bottom/0.23.1280.734@0.23.1280.734" timestamp="1590156525089" />
+    <state width="1259" height="197" key="GridCell.Tab.1.center" timestamp="1590156525088">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="111" key="GridCell.Tab.1.center/0.23.1280.734@0.23.1280.734" timestamp="1590067299849" />
-    <state width="1259" height="111" key="GridCell.Tab.1.left" timestamp="1590067299849">
+    <state width="1259" height="197" key="GridCell.Tab.1.center/0.23.1280.734@0.23.1280.734" timestamp="1590156525088" />
+    <state width="1259" height="197" key="GridCell.Tab.1.left" timestamp="1590156525088">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="111" key="GridCell.Tab.1.left/0.23.1280.734@0.23.1280.734" timestamp="1590067299849" />
-    <state width="1259" height="111" key="GridCell.Tab.1.right" timestamp="1590067299849">
+    <state width="1259" height="197" key="GridCell.Tab.1.left/0.23.1280.734@0.23.1280.734" timestamp="1590156525088" />
+    <state width="1259" height="197" key="GridCell.Tab.1.right" timestamp="1590156525089">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="111" key="GridCell.Tab.1.right/0.23.1280.734@0.23.1280.734" timestamp="1590067299849" />
+    <state width="1259" height="197" key="GridCell.Tab.1.right/0.23.1280.734@0.23.1280.734" timestamp="1590156525089" />
     <state x="141" y="29" key="SettingsEditor" timestamp="1588088087094">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
@@ -225,81 +225,31 @@
       <screen x="0" y="23" width="1280" height="734" />
     </state>
     <state x="202" y="102" key="com.intellij.execution.console.ConsoleHistoryController$MyBrowseAction$1/0.23.1280.734@0.23.1280.734" timestamp="1582124183731" />
-    <state x="164" y="126" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2" timestamp="1589685737136">
+    <state x="164" y="126" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2" timestamp="1590155989655">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state x="164" y="126" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2/0.23.1280.734@0.23.1280.734" timestamp="1589685737136" />
+    <state x="164" y="126" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2/0.23.1280.734@0.23.1280.734" timestamp="1590155989655" />
     <state x="298" y="147" width="683" height="486" key="find.popup" timestamp="1582546816285">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
     <state x="298" y="147" width="683" height="486" key="find.popup/0.23.1280.734@0.23.1280.734" timestamp="1582546816285" />
-    <state x="305" y="81" width="670" height="676" key="search.everywhere.popup" timestamp="1589879057880">
+    <state x="305" y="81" width="670" height="676" key="search.everywhere.popup" timestamp="1590133412693">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state x="305" y="81" width="670" height="676" key="search.everywhere.popup/0.23.1280.734@0.23.1280.734" timestamp="1589879057880" />
+    <state x="305" y="81" width="670" height="676" key="search.everywhere.popup/0.23.1280.734@0.23.1280.734" timestamp="1590133412693" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/Test/totest_VectorSpace.py</url>
-          <line>96</line>
-          <option name="timeStamp" value="204" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/Test/totest_VectorSpace.py</url>
-          <line>90</line>
-          <option name="timeStamp" value="207" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/example/StokesDFNCVEM2d_example.py</url>
-          <line>72</line>
-          <option name="timeStamp" value="209" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/../fealpy_install_folder/fealpy/fealpy/functionspace/DivFreeNonConformingVirtualElementSpace2d_new.py</url>
-          <line>681</line>
-          <option name="timeStamp" value="210" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/HHO/HHOScalarSolver2d.py</url>
-          <line>191</line>
-          <option name="timeStamp" value="212" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/../fealpy_install_folder/fealpy/fealpy/mesh/HalfEdgeMesh.py</url>
-          <line>109</line>
-          <option name="timeStamp" value="215" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/Test/totest_HHOScalarSpace.py</url>
-          <line>45</line>
-          <option name="timeStamp" value="217" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/Test/totest_HHOScalarSpace.py</url>
-          <line>75</line>
-          <option name="timeStamp" value="219" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/HHO/PoissonHHORate2d.py</url>
-          <line>70</line>
-          <option name="timeStamp" value="238" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/myExamples/HHO/StokesHHORate2d.py</url>
-          <line>86</line>
-          <option name="timeStamp" value="239" />
+          <line>87</line>
+          <option name="timeStamp" value="255" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/HHO/StokesHHORate2d.py</url>
-          <line>82</line>
-          <option name="timeStamp" value="249" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/myExamples/HHO/HHOStokesSpace2d.py</url>
-          <line>60</line>
-          <option name="timeStamp" value="250" />
+          <url>file://$PROJECT_DIR$/myExamples/HHO/StokesHHOModel2d.py</url>
+          <line>65</line>
+          <option name="timeStamp" value="266" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
