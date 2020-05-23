@@ -50,15 +50,15 @@ class StokesHHOModel2d:
         pspace = space.pSpace
         vgdof = vspace.number_of_global_dofs()
         pgdof = pspace.number_of_global_dofs()
-        A = space.system_matrix(self.pde.nu)  # (2*vgdof+pgdof+1,2*vgdof+pgdof+1)
-        b = space.system_source(self.pde.source)  # (2*vgdof+pgdof+1,1)
-        self.A, b = self.applyDirichletBC(A, b)
+        AA = space.system_matrix(self.pde.nu)  # (2*vgdof+pgdof+1,2*vgdof+pgdof+1)
+        bb = space.system_source(self.pde.source)  # (2*vgdof+pgdof+1,1)
+        self.A, b = self.applyDirichletBC(AA, bb)
 
-        z = np.zeros((1,), dtype=np.float)
-        x = np.concatenate([uh0, uh1, ph, z])  # (2*vgdof+pgdof+1,)
+        # z = np.zeros((1,), dtype=np.float)
+        # x = np.concatenate([uh0, uh1, ph, z])  # (2*vgdof+pgdof+1,)
 
         # --- solve the system --- #
-        x[:] = spsolve(A, b)
+        x = spsolve(self.A, b)
         uh0[:] = x[:vgdof]
         uh1[:] = x[vgdof:2*vgdof]
         ph[:] = x[2*vgdof:-1]

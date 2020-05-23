@@ -51,7 +51,7 @@ node = np.array([
             (0, 1)], dtype=np.float)
 cell = np.array([(0, 1, 2, 3)], dtype=np.int)
 qtree = Quadtree(node, cell)
-qtree.uniform_refine(n-2)
+qtree.uniform_refine(n)
 mesh = qtree.to_pmesh()
 
 # # mesh 2:
