@@ -160,8 +160,6 @@ class HHOStokesSapce2d:
         # # smldof denotes the number of local dofs in smspace in order p,
         # # psmldof denotes the number of local dofs in smspace in order p+1.
         # #
-        vphi0 = self.vSpace.basis(ps, index=edge2cell[:, 0])  # (NQ,NE,smldof)
-        vphi1 = self.vSpace.basis(ps[:, isInEdge, :], index=edge2cell[isInEdge, 1])
         pphi0 = self.pSpace.basis(ps, index=edge2cell[:, 0])  # (NQ,NE,smldof)
         pphi1 = self.pSpace.basis(ps[:, isInEdge, :], index=edge2cell[isInEdge, 1])
         vephi = self.vSpace.edge_basis(ps)  # (NQ,NE,eldof), eldof is the number of local 1D dofs on one edge
@@ -180,28 +178,15 @@ class HHOStokesSapce2d:
             vphi = self.vSpace.basis(x, index=index)  # using the cell-integration, so vphi: (NQ,NC,vldof)
             return np.einsum('...k, ...mn->...mkn', vphi, pgphi)
         divcell = self.integralalg.integral(f, celltype=True)  # (NC,pldof,vldof,2)
-        # def f(x, index):
-        #     vgphi = self.vSpace.grad_basis(x, index=index)  # using the cell-integration, so vgphi: (NQ,NC,vldof,2)
-        #     pphi = self.pSpace.basis(x, index=index)  # using the cell-integratipon, so pphi: (NQ,NC,pldof)
-        #     return np.einsum('...mn, ...k->...kmn', vgphi, pphi)
-        # divcell = self.integralalg.integral(f, celltype=True)  # (NC,pldof,vldof,2)
 
         np.add.at(T0, np.arange(NC), -divcell[..., 0])  # T0.shape: (NC,pldof,vldof)
         np.add.at(T1, np.arange(NC), -divcell[..., 1])  # T1.shape: (NC,pldof,vldof)
-
-        # # --- edge integration. Part I: (-u_T*n_0, q)_{\partial T} and (-u_T*n_1, q)_{\partial T}
-        # T_0 = np.einsum('i, ijk, ijm, jn->jmkn', ws, vphi0, pphi0, n)  # (NE,pldof,vldof,2)
-        # T_1 = np.einsum('i, ijk, ijm, jn->jmkn', ws, vphi1, pphi1, -n[isInEdge, :])  # (NInE,pldof,vldof,2)
-        # np.add.at(T0, edge2cell[:, 0], -T_0[..., 0])
-        # np.add.at(T0, edge2cell[isInEdge, 1], -T_1[..., 0])
-        # np.add.at(T1, edge2cell[:, 0], -T_0[..., 1])
-        # np.add.at(T1, edge2cell[isInEdge, 1], -T_1[..., 1])
 
         idx = vcell2dofLocation[0:-1].reshape(-1, 1) + np.arange(vldof)  # (NC,vldof)
         divM0[:, idx] = T0.swapaxes(0, 1)  # divM0.shape: (pldof,\sum_C{Cldof})
         divM1[:, idx] = T1.swapaxes(0, 1)  # divM1.shape: (pldof,\sum_C{Cldof})
 
-        # --- edge integration. Part II: (v_F, \nabla w\cdot n)_{\partial T}
+        # --- edge integration: (v_F, \nabla w\cdot n)_{\partial T}
         F_0 = np.einsum('i, ijk, ijm, jn->mjkn', ws, vephi, pphi0, n)  # (pldof,NE,eldof,2)
         F_1 = np.einsum('i, ijk, ijm, jn->mjkn', ws, vephi[:, isInEdge, :], pphi1, -n[isInEdge, :])  # (pldof,NInE,eldof,2)
         idx = vcell2dofLocation[edge2cell[:, [0]]] + edge2cell[:, [2]] * eldof + np.arange(eldof)  # (NE,eldof)
@@ -247,8 +232,6 @@ class HHOStokesSapce2d:
 
         ph[:] = (invCM @ b[:, :, np.newaxis]).flatten()
         return ph
-
-
 
     # def function(self, dim=None, array=None):
     #     f = Function(self, dim=dim, array=array)
