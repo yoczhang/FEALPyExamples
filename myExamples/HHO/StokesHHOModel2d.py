@@ -14,9 +14,8 @@ import numpy as np
 from HHOStokesSpace2d import HHOStokesSapce2d
 from fealpy.quadrature import GaussLegendreQuadrature
 from scipy.sparse import spdiags
-from HHOBoundaryCondition_new import HHOBoundaryCondition
-from numpy.linalg import inv
-from scipy.sparse import csr_matrix
+# from numpy.linalg import inv
+# from scipy.sparse import csr_matrix
 from scipy.sparse.linalg import spsolve
 from timeit import default_timer as timer
 
@@ -52,13 +51,17 @@ class StokesHHOModel2d:
         pgdof = pspace.number_of_global_dofs()
         AA = space.system_matrix(self.pde.nu)  # (2*vgdof+pgdof+1,2*vgdof+pgdof+1)
         bb = space.system_source(self.pde.source)  # (2*vgdof+pgdof+1,1)
+
+        # --- apply the Dirichlet BC --- #
         self.A, b = self.applyDirichletBC(AA, bb)
 
-        # z = np.zeros((1,), dtype=np.float)
-        # x = np.concatenate([uh0, uh1, ph, z])  # (2*vgdof+pgdof+1,)
-
         # --- solve the system --- #
-        x = spsolve(self.A, b)
+        x = np.concatenate([uh0, uh1, ph, np.zeros((1,), dtype=np.float)])  # (2*vgdof+pgdof+1,)
+        start = timer()
+        x[:] = spsolve(self.A, b)
+        end = timer()
+        print("Solve time:", end - start)
+
         uh0[:] = x[:vgdof]
         uh1[:] = x[vgdof:2*vgdof]
         ph[:] = x[2*vgdof:-1]

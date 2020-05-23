@@ -80,7 +80,7 @@ pde.nu = 1.0
 # --- start for-loop --- #
 for i in range(maxit):
     stokes = StokesHHOModel2d(pde, mesh, p)
-    s = stokes.solve()
+    sol = stokes.solve()
     Ndof[i] = stokes.space.number_of_global_dofs()  # get the number of dofs
     errorMatrix[0, i] = stokes.velocity_L2_error()  # get the velocity L2 error
     errorMatrix[1, i] = stokes.velocity_energy_error()  # get the velocity energy error

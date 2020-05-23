@@ -77,7 +77,12 @@ class HHOStokesSapce2d:
 
     def velocity_source(self, f):
         vgdof = self.vSpace.dof.number_of_global_dofs()
-        fh = self.source_vector(f)  # (NC,ldof,2)
+        phi = self.vSpace.basis  # basis is inherited from class ScaledMonomialSpace2d()
+
+        def u(x, index):
+            # # f(x).shape: (NQ,NC,2).    phi(x,...).shape: (NQ,NC,ldof)
+            return np.einsum('ijn, ijm->ijmn', f(x), phi(x, index=index))
+        fh = self.integralalg.integral(u, celltype=True)  # (NC,ldof,2)
         fh1 = fh[..., 0]  # (NC,ldof)
         fh2 = fh[..., 1]  # (NC,ldof)
         shape = fh1.shape
@@ -89,21 +94,9 @@ class HHOStokesSapce2d:
         sourceV = np.concatenate([v1, v2])  # (2*vgdof,1)
         return sourceV
 
-    def source_vector(self, f):
-        phi = self.vSpace.basis  # basis is inherited from class ScaledMonomialSpace2d()
-
-        def u(x, index):
-            return np.einsum('ijn, ijm->ijmn', f(x), phi(x, index=index))
-            # # f(x).shape: (NQ,NC,2).    phi(x,...).shape: (NQ,NC,ldof)
-
-        fh = self.integralalg.integral(u, celltype=True)  # (NC,ldof,2)
-        return fh
-
     def divergence_matrix(self):
         NC = self.mesh.number_of_cells()
-        vldof = self.vSpace.smldof
         pldof = self.pSpace.number_of_local_dofs()
-        eldof = self.p + 1
         vgdof = self.vSpace.dof.number_of_global_dofs()  # number of all dofs, contains edge-dofs and cell-dofs
         pgdof = NC*pldof
         cell2dof, doflocation = self.vSpace.dof.cell_to_dof()
@@ -202,16 +195,14 @@ class HHOStokesSapce2d:
         return -divM0, -divM1
 
     def pressure_correction(self):
-        p = self.p
-        pgdof = self.pSpace.number_of_global_dofs()
         vgdof = self.vSpace.number_of_global_dofs()
 
         pphi = self.pSpace.basis  # (NQ,NC,pldof)
-        pIn = self.integralalg.integral(pphi, celltype=True)  # (NC,pldof)
-        pIn = pIn.reshape(-1, 1)  # (pgdof,1)
+        intp = self.integralalg.integral(pphi, celltype=True)  # (NC,pldof)
+        intp = intp.reshape(-1, 1)  # (pgdof,1)
 
         r = np.zeros((1, 2*vgdof), dtype=np.float)
-        r = np.concatenate([r, pIn.T], axis=1)  # (1,2*vgdof+pgdof)
+        r = np.concatenate([r, intp.T], axis=1)  # (1,2*vgdof+pgdof)
         return r
 
     def velocity_project(self, velocity):  # here, the velocity must be (u1, u2)
@@ -232,22 +223,6 @@ class HHOStokesSapce2d:
 
         ph[:] = (invCM @ b[:, :, np.newaxis]).flatten()
         return ph
-
-    # def function(self, dim=None, array=None):
-    #     f = Function(self, dim=dim, array=array)
-    #     return f
-    #
-    # def array(self, dim=None):
-    #     vgdof = self.vSpace.number_of_global_dofs()
-    #     # # So, here, only used for the velocity variable
-    #     gdof = 2*vgdof
-    #     if dim in {None, 1}:
-    #         shape = gdof
-    #     elif type(dim) is int:
-    #         shape = (gdof, dim)
-    #     elif type(dim) is tuple:
-    #         shape = (gdof, ) + dim
-    #     return np.zeros(shape, dtype=self.ftype)
 
 
 
