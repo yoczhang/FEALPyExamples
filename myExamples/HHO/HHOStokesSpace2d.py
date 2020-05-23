@@ -12,12 +12,12 @@
 
 import numpy as np
 from numpy.linalg import inv
-from fealpy.common import block, block_diag
+# from fealpy.common import block, block_diag
 from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, spdiags, eye, bmat
 
-from fealpy.functionspace.function import Function
+# from fealpy.functionspace.function import Function
 from fealpy.quadrature import GaussLegendreQuadrature
-from fealpy.quadrature import PolygonMeshIntegralAlg
+# from fealpy.quadrature import PolygonMeshIntegralAlg
 # from fealpy.functionspace.ScaledMonomialSpace2d import SMDof2d, ScaledMonomialSpace2d
 from myScaledMonomialSpace2d import SMDof2d, ScaledMonomialSpace2d
 from HHOScalarSpace2d import HHODof2d, HHOScalarSpace2d
@@ -133,7 +133,7 @@ class HHOStokesSapce2d:
         divM = sum(list(map(f, zip(divM0_split, divM1_split, cell2dof_split, range(NC)))))
         return divM  # (pgdof,2*vgdof)
 
-    def cell_divergence_matrix(self):
+    def cell_divergence_matrix(self):  # reference: (book) The Hybrid High-Order Method for Polytopal Meshes.
         p = self.p
         vSpace = self.vSpace
         mesh = self.mesh

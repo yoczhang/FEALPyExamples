@@ -712,30 +712,6 @@ class HHOScalarSpace2d(object):
         err = self.integralalg.integral(f)
         return np.sqrt(err)
 
-    # def project_oncell(self, u):
-    #     phi = self.basis  # basis is inherited from class ScaledMonomialSpace2d()
-    #
-    #     def func_u(x, index):
-    #         return np.einsum('ij, ijm->ijm', u(x), phi(x, index=index))
-    #         # # u(x).shape: (NQ,NC).    phi(x,...).shape: (NQ,NC,ldof)
-    #     b = self.integralalg.integral(func_u, celltype=True)  # (NC,ldof)
-    #
-    #     invCM = self.invCM  # (NC,ldof,ldof)
-    #     uh = invCM@b[..., np.newaxis]  # (NC,ldof,1)
-    #     return np.squeeze(uh)  # (NC,ldof)
-
-    # def project_onedge(self, u):
-    #     pass
-
-    # def globaldof2celldof(self, globaldof):
-    #     """
-    #     This function maybe not used.
-    #     :param globaldof: here, the gloabl-dof means that all the dofs are arranged as [all-celldofs, all-edgedofs]
-    #     :return: celldof, the cell-dof means that all the dofs are arranged as in one cell [celldofs, edgedofs]_{T\in T_h}
-    #     """
-    #     cell2dof = self.dof.cell2dof
-    #     celldof = globaldof[cell2dof]
-    #     return celldof
 
 
 
