@@ -3,10 +3,10 @@
 # ---
 # @Software: PyCharm
 # @Site: 
-# @File: Stokes2DData.py
+# @File: NavierStokes2DData.py
 # @Author: Yongchao Zhang
 # @E-mail: yoczhang@126.com
-# @Time: May 22, 2020
+# @Time: Jun 02, 2020
 # ---
 
 
@@ -17,7 +17,7 @@ from fealpy.mesh import StructureQuadMesh, QuadrangleMesh
 from fealpy.mesh import TriangleMesh, TriangleMeshWithInfinityNode
 
 
-class Stokes2DData_0:
+class NavierStokes2DData_0:
     """
     [0, 1]^2
     u(x, y) = (sin(pi*x)*cos(pi*y), -cos(pi*x)*sin(piy))
@@ -72,20 +72,6 @@ class Stokes2DData_0:
         val[..., 1] = -cos(pi * x) * sin(pi * y)
         return val
 
-    def strain(self, p):
-        """
-        (nabla u + nabla u^T)/2
-        """
-        x = p[..., 0]
-        y = p[..., 1]
-        pi = np.pi
-        cos = np.cos
-        sin = np.sin
-        val = np.zeros(p.shape + (2,), dtype=np.float)
-        val[..., 0, 0] = pi * cos(pi * x) * cos(pi * y)
-        val[..., 1, 1] = -pi * cos(pi * x) * cos(pi * y)
-        return val
-
     def pressure(self, p):
         x = p[..., 0]
         y = p[..., 1]
@@ -100,9 +86,17 @@ class Stokes2DData_0:
         sin = np.sin
         cos = np.cos
         val = np.zeros(p.shape, dtype=np.float)
-        val[..., 0] = 2 * (pi ** 2) * sin(pi * x) * cos(pi * y)
-        val[..., 1] = -2 * y / (y ** 2 + 1) ** 2 - 2 * (pi ** 2) * sin(pi * y) * cos(pi * x)
+        convection1 = sin(pi * x) * cos(pi * y) * (pi * cos(pi * x) * cos(pi * y)) + (-cos(pi * x) * sin(pi * y)) * (
+                    -pi * sin(pi * x) * sin(pi * y))
+        convection2 = sin(pi * x) * cos(pi * y) * (pi * sin(pi * x) * sin(pi * y)) + (-cos(pi * x) * sin(pi * y)) * (
+                    -pi * cos(pi * x) * cos(pi * y))
+        val[..., 0] = 2 * (pi ** 2) * sin(pi * x) * cos(pi * y) + convection1
+        val[..., 1] = -2 * y / (y ** 2 + 1) ** 2 - 2 * (pi ** 2) * sin(pi * y) * cos(pi * x) + convection2
         return val
 
     def dirichlet(self, p):
         return self.velocity(p)
+
+
+
+

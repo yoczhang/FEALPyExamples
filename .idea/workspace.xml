@@ -185,46 +185,42 @@
     </ignored-roots>
   </component>
   <component name="WindowStateProjectService">
-    <state width="1259" height="166" key="GridCell.Tab.0.bottom" timestamp="1590217977719">
+    <state width="1259" height="131" key="GridCell.Tab.0.bottom" timestamp="1591108886853">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="166" key="GridCell.Tab.0.bottom/0.23.1280.734@0.23.1280.734" timestamp="1590217977719" />
-    <state width="1259" height="166" key="GridCell.Tab.0.center" timestamp="1590217977718">
+    <state width="1259" height="131" key="GridCell.Tab.0.bottom/0.23.1280.734@0.23.1280.734" timestamp="1591108886853" />
+    <state width="1259" height="131" key="GridCell.Tab.0.center" timestamp="1591108886852">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="166" key="GridCell.Tab.0.center/0.23.1280.734@0.23.1280.734" timestamp="1590217977718" />
-    <state width="1259" height="166" key="GridCell.Tab.0.left" timestamp="1590217977718">
+    <state width="1259" height="131" key="GridCell.Tab.0.center/0.23.1280.734@0.23.1280.734" timestamp="1591108886852" />
+    <state width="1259" height="131" key="GridCell.Tab.0.left" timestamp="1591108886851">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="166" key="GridCell.Tab.0.left/0.23.1280.734@0.23.1280.734" timestamp="1590217977718" />
-    <state width="1259" height="166" key="GridCell.Tab.0.right" timestamp="1590217977719">
+    <state width="1259" height="131" key="GridCell.Tab.0.left/0.23.1280.734@0.23.1280.734" timestamp="1591108886851" />
+    <state width="1259" height="131" key="GridCell.Tab.0.right" timestamp="1591108886852">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="166" key="GridCell.Tab.0.right/0.23.1280.734@0.23.1280.734" timestamp="1590217977719" />
-    <state width="1259" height="245" key="GridCell.Tab.1.bottom" timestamp="1590217977711">
+    <state width="1259" height="131" key="GridCell.Tab.0.right/0.23.1280.734@0.23.1280.734" timestamp="1591108886852" />
+    <state width="1259" height="131" key="GridCell.Tab.1.bottom" timestamp="1591108886854">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="245" key="GridCell.Tab.1.bottom/0.23.1280.734@0.23.1280.734" timestamp="1590217977711" />
-    <state width="1259" height="245" key="GridCell.Tab.1.center" timestamp="1590217977711">
+    <state width="1259" height="131" key="GridCell.Tab.1.bottom/0.23.1280.734@0.23.1280.734" timestamp="1591108886854" />
+    <state width="1259" height="131" key="GridCell.Tab.1.center" timestamp="1591108886854">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="245" key="GridCell.Tab.1.center/0.23.1280.734@0.23.1280.734" timestamp="1590217977711" />
-    <state width="1259" height="245" key="GridCell.Tab.1.left" timestamp="1590217977710">
+    <state width="1259" height="131" key="GridCell.Tab.1.center/0.23.1280.734@0.23.1280.734" timestamp="1591108886854" />
+    <state width="1259" height="131" key="GridCell.Tab.1.left" timestamp="1591108886853">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="245" key="GridCell.Tab.1.left/0.23.1280.734@0.23.1280.734" timestamp="1590217977710" />
-    <state width="1259" height="245" key="GridCell.Tab.1.right" timestamp="1590217977711">
+    <state width="1259" height="131" key="GridCell.Tab.1.left/0.23.1280.734@0.23.1280.734" timestamp="1591108886853" />
+    <state width="1259" height="131" key="GridCell.Tab.1.right" timestamp="1591108886854">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
-    <state width="1259" height="245" key="GridCell.Tab.1.right/0.23.1280.734@0.23.1280.734" timestamp="1590217977711" />
+    <state width="1259" height="131" key="GridCell.Tab.1.right/0.23.1280.734@0.23.1280.734" timestamp="1591108886854" />
     <state x="141" y="29" key="SettingsEditor" timestamp="1588088087094">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
     <state x="141" y="29" key="SettingsEditor/0.23.1280.734@0.23.1280.734" timestamp="1588088087094" />
-    <state x="202" y="102" key="com.intellij.execution.console.ConsoleHistoryController$MyBrowseAction$1" timestamp="1582124183731">
-      <screen x="0" y="23" width="1280" height="734" />
-    </state>
-    <state x="202" y="102" key="com.intellij.execution.console.ConsoleHistoryController$MyBrowseAction$1/0.23.1280.734@0.23.1280.734" timestamp="1582124183731" />
     <state x="164" y="126" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2" timestamp="1590200372888">
       <screen x="0" y="23" width="1280" height="734" />
     </state>
@@ -240,6 +236,13 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/myExamples/HHO/StokesHHORate2d.py</url>
+          <line>36</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
       <default-breakpoints>
         <breakpoint type="python-exception">
           <properties notifyOnTerminate="true" exception="BaseException">

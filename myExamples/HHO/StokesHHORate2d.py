@@ -10,7 +10,7 @@
 # ---
 
 # from fealpy.pde.stokes_model_2d import StokesModelData_0, StokesModelData_1, StokesModelData_2, StokesModelData_3
-from Stokes2DData import StokesModelData_0
+from Stokes2DData import Stokes2DData_0
 import numpy as np
 from fealpy.mesh.Quadtree import Quadtree
 import matplotlib.pyplot as plt
@@ -31,7 +31,7 @@ p = 1  # the polynomial order
 n = 2  # the number of refine mesh
 maxit = 4  # the max iteration of the mesh
 
-pde = StokesModelData_0()  # create pde model
+pde = Stokes2DData_0()  # create pde model
 
 # # error settings
 errorType = ['$|| u - u_h||_0$', '$||\\nabla u - \\nabla u_h||_0$', '|| p - p_h ||_0']
