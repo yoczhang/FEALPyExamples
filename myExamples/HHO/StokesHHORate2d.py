@@ -31,7 +31,8 @@ p = 1  # the polynomial order
 n = 2  # the number of refine mesh
 maxit = 4  # the max iteration of the mesh
 
-pde = Stokes2DData_0()  # create pde model
+nu = 1.0
+pde = Stokes2DData_0(nu)  # create pde model
 
 # # error settings
 errorType = ['$|| u - u_h||_0$', '$||\\nabla u - \\nabla u_h||_0$', '|| p - p_h ||_0']
@@ -76,7 +77,7 @@ mesh = qtree.to_pmesh()
 # plt.show()
 # plt.close()
 
-pde.nu = 1.0
+
 # --- start for-loop --- #
 for i in range(maxit):
     stokes = StokesHHOModel2d(pde, mesh, p)

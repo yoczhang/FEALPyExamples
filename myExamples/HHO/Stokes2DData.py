@@ -24,7 +24,8 @@ class Stokes2DData_0:
     p = 1/(y**2 + 1) - pi/4
     """
 
-    def __init__(self):
+    def __init__(self, nu):
+        self.nu = nu
         self.box = [0, 1, 0, 1]
 
     def domain(self):
@@ -96,12 +97,13 @@ class Stokes2DData_0:
     def source(self, p):
         x = p[..., 0]
         y = p[..., 1]
+        nu = self.nu
         pi = np.pi
         sin = np.sin
         cos = np.cos
         val = np.zeros(p.shape, dtype=np.float)
-        val[..., 0] = 2 * (pi ** 2) * sin(pi * x) * cos(pi * y)
-        val[..., 1] = -2 * y / (y ** 2 + 1) ** 2 - 2 * (pi ** 2) * sin(pi * y) * cos(pi * x)
+        val[..., 0] = nu * (2 * (pi ** 2) * sin(pi * x) * cos(pi * y))
+        val[..., 1] = nu * (- 2 * (pi ** 2) * sin(pi * y) * cos(pi * x)) - 2 * y / (y ** 2 + 1) ** 2
         return val
 
     def dirichlet(self, p):

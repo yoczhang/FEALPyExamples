@@ -24,7 +24,8 @@ class NavierStokes2DData_0:
     p = 1/(y**2 + 1) - pi/4
     """
 
-    def __init__(self):
+    def __init__(self, nu):
+        self.nu = nu
         self.box = [0, 1, 0, 1]
 
     def domain(self):
@@ -80,6 +81,7 @@ class NavierStokes2DData_0:
         return val
 
     def source(self, p):
+        nu = self.nu
         x = p[..., 0]
         y = p[..., 1]
         pi = np.pi
@@ -90,8 +92,8 @@ class NavierStokes2DData_0:
                     -pi * sin(pi * x) * sin(pi * y))
         convection2 = sin(pi * x) * cos(pi * y) * (pi * sin(pi * x) * sin(pi * y)) + (-cos(pi * x) * sin(pi * y)) * (
                     -pi * cos(pi * x) * cos(pi * y))
-        val[..., 0] = 2 * (pi ** 2) * sin(pi * x) * cos(pi * y) + convection1
-        val[..., 1] = -2 * y / (y ** 2 + 1) ** 2 - 2 * (pi ** 2) * sin(pi * y) * cos(pi * x) + convection2
+        val[..., 0] = nu * (2 * (pi ** 2) * sin(pi * x) * cos(pi * y)) + convection1
+        val[..., 1] = nu * (- 2 * (pi ** 2) * sin(pi * y) * cos(pi * x)) - 2 * y / (y ** 2 + 1) ** 2 + convection2
         return val
 
     def dirichlet(self, p):
