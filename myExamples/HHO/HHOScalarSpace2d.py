@@ -488,26 +488,6 @@ class HHOScalarSpace2d(object):
 
         return fh  # (NC,ldof)
 
-    def stiff_matrix(self, p=None):
-        p = self.p if p is None else p
-        mesh = self.mesh
-        NC = mesh.number_of_cells()
-        ldof = self.smspace.number_of_local_dofs(p=p)
-
-        def f(x, index):
-            gphi = self.grad_basis(x, index=index, p=p)  # using the cell-integration, so gphi: (NQ,NC,ldof,2)
-            return np.einsum('...km, ...pm->...kp', gphi, gphi)
-
-        A = self.integralalg.integral(f, celltype=True, q=p + 2)
-        cell2dof = np.arange(NC*ldof).reshape(NC, ldof)
-        I = np.einsum('k, ij->ijk', np.ones(ldof), cell2dof)
-        J = I.swapaxes(-1, -2)
-        gdof = NC*ldof
-
-        # Construct the stiffness matrix
-        A = csr_matrix((A.flat, (I.flat, J.flat)), shape=(gdof, gdof))
-        return A
-
     def monomial_stiff_matrix(self, p=None):
         """
         Get the stiff matrix on ScaledMonomialSpace2d.
@@ -642,7 +622,7 @@ class HHOScalarSpace2d(object):
             uh[:NC*smldof, ...].flat = (self.invCM@b[:, :, np.newaxis]).flat
         else:
             uh[:NC*smldof, ...].flat = (self.invCM@b).flat
-        return uh
+        return uh  # uh[0:NC*smldof] is the dofs project on cells, uh[NC*smldof:end] is the dofs project on edges.
 
     def function(self, dim=None, array=None):
         f = Function(self, dim=dim, array=array)

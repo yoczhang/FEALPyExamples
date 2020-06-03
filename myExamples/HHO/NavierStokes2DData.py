@@ -51,7 +51,7 @@ class NavierStokes2DData_0:
             mesh = StructureQuadMesh(self.box, nx, ny)
             mesh.uniform_refine(n)
             return mesh
-        elif meshtype == 'poly':
+        elif meshtype == 'polygon':
             cell = np.array([
                 (1, 2, 0),
                 (3, 0, 2)], dtype=np.int)

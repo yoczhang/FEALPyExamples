@@ -53,16 +53,8 @@ for i in range(maxit):
     errorMatrix[1, i] = stokes.velocity_energy_error()  # get the velocity energy error
     errorMatrix[2, i] = stokes.pressure_L2_error()  # get the pressure L2 error
     if i < maxit - 1:
-        if mesh.meshtype == 'poly':
-            if 'qtree' in locals().keys():
-                qtree.uniform_refine()  # uniform refine the mesh
-                mesh = qtree.to_pmesh()  # transfer to polygon mesh
-            else:
-                h = h/2
-                box = [0, 1, 0, 1]  # [0, 1]^2 domain
-                mesh = triangle(box, h, meshtype='polygon')
-        else:
-            mesh.uniform_refine()
+        n += 1
+        mesh = pde.init_mesh(n, meshtype=mesh.meshtype)
 
 
 # --- get the convergence rate --- #
