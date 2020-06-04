@@ -11,7 +11,7 @@
 
 
 import numpy as np
-from HHOStokesSpace2d import HHOStokesSapce2d
+from HHOStokesSpace2d import HHOStokesSpace2d
 from fealpy.quadrature import GaussLegendreQuadrature
 from scipy.sparse import spdiags
 # from numpy.linalg import inv
@@ -25,7 +25,7 @@ class StokesHHOModel2d:
         self.p = p
         self.mesh = mesh
         self.pde = pde
-        self.space = HHOStokesSapce2d(mesh, p)
+        self.space = HHOStokesSpace2d(mesh, p)
         self.integralalg = self.space.integralalg
         self.uh0 = self.space.vSpace.function()
         self.uh1 = self.space.vSpace.function()

@@ -139,10 +139,10 @@
     </configuration>
     <list>
       <item itemvalue="Python.PoissonHHORate2d" />
-      <item itemvalue="Python.totest_VectorSpace" />
       <item itemvalue="Python.StokesDFNCVEM2d_example" />
-      <item itemvalue="Python.totest_HHOScalarSpace" />
       <item itemvalue="Python.StokesHHORate2d" />
+      <item itemvalue="Python.totest_HHOScalarSpace" />
+      <item itemvalue="Python.totest_VectorSpace" />
     </list>
     <recent_temporary>
       <list>

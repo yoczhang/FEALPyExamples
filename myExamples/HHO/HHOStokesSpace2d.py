@@ -41,7 +41,7 @@ class HHOStokesDof2d:
         return 2*self.vDof.number_of_global_dofs() + self.pDof.number_of_global_dofs()
 
 
-class HHOStokesSapce2d:
+class HHOStokesSpace2d:
     def __init__(self, mesh, p):
         self.mesh = mesh
         self.p = p
