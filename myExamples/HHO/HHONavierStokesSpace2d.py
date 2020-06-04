@@ -54,7 +54,14 @@ class HHONavierStokesSpace2d:
     def number_of_global_dofs(self):
         return self.dof.number_of_global_dofs()
 
-    def 
+    def system_matrix(self, nu):
+        A = self.stokesspace.velocity_matrix()  # (2*vgdof,2*vgdof)
+        B = self.stokesspace.divergence_matrix()  # (pgdof,2*vgdof)
+        P = self.stokesspace.pressure_correction()  # (1,2*vgdof+pgdof)
+
+    def convective_matrix(self):
+        p = self.p
+
 
 
 
