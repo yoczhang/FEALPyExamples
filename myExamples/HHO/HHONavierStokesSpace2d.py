@@ -59,8 +59,9 @@ class HHONavierStokesSpace2d:
         B = self.stokesspace.divergence_matrix()  # (pgdof,2*vgdof)
         P = self.stokesspace.pressure_correction()  # (1,2*vgdof+pgdof)
 
-    def convective_matrix(self):
+    def convective_matrix(self, lastuh):
         p = self.p
+
 
 
 
