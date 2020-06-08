@@ -60,7 +60,25 @@ class HHONavierStokesSpace2d:
         P = self.stokesspace.pressure_correction()  # (1,2*vgdof+pgdof)
 
     def convective_matrix(self, lastuh):
+        """
+        To solve the Navier-Stokes equation, we need the Newton iteration,
+        this function is designed to get the matrices uesed in the Newton iteration.
+        :param lastuh: last step solution uh,
+        :return:
+        """
         p = self.p
+        mesh = self.mesh
+
+        vDof = self.dof.vDof
+        vgdof = vDof.number_of_global_dofs()
+        vcldof = vDof.number_of_cell_local_dof()
+        veldof = p + 1  # number of edge local dof
+
+
+        lastuh1 = lastuh[:vgdof]
+        lastuh2 = lastuh[vgdof:]
+
+
 
 
 

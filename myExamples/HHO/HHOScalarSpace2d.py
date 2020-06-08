@@ -53,9 +53,9 @@ class HHODof2d(object):
         p = self.p
         mesh = self.mesh
         NC = mesh.number_of_cells()
-        cdof = (p + 1) * (p + 2) // 2
+        cldof = (p + 1) * (p + 2) // 2
         NE = mesh.number_of_edges()
-        edge2dof = NC*cdof + np.arange(NE * (p + 1)).reshape(NE, p + 1)
+        edge2dof = NC*cldof + np.arange(NE * (p + 1)).reshape(NE, p + 1)
         return edge2dof
 
     def cell_to_dof(self):
@@ -115,6 +115,13 @@ class HHODof2d(object):
             NCE = NCE*np.ones((NC,), dtype=int)
         ldofs = NCE * (p + 1) + (p + 1) * (p + 2) // 2
         return ldofs
+
+    def number_of_cell_local_dof(self):
+        """
+        :return: Number of local dof in cell
+        """
+        p = self.p
+        return (p + 1) * (p + 2) // 2
 
 
 class HHOScalarSpace2d(object):
