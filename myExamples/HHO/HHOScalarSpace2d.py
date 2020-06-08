@@ -586,14 +586,15 @@ class HHOScalarSpace2d(object):
     def edge_basis(self, point, index=None, p=None):
         return self.smspace.edge_basis(point, index=index, p=p)
 
-    def edge_value(self, uh, bcs):
-        phi = self.edge_basis(bcs)
+    def edge_value(self, uh, point):
+        # point: (NQ,NE,2), NQ is the number of quadrature points, NE is the number of edges
+        ephi = self.edge_basis(point)  # (NQ,NE,eldof), eldof is the number of local 1D dofs on one edge
         edge2dof = self.dof.edge_to_dof()
 
         dim = len(uh.shape) - 1
         s0 = 'abcdefg'[:dim]
         s1 = '...ij, ij{}->...i{}'.format(s0, s0)
-        val = np.einsum(s1, phi, uh[edge2dof])
+        val = np.einsum(s1, ephi, uh[edge2dof])  # (NQ,NE,...)
         return val
 
     def project(self, u, dim=1):
