@@ -1,6 +1,9 @@
 # IDE informations
 .idea/
-.idea/*.xml
-.idea/workspace.xml
+__pycache__/
 *.xml
 myExamples/HHOPersonal
+myExamples/DG_Poisson/__pycache__/
+myExamples/HHO/__pycache__/
+myExamples/Test/__pycache__/
+myExamples/Tools/__pycache__/
