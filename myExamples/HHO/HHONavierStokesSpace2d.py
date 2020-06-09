@@ -89,8 +89,46 @@ class HHONavierStokesSpace2d:
         vgdof = vDof.number_of_global_dofs()
         vcldof = vDof.number_of_cell_local_dof()
         veldof = p + 1  # number of edge local dof
-        lastuh1 = lastuh[:vgdof]
-        lastuh2 = lastuh[vgdof:]
+        lastuh1 = lastuh[:vgdof]  # (vgdof,)
+        lastuh2 = lastuh[vgdof:]  # (vgdof,)
+
+
+
+
+        # cell2dof, cell2dofLocation = self.dof.vDof.cell_to_dof()
+        # uh1split = np.split(lastuh1[cell2dof], cell2dofLocation[1:-1])  # list, each-term shape: (Cldof,)
+        # uh2split = np.split(lastuh2[cell2dof], cell2dofLocation[1:-1])  # list, each-term shape: (Cldof,)
+
+        # --- get the c(u^{k},u^{k+1},v) --- #
+        def f1(point, index=None):
+            phi = self.basis(point, index=index)  # using the cell-integration, so phi: (NQ,NC,vcldof)
+            gphi = self.grad_basis(point, index=index)  # using the cell-integration, so gphi: (NQ,NC,vcldof,2)
+            valueuh1 = self.value(lastuh1, point, index=index)  # (NQ,NC)
+            valueuh2 = self.value(lastuh2, point, index=index)  # (NQ,NC)
+            r1 = np.einsum('ijk, ijm, ij->ijmk', gphi[..., 0], phi, valueuh1) \
+                + np.einsum('ijk, ijm, ij->ijmk', gphi[..., 1], phi, valueuh2) \
+                - np.einsum('ijk, ijm, ij->ijmk', phi, gphi[..., 0], valueuh1) \
+                - np.einsum('ijk, ijm, ij->ijmk', phi, gphi[..., 1], valueuh2)  # (NQ,NC,vcldof,vcldof)
+            return r1/2.0
+        m1 = self.integralalg.integral(f1, celltype=True)  # (NC,vcldof,vcldof)
+
+
+
+
+
+
+
+        # def get_convective_matrix(x):
+        #     celluh1 = x[0]
+        #     celluh2 = x[1]
+        #     cellIdx = x[2]  # the cell index of current cell
+        #     cellNE = x[3]  # the number of edges in current cell
+        #
+        #     def f1(point, index=None):
+        #         h = 0
+
+
+
 
 
     def basis(self, point, index=None, p=None):
@@ -112,14 +150,15 @@ class HHONavierStokesSpace2d:
     def edge_basis(self, point, index=None, p=None):
         return self.vSpace.edge_basis(point, index=index, p=p)
 
-    def edge_value(self, uh, bcs):
-        phi = self.edge_basis(bcs)
+    def edge_value(self, uh, point):
+        # point: (NQ,NE,2), NQ is the number of quadrature points, NE is the number of edges
+        ephi = self.edge_basis(point)  # (NQ,NE,eldof), eldof is the number of local 1D dofs on one edge
         edge2dof = self.dof.vDof.edge_to_dof()
 
         dim = len(uh.shape) - 1
         s0 = 'abcdefg'[:dim]
         s1 = '...ij, ij{}->...i{}'.format(s0, s0)
-        val = np.einsum(s1, phi, uh[edge2dof])
+        val = np.einsum(s1, ephi, uh[edge2dof])  # (NQ,NE) or (NQ,NE,1)
         return val
 
 

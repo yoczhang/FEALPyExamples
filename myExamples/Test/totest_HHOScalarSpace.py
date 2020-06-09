@@ -21,8 +21,8 @@ from fealpy.functionspace.femdof import CPLFEMDof2d
 from fealpy.mesh.mesh_tools import find_node, find_entity
 from fealpy.quadrature.GaussLegendreQuadrature import GaussLegendreQuadrature
 from fealpy.mesh.simple_mesh_generator import triangle
-from fealpy.functionspace.ScaledMonomialSpace2d import SMDof2d, ScaledMonomialSpace2d
-
+# from fealpy.functionspace.ScaledMonomialSpace2d import SMDof2d, ScaledMonomialSpace2d
+from myScaledMonomialSpace2d import ScaledMonomialSpace2d
 
 # init settings
 n = 1  # refine times

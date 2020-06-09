@@ -338,8 +338,8 @@ class HHOScalarSpace2d(object):
         # # smldof denotes the number of local dofs in smspace in order p,
         # # psmldof denotes the number of local dofs in smspace in order p+1.
         # #
-        phi0 = self.basis(ps, index=edge2cell[:, 0], p=p)  # (NQ,NE,psmldof)
-        phi1 = self.basis(ps[:, isInEdge, :], index=edge2cell[isInEdge, 1], p=p)  # (NQ,NInE,psmldof)
+        phi0 = self.basis(ps, index=edge2cell[:, 0], p=p)  # (NQ,NE,smldof)
+        phi1 = self.basis(ps[:, isInEdge, :], index=edge2cell[isInEdge, 1], p=p)  # (NQ,NInE,smldof)
         pphi0 = self.basis(ps, index=edge2cell[:, 0], p=p + 1)  # (NQ,NE,psmldof)
         pphi1 = self.basis(ps[:, isInEdge, :], index=edge2cell[isInEdge, 1], p=p + 1)  # (NQ,NInE,psmldof)
 
@@ -562,7 +562,7 @@ class HHOScalarSpace2d(object):
     def value(self, uh, point, index=None):
         NC = self.mesh.number_of_cells()
         smldof = self.smldof
-        return self.smspace.value(uh[:NC*smldof, ...], point, index=index)
+        return self.smspace.value(uh[:NC*smldof, ...], point, index=index)  # usually, (NQ,NC)
 
     def grad_value(self, uh, point, index=None):
         NC = self.mesh.number_of_cells()
@@ -578,8 +578,9 @@ class HHOScalarSpace2d(object):
     #     val = np.sum((point - center[index]) * t[index], axis=-1) / h[index]
     #     phi = np.ones(val.shape + (p + 1,), dtype=self.ftype)
     #     if p == 1:
-    #         phi[..., 1] = -val
+    #         phi[..., 1] = -val  # note: here, we set -val, only used to compare the result with matlab-result
     #     else:
+    #         # # note: here, we set -val, only used to compare the result with matlab-result
     #         phi[..., 1:] = -val[..., np.newaxis]
     #         np.multiply.accumulate(phi, axis=-1, out=phi)
     #     return phi
@@ -594,7 +595,7 @@ class HHOScalarSpace2d(object):
         dim = len(uh.shape) - 1
         s0 = 'abcdefg'[:dim]
         s1 = '...ij, ij{}->...i{}'.format(s0, s0)
-        val = np.einsum(s1, ephi, uh[edge2dof])  # (NQ,NE,...)
+        val = np.einsum(s1, ephi, uh[edge2dof])  # (NQ,NE) or (NQ,NE,1)
         return val
 
     def project(self, u, dim=1):
