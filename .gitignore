@@ -2,7 +2,8 @@
 .idea/
 __pycache__/
 *.xml
-myExamples/HHOPersonal
+ProjectMAC/__pycache__/
+myExamples/HHOPersonal/
 myExamples/DG_Poisson/__pycache__/
 myExamples/HHO/__pycache__/
 myExamples/Test/__pycache__/
