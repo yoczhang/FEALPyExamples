@@ -97,10 +97,14 @@ class HHONavierStokesSpace2d:
         lastuh1 = np.squeeze(lastuh[:vgdof])  # (vgdof,)
         lastuh2 = np.squeeze(lastuh[vgdof:])  # (vgdof,)
 
-        uh1edgeDof_edgeValue = self.edge_value(lastuh1, ps)  # (NQ,NE), using the edge-dofs to get edge-values
-        uh2edgeDof_edgeValue = self.edge_value(lastuh2, ps)  # (NQ,NE), using the edge-dofs to get edge-values
-        uh1_celldof0 = lastuh1[vcelldof[edge2cell[:, 0], :]]  # (NE,vcldof)
-        uh1_celldof1 = lastuh1[vcelldof[edge2cell[isInEdge, 1], :]]  # (NInE,vcldof)
+        uh1edgedof_edgevalue = self.edge_value(lastuh1, ps)  # (NQ,NE), using the edge-dofs to get edge-values
+        uh2edgedof_edgevalue = self.edge_value(lastuh2, ps)  # (NQ,NE), using the edge-dofs to get edge-values
+        uh1celldof0 = lastuh1[vcelldof[edge2cell[:, 0], :]]  # (NE,vcldof)
+        uh1celldof1 = lastuh1[vcelldof[edge2cell[isInEdge, 1], :]]  # (NInE,vcldof)
+        uh2celldof0 = lastuh2[vcelldof[edge2cell[:, 0], :]]  # (NE,vcldof)
+        uh2celldof1 = lastuh2[vcelldof[edge2cell[isInEdge, 1], :]]  # (NInE,vcldof)
+        uh1celldof_edgevalue0 = np.einsum('ijk, jk->ij', phi0, uh1celldof0)  # (NQ,NE)
+        uh1celldof_edgevalue1 = np.einsum('ijk, jk->ij', phi1, uh1celldof1)  # (NQ,NInE)
 
 
 
