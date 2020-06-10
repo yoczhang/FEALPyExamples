@@ -74,7 +74,8 @@ class HHONavierStokesSpace2d:
         edge = mesh.entity('edge')
         edge2cell = mesh.ds.edge_to_cell()
         isInEdge = (edge2cell[:, 0] != edge2cell[:, 1])
-        NInE = len()
+        InEdgeIdx, = np.nonzero(isInEdge)
+        NInE = len(InEdgeIdx)
 
         # hE = self.integralalg.edgemeasure  # (NE,), the length of edges
         n = mesh.edge_normal()  # (NE,2), the normal vector of edges, and its norm is the length of corresponding edges
@@ -145,11 +146,13 @@ class HHONavierStokesSpace2d:
                                                 (block1_row.flat, block1_col.flat)), shape=(NC*vcldof, NC*vcldof))
 
         # # get the trialFace_testCell block
+        block1_trialFace_testCell = csr_matrix()  # TODO: 首先构造一个稀疏矩阵
         r0 = ((vcldof*edge2cell[:, 0]).reshape(-1, 1) + np.tile(np.arange(vcldof), (NE, 1))).flatten()
         block1_row0 = np.einsum('i, j->ij', r0, np.ones(veldof)).reshape((NE, vcldof, veldof))
         c0 = np.tile((np.arange(NE*veldof)).reshape(1, -1), (vcldof, 1))
         c0 = np.hsplit(c0, np.arange(veldof, NE*veldof, veldof))
         block1_col0 = np.array(c0)
+        # TODO: 这里将 matrix1_trialFace_testCell0 '加入' 到 block1_trialFace_testCell 矩阵中
 
         block1_row1 = vcldof * edge2cell[isInEdge, 1] + np.tile(np.arange(veldof), (len(np.nonzero(isInEdge)), 1))
 
