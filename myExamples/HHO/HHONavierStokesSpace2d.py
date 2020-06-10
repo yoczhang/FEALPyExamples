@@ -84,14 +84,23 @@ class HHONavierStokesSpace2d:
         bcs, ws = qf.quadpts, qf.weights  # bcs.shape: (NQ,2); ws.shape: (NQ,)
         ps = np.einsum('ij, kjm->ikm', bcs, node[edge])  # (NQ,NE,2), NE is the number of edges
 
+        phi0 = self.basis(ps, index=edge2cell[:, 0], p=p)  # (NQ,NE,vcldof)
+        phi1 = self.basis(ps[:, isInEdge, :], index=edge2cell[isInEdge, 1], p=p)  # (NQ,NInE,vcldof)
+        ephi = self.edge_basis(ps)  # (NQ,NE,veldof), veldof is the number of local 1D dofs on one edge
+
         # --- the last uh settings --- #
         vDof = self.dof.vDof
         vgdof = vDof.number_of_global_dofs()
         vcldof = vDof.number_of_cell_local_dof()
         veldof = p + 1  # number of edge local dof
-        lastuh1 = lastuh[:vgdof]  # (vgdof,)
-        lastuh2 = lastuh[vgdof:]  # (vgdof,)
+        vcelldof = np.arange(NC*vcldof).reshape(NC,vcldof)
+        lastuh1 = np.squeeze(lastuh[:vgdof])  # (vgdof,)
+        lastuh2 = np.squeeze(lastuh[vgdof:])  # (vgdof,)
 
+        uh1edgeDof_edgeValue = self.edge_value(lastuh1, ps)  # (NQ,NE), using the edge-dofs to get edge-values
+        uh2edgeDof_edgeValue = self.edge_value(lastuh2, ps)  # (NQ,NE), using the edge-dofs to get edge-values
+        uh1_celldof0 = lastuh1[vcelldof[edge2cell[:, 0], :]]  # (NE,vcldof)
+        uh1_celldof1 = lastuh1[vcelldof[edge2cell[isInEdge, 1], :]]  # (NInE,vcldof)
 
 
 
@@ -99,7 +108,7 @@ class HHONavierStokesSpace2d:
         # uh1split = np.split(lastuh1[cell2dof], cell2dofLocation[1:-1])  # list, each-term shape: (Cldof,)
         # uh2split = np.split(lastuh2[cell2dof], cell2dofLocation[1:-1])  # list, each-term shape: (Cldof,)
 
-        # --- get the c(u^{k},u^{k+1},v) --- #
+        # --- get the matrix c(u^{k},u^{k+1},v) --- #
         def f1(point, index=None):
             phi = self.basis(point, index=index)  # using the cell-integration, so phi: (NQ,NC,vcldof)
             gphi = self.grad_basis(point, index=index)  # using the cell-integration, so gphi: (NQ,NC,vcldof,2)
@@ -110,7 +119,9 @@ class HHONavierStokesSpace2d:
                 - np.einsum('ijk, ijm, ij->ijmk', phi, gphi[..., 0], valueuh1) \
                 - np.einsum('ijk, ijm, ij->ijmk', phi, gphi[..., 1], valueuh2)  # (NQ,NC,vcldof,vcldof)
             return r1/2.0
-        m1 = self.integralalg.integral(f1, celltype=True)  # (NC,vcldof,vcldof)
+        trialCell_testCell = self.integralalg.integral(f1, celltype=True)  # (NC,vcldof,vcldof)
+
+
 
 
 
