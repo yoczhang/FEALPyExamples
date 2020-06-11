@@ -81,6 +81,7 @@ lastuh = nsspace.vSpace.function()
 lastuh = np.concatenate([lastuh, lastuh])
 cm = nsspace.convective_matrix(lastuh)
 
+np.add.at(aa, [[0, 0, 2, 2], [1, 3, 1, 3]], bb.flatten())
 
 
 # ------------------------------------------------- #

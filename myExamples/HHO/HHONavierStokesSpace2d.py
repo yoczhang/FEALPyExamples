@@ -126,18 +126,18 @@ class HHONavierStokesSpace2d:
                 - np.einsum('ijk, ijm, ij->ijmk', phi, gphi[..., 1], valueuh2)  # (NQ,NC,vcldof,vcldof)
             return r1/2.0
         matrix1_trialCell_testCell = self.integralalg.integral(f1, celltype=True)  # (NC,vcldof,vcldof)
-        matrix1_trialCell_testFace0 = -0.5 * np.einsum('i, ijk, ijm, ia, ib, a, b->jmk', ws, phi0, ephi,
-                                                       uh1celldof_edgevalue0, uh2celldof_edgevalue0,
-                                                       n[:, 0], n[:, 1])  # (NE,veldof,vcldof)
-        matrix1_trialCell_testFace1 = -0.5 * np.einsum('i, ijk, ijm, ia, ib, a, b->jmk', ws, phi1, ephi[:, isInEdge, :],
-                                                       uh1celldof_edgevalue1, uh2celldof_edgevalue1,
-                                                       n[isInEdge, :][:, 0], n[isInEdge, :][:, 1])  # (NE,veldof,vcldof)
         matrix1_trialFace_testCell0 = 0.5 * np.einsum('i, ijk, ijm, ia, ib, a, b->jmk', ws, ephi, phi0,
                                                       uh1celldof_edgevalue0, uh2celldof_edgevalue0,
                                                       n[:, 0], n[:, 1])  # (NE,vcldof,veldof)
         matrix1_trialFace_testCell1 = 0.5 * np.einsum('i, ijk, ijm, ia, ib, a, b->jmk', ws, ephi[:, isInEdge, :], phi1,
                                                       uh1celldof_edgevalue1, uh2celldof_edgevalue1,
-                                                      n[isInEdge, :][:, 0], n[isInEdge, :][:, 1])  # (NE,vcldof,veldof)
+                                                      n[isInEdge, :][:, 0], n[isInEdge, :][:, 1])  # (NInE,vcldof,veldof)
+        matrix1_trialCell_testFace0 = -0.5 * np.einsum('i, ijk, ijm, ia, ib, a, b->jmk', ws, phi0, ephi,
+                                                       uh1celldof_edgevalue0, uh2celldof_edgevalue0,
+                                                       n[:, 0], n[:, 1])  # (NE,veldof,vcldof)
+        matrix1_trialCell_testFace1 = -0.5 * np.einsum('i, ijk, ijm, ia, ib, a, b->jmk', ws, phi1, ephi[:, isInEdge, :],
+                                                       uh1celldof_edgevalue1, uh2celldof_edgevalue1,
+                                                       n[isInEdge, :][:, 0], n[isInEdge, :][:, 1])  # (NInE,veldof,vcldof)
 
         # # get the trialCell_testCell block
         block1_row = np.einsum('i, j->ij', range(NC*vcldof), np.ones(vcldof)).reshape((NC, vcldof, vcldof))
@@ -146,13 +146,18 @@ class HHONavierStokesSpace2d:
                                                 (block1_row.flat, block1_col.flat)), shape=(NC*vcldof, NC*vcldof))
 
         # # get the trialFace_testCell block
-        block1_trialFace_testCell = csr_matrix()  # TODO: 首先构造一个稀疏矩阵
+        block1_trialFace_testCell = np.zeros((NC*vcldof, NE*veldof))
         r0 = ((vcldof*edge2cell[:, 0]).reshape(-1, 1) + np.tile(np.arange(vcldof), (NE, 1))).flatten()
         block1_row0 = np.einsum('i, j->ij', r0, np.ones(veldof)).reshape((NE, vcldof, veldof))
         c0 = np.tile((np.arange(NE*veldof)).reshape(1, -1), (vcldof, 1))
         c0 = np.hsplit(c0, np.arange(veldof, NE*veldof, veldof))
-        block1_col0 = np.array(c0)
-        # TODO: 这里将 matrix1_trialFace_testCell0 '加入' 到 block1_trialFace_testCell 矩阵中
+        block1_col0 = np.array(c0)  # (NE,vcldof,veldof)
+        # # 首先构造一个稀疏矩阵
+        block1_trialFace_testCell = csr_matrix((matrix1_trialFace_testCell0.flat,
+                                                (block1_row0.flat, block1_col0)), shape=(NC*vcldof, NE*veldof))
+
+
+
 
         block1_row1 = vcldof * edge2cell[isInEdge, 1] + np.tile(np.arange(veldof), (len(np.nonzero(isInEdge)), 1))
 
