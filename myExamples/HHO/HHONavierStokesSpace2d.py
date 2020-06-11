@@ -146,20 +146,29 @@ class HHONavierStokesSpace2d:
                                                 (block1_row.flat, block1_col.flat)), shape=(NC*vcldof, NC*vcldof))
 
         # # get the trialFace_testCell block
-        block1_trialFace_testCell = np.zeros((NC*vcldof, NE*veldof))
         r0 = ((vcldof*edge2cell[:, 0]).reshape(-1, 1) + np.tile(np.arange(vcldof), (NE, 1))).flatten()
-        block1_row0 = np.einsum('i, j->ij', r0, np.ones(veldof)).reshape((NE, vcldof, veldof))
+        block1_row0 = np.einsum('i, j->ij', r0, np.ones(veldof)).reshape((NE, vcldof, veldof))  # (NE,vcldof,veldof)
         c0 = np.tile((np.arange(NE*veldof)).reshape(1, -1), (vcldof, 1))
         c0 = np.hsplit(c0, np.arange(veldof, NE*veldof, veldof))
         block1_col0 = np.array(c0)  # (NE,vcldof,veldof)
-        # # 首先构造一个稀疏矩阵
+
+        r1 = ((vcldof * edge2cell[isInEdge, 1]).reshape(-1, 1) + np.tile(np.arange(vcldof), (NInE, 1))).flatten()
+        block1_row1 = np.einsum('i, j->ij', r1, np.ones(veldof)).reshape((NInE, vcldof, veldof))
+        c1 = np.tile((np.arange(NInE * veldof)).reshape(1, -1), (vcldof, 1))
+        c1 = np.hsplit(c1, np.arange(veldof, NInE * veldof, veldof))
+        block1_col1 = np.array(c1)  # (NInE,vcldof,veldof)
+
         block1_trialFace_testCell = csr_matrix((matrix1_trialFace_testCell0.flat,
-                                                (block1_row0.flat, block1_col0)), shape=(NC*vcldof, NE*veldof))
+                                                (block1_row0.flat, block1_col0.flat)), shape=(NC*vcldof, NE*veldof))
+        block1_trialFace_testCell += csr_matrix((matrix1_trialFace_testCell1.flat,
+                                                 (block1_row1.flat, block1_col1.flat)), shape=(NC*vcldof, NE*veldof))
+
+        # # get the trialCell_testFace block
 
 
 
 
-        block1_row1 = vcldof * edge2cell[isInEdge, 1] + np.tile(np.arange(veldof), (len(np.nonzero(isInEdge)), 1))
+
 
 
 
