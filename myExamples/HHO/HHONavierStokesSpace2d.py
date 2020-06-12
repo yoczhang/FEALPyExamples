@@ -124,20 +124,22 @@ class HHONavierStokesSpace2d:
                 + np.einsum('ijk, ijm, ij->ijmk', gphi[..., 1], phi, valueuh2) \
                 - np.einsum('ijk, ijm, ij->ijmk', phi, gphi[..., 0], valueuh1) \
                 - np.einsum('ijk, ijm, ij->ijmk', phi, gphi[..., 1], valueuh2)  # (NQ,NC,vcldof,vcldof)
-            return r1/2.0
+            return 0.5 * r1
         matrix1_trialCell_testCell = self.integralalg.integral(f1, celltype=True)  # (NC,vcldof,vcldof)
         matrix1_trialFace_testCell0 = 0.5 * np.einsum('i, ijk, ijm, ia, ib, a, b->jmk', ws, ephi, phi0,
                                                       uh1celldof_edgevalue0, uh2celldof_edgevalue0,
                                                       n[:, 0], n[:, 1])  # (NE,vcldof,veldof)
         matrix1_trialFace_testCell1 = 0.5 * np.einsum('i, ijk, ijm, ia, ib, a, b->jmk', ws, ephi[:, isInEdge, :], phi1,
                                                       uh1celldof_edgevalue1, uh2celldof_edgevalue1,
-                                                      n[isInEdge, :][:, 0], n[isInEdge, :][:, 1])  # (NInE,vcldof,veldof)
+                                                      n[isInEdge, :][:, 0],
+                                                      n[isInEdge, :][:, 1])  # (NInE,vcldof,veldof)
         matrix1_trialCell_testFace0 = -0.5 * np.einsum('i, ijk, ijm, ia, ib, a, b->jmk', ws, phi0, ephi,
                                                        uh1celldof_edgevalue0, uh2celldof_edgevalue0,
                                                        n[:, 0], n[:, 1])  # (NE,veldof,vcldof)
         matrix1_trialCell_testFace1 = -0.5 * np.einsum('i, ijk, ijm, ia, ib, a, b->jmk', ws, phi1, ephi[:, isInEdge, :],
                                                        uh1celldof_edgevalue1, uh2celldof_edgevalue1,
-                                                       n[isInEdge, :][:, 0], n[isInEdge, :][:, 1])  # (NInE,veldof,vcldof)
+                                                       n[isInEdge, :][:, 0],
+                                                       n[isInEdge, :][:, 1])  # (NInE,veldof,vcldof)
 
         # # get the trialCell_testCell block
         block1_row = np.einsum('i, j->ij', range(NC*vcldof), np.ones(vcldof)).reshape((NC, vcldof, vcldof))
@@ -154,7 +156,7 @@ class HHONavierStokesSpace2d:
 
         r1 = ((vcldof * edge2cell[isInEdge, 1]).reshape(-1, 1) + np.tile(np.arange(vcldof), (NInE, 1))).flatten()
         block1_row1 = np.einsum('i, j->ij', r1, np.ones(veldof)).reshape((NInE, vcldof, veldof))
-        c1 = np.tile((np.arange(NInE * veldof)).reshape(1, -1), (vcldof, 1))
+        c1 = np.tile(((veldof*InEdgeIdx).reshape(-1, 1) + np.tile(np.arange(veldof), (NInE, 1))).flatten(), (vcldof, 1))
         c1 = np.hsplit(c1, np.arange(veldof, NInE * veldof, veldof))
         block1_col1 = np.array(c1)  # (NInE,vcldof,veldof)
 
@@ -164,6 +166,34 @@ class HHONavierStokesSpace2d:
                                                  (block1_row1.flat, block1_col1.flat)), shape=(NC*vcldof, NE*veldof))
 
         # # get the trialCell_testFace block
+        r0 = ((veldof*np.arange(NE)).reshape(-1, 1) + np.tile(np.arange(veldof), (NE, 1))).flatten()
+        block1_row0 = np.einsum('i, j->ij', r0, np.ones(vcldof)).reshape((NE, veldof, vcldof))  # (NE,veldof,vclodf)
+        c0 = np.tile(((vcldof*edge2cell[:, 0]).reshape(-1, 1) +
+                      np.tile(np.arange(vcldof), (NE, 1))).flatten(), (veldof, 1))
+        c0 = np.hsplit(c0, np.arange(vcldof, NE*vcldof, vcldof))
+        block1_col0 = np.array(c0)
+
+        r1 = ((veldof * InEdgeIdx).reshape(-1, 1) + np.tile(np.arange(veldof), (NInE, 1))).flatten()
+        block1_row1 = np.einsum('i, j->ij', r1, np.ones(vcldof)).reshape((NInE, veldof, vcldof))  # (NE,veldof,vclodf)
+        c1 = np.tile(((vcldof * edge2cell[isInEdge, 1]).reshape(-1, 1) +
+                      np.tile(np.arange(vcldof), (NInE, 1))).flatten(), (veldof, 1))
+        c1 = np.hsplit(c1, np.arange(vcldof, NInE * vcldof, vcldof))
+        block1_col1 = np.array(c1)
+
+        block1_trialCell_testFace = csr_matrix((matrix1_trialCell_testFace0.flat,
+                                                (block1_row0.flat, block1_col0.flat)), shape=(NE*veldof, NC*vcldof))
+        block1_trialCell_testFace += csr_matrix((matrix1_trialCell_testFace1.flat,
+                                                 (block1_row1.flat, block1_col1.flat)), shape=(NE*veldof, NC*vcldof))
+
+        # # construct the matrix1
+        matrix1_block1 = bmat([[block1_trialCell_testCell, block1_trialFace_testCell],
+                        [block1_trialCell_testFace, None]], format='csr')
+        matrix1 = bmat([[matrix1_block1, None], [None, matrix1_block1]], format='csr')
+
+
+
+
+
 
 
 
