@@ -115,7 +115,9 @@ class HHONavierStokesSpace2d:
         FC_row0, FC_col0, FC_row1, FC_col1 = self.row_col_trialFace_testCell()
         CF_row0, CF_col0, CF_row1, CF_col1 = self.row_col_trialCell_testFace()
 
-        # --- get the matrix c(u^{k},u^{k+1},v) --- #
+        # ---------------------------------------
+        # get the matrix c(u^{k},u^{k+1},v)
+        # ---------------------------------------
         def f1(point, index=None):
             phi = self.basis(point, index=index)  # using the cell-integration, so phi: (NQ,NC,vcldof)
             gphi = self.grad_basis(point, index=index)  # using the cell-integration, so gphi: (NQ,NC,vcldof,2)
@@ -161,7 +163,9 @@ class HHONavierStokesSpace2d:
                               [matrix1_trialCell_testFace, None]], format='csr')
         matrix1 = bmat([[matrix1_block, None], [None, matrix1_block]], format='csr')
 
-        # --- get the matrix c(u^{k+1},u^{k},v) --- #
+        # ---------------------------------------
+        # get the matrix c(u^{k+1},u^{k},v)
+        # ---------------------------------------
         lastUH = [lastuh1, lastuh2]
 
         def get_matrix2_block(trial_indicator, test_indicator):
@@ -217,6 +221,52 @@ class HHONavierStokesSpace2d:
                                                      (CF_row0.flat, CF_col0.flat)), shape=(NE*veldof, NC*vcldof))
             matrix2_trialCell_testFace += csr_matrix((block2_trialCell_testFace1.flat,
                                                       (CF_row1.flat, CF_col1.flat)), shape=(NE*veldof, NC*vcldof))
+
+            # ----------------------------------
+            # return results
+            # ----------------------------------
+            return matrix2_trialCell_testCell, matrix2_trialCell_testFace
+
+        # --- to get the different matrix2 --- #
+        matrix2_trialCell0_testCell0, matrix2_trialCell0_testFace0 = get_matrix2_block(0, 0)
+        matrix2_trialCell1_testCell0, matrix2_trialCell1_testFace0 = get_matrix2_block(1, 0)
+        matrix2_trialCell0_testCell1, matrix2_trialCell0_testFace1 = get_matrix2_block(0, 1)
+        matrix2_trialCell1_testCell1, matrix2_trialCell1_testFace1 = get_matrix2_block(1, 1)
+
+        block_zero_cell = csr_matrix(np.zeros((NC*vcldof, NE*veldof)))
+        block_zero_edge = csr_matrix(np.zeros((NE*veldof, NE*veldof)))
+
+        matrix2 = bmat([[matrix2_trialCell0_testCell0, block_zero_cell, matrix2_trialCell1_testCell0, block_zero_cell],
+                        [matrix2_trialCell0_testFace0, block_zero_edge, matrix2_trialCell1_testFace0, block_zero_edge],
+                        [matrix2_trialCell0_testCell1, block_zero_cell, matrix2_trialCell1_testCell1, block_zero_cell],
+                        [matrix2_trialCell0_testFace1, block_zero_edge, matrix2_trialCell1_testFace1, block_zero_edge]],
+                       format='csr')
+
+        # ---------------------------------------
+        # get the right vector c(u^{k},u^{k},v)
+        # ---------------------------------------
+        def get_rightvector_block(test_indicator):
+            vi = test_indicator
+            last_uh = lastUH[vi]
+
+            # ----------------------------------
+            # get block testCell
+            # ----------------------------------
+            def f3(point, index=None):
+                phi = self.basis(point, index=index)  # using the cell-integration, so phi: (NQ,NC,vcldof)
+                gphi = self.grad_basis(point, index=index)  # using the cell-integration, so gphi: (NQ,NC,vcldof,2)
+                valueuh = self.value(last_uh, point, index=index)  # (NQ,NC)
+                valueuh1 = self.value(lastuh1, point, index=index)  # (NQ,NC)
+                valueuh2 = self.value(lastuh2, point, index=index)  # (NQ,NC)
+                gradvalueuh = self.grad_value(last_uh, point, index=index)  # (NQ,NC,2)
+                v = np.einsum('ij, ij, ij->ijmk', gradvalueuh[:, 0], valueuh1, phi) \
+                    - np.einsum('ijk, ijm, ij->ijmk', phi, gphi[..., ui], valueuh)  # (NQ,NC,vcldof,vcldof)
+                return 0.5 * v
+
+
+
+
+
 
 
 
