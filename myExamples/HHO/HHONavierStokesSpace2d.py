@@ -169,6 +169,9 @@ class HHONavierStokesSpace2d:
             vi = test_indicator
             last_uh = lastUH[vi]
 
+            # ----------------------------------
+            # get block trialCell_testCell
+            # ----------------------------------
             def f2(point, index=None):
                 phi = self.basis(point, index=index)  # using the cell-integration, so phi: (NQ,NC,vcldof)
                 gphi = self.grad_basis(point, index=index)  # using the cell-integration, so gphi: (NQ,NC,vcldof,2)
@@ -196,6 +199,27 @@ class HHONavierStokesSpace2d:
             matrix2_trialCell_testCell += csr_matrix((block2_trialCell_testFace1.flat,
                                                       (CC_rowedge1.flat, CC_coledge1.flat)),
                                                      shape=(NC * vcldof, NC * vcldof))
+
+            # ----------------------------------
+            # get block trialCell_testFace
+            # ----------------------------------
+            uhcelldof0 = lastuh[vcelldof[edge2cell[:, 0], :]]  # (NE,vcldof)
+            uhcelldof1 = lastuh[vcelldof[edge2cell[isInEdge, 1], :]]  # (NInE,vcldof)
+            uhcelldof_edgevalue0 = np.einsum('ijk, jk->ij', phi0, uhcelldof0)  # (NQ,NE)
+            uhcelldof_edgevalue1 = np.einsum('ijk, jk->ij', phi1, uhcelldof1)  # (NQ,NInE)
+
+            block2_trialCell_testFace0 = -0.5 * np.einsum('i, ijk, ijm, ij, j->jmk', ws, phi0, ephi,
+                                                          uhcelldof_edgevalue0, n[:, ui])  # (NE,veldof,vcldof)
+            block2_trialCell_testFace1 = -0.5 * np.einsum('i, ijk, ijm, ij, j->jmk', ws, phi1, ephi[:, isInEdge, :],
+                                                          uhcelldof_edgevalue1, -n[isInEdge, ui])  # (NInE,veldof,vcldof)
+
+            matrix2_trialCell_testFace = csr_matrix((block2_trialCell_testFace0.flat,
+                                                     (CF_row0.flat, CF_col0.flat)), shape=(NE*veldof, NC*vcldof))
+            matrix2_trialCell_testFace += csr_matrix((block2_trialCell_testFace1.flat,
+                                                      (CF_row1.flat, CF_col1.flat)), shape=(NE*veldof, NC*vcldof))
+
+
+
 
 
 
