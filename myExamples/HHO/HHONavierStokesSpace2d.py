@@ -259,9 +259,44 @@ class HHONavierStokesSpace2d:
                 valueuh1 = self.value(lastuh1, point, index=index)  # (NQ,NC)
                 valueuh2 = self.value(lastuh2, point, index=index)  # (NQ,NC)
                 gradvalueuh = self.grad_value(last_uh, point, index=index)  # (NQ,NC,2)
-                v = np.einsum('ij, ij, ij->ijmk', gradvalueuh[:, 0], valueuh1, phi) \
-                    - np.einsum('ijk, ijm, ij->ijmk', phi, gphi[..., ui], valueuh)  # (NQ,NC,vcldof,vcldof)
+                v = np.einsum('ij, ij, ijk->ijk', gradvalueuh[:, 0], valueuh1, phi) \
+                    + np.einsum('ij, ij, ijk->ijk', gradvalueuh[:, 1], valueuh2, phi) \
+                    - np.einsum('ij, ij, ijk->ijk', valueuh, valueuh1, gphi[..., 0]) \
+                    - np.einsum('ij, ij, ijk->ijk', valueuh, valueuh2, gphi[..., 1])  # (NQ,NC,vcldof)
                 return 0.5 * v
+
+            # --- part I --- #
+            block3_testCell = self.integralalg.integral(f3, celltype=True)  # (NC,vcldof)
+            vector_testCell = block3_testCell.reshape(-1, 1)  # (NC*vcldof, 1)
+
+            # --- part II --- #
+            uhedgedof_edgevalue = self.edge_value(last_uh, ps)  # (NQ,NE), using the edge-dofs to get edge-values
+            block3_testFace0 = 0.5 * np.einsum('i, ij, ijm, ij->jm', ws, uhedgedof_edgevalue, phi0,
+                                               uh1celldof_edgevalue0 * n[:, 0]
+                                               + uh2celldof_edgevalue0 * n[:, 1])  # (NE,vcldof)
+            block3_testFace1 = 0.5 * np.einsum('i, ij, ijm, ij->jm', ws, uhedgedof_edgevalue[isInEdge], phi1,
+                                               uh1celldof_edgevalue1 * (-n[isInEdge, 0])
+                                               + uh2celldof_edgevalue1 * (-n[isInEdge, 1]))  # (NInE,vcldof)
+
+            row_testCell0 = CC_rowedge0[:, 0]
+            row_testCell1 = CC_rowedge1[:, 0]
+            vector_testCell[row_testCell0, 0] += block3_testFace0.reshape(-1, 1)
+            vector_testCell[row_testCell1, 0] += block3_testFace1.reshape(-1, 1)
+
+            # ----------------------------------
+            # get block testFace
+            # ----------------------------------
+            uhcelldof0 = lastuh[vcelldof[edge2cell[:, 0], :]]  # (NE,vcldof)
+            uhcelldof1 = lastuh[vcelldof[edge2cell[isInEdge, 1], :]]  # (NInE,vcldof)
+            uhcelldof_edgevalue0 = np.einsum('ijk, jk->ij', phi0, uhcelldof0)  # (NQ,NE)
+            uhcelldof_edgevalue1 = np.einsum('ijk, jk->ij', phi1, uhcelldof1)  # (NQ,NInE)
+
+            block3_trialFace0 = -0.5 * np.einsum('i, ij, ijm, ij->jm', ws, uhcelldof_edgevalue0, ephi,
+                                                 uh1celldof_edgevalue0 * n[:, 0]
+                                                 + uh2celldof_edgevalue0 * n[:, 1])  # (NE,veldof)
+            block3_trialFace1 = -0.5 * np.einsum('i, ij, ijm, ij->jm', ws, uhcelldof_edgevalue1, ephi[isInEdge],
+                                                 uh1celldof_edgevalue1 * (-n[isInEdge, 0])
+                                                 + uh2celldof_edgevalue1 * (-n[isInEdge, 1]))  # (NInE,veldof)
 
 
 
