@@ -50,6 +50,8 @@ class HHONavierStokesSpace2d:
         self.vSpace = self.stokesspace.vSpace
         self.pSpace = self.stokesspace.pSpace
         self.integralalg = self.vSpace.integralalg
+        self.itype = self.mesh.itype
+        self.ftype = self.mesh.ftype
 
     def number_of_global_dofs(self):
         return self.dof.number_of_global_dofs()
@@ -259,8 +261,8 @@ class HHONavierStokesSpace2d:
                 valueuh1 = self.value(lastuh1, point, index=index)  # (NQ,NC)
                 valueuh2 = self.value(lastuh2, point, index=index)  # (NQ,NC)
                 gradvalueuh = self.grad_value(last_uh, point, index=index)  # (NQ,NC,2)
-                v = np.einsum('ij, ij, ijk->ijk', gradvalueuh[:, 0], valueuh1, phi) \
-                    + np.einsum('ij, ij, ijk->ijk', gradvalueuh[:, 1], valueuh2, phi) \
+                v = np.einsum('ij, ij, ijk->ijk', gradvalueuh[..., 0], valueuh1, phi) \
+                    + np.einsum('ij, ij, ijk->ijk', gradvalueuh[..., 1], valueuh2, phi) \
                     - np.einsum('ij, ij, ijk->ijk', valueuh, valueuh1, gphi[..., 0]) \
                     - np.einsum('ij, ij, ijk->ijk', valueuh, valueuh2, gphi[..., 1])  # (NQ,NC,vcldof)
                 return 0.5 * v
@@ -274,14 +276,14 @@ class HHONavierStokesSpace2d:
             block3_testFace0 = 0.5 * np.einsum('i, ij, ijm, ij->jm', ws, uhedgedof_edgevalue, phi0,
                                                uh1celldof_edgevalue0 * n[:, 0]
                                                + uh2celldof_edgevalue0 * n[:, 1])  # (NE,vcldof)
-            block3_testFace1 = 0.5 * np.einsum('i, ij, ijm, ij->jm', ws, uhedgedof_edgevalue[isInEdge], phi1,
+            block3_testFace1 = 0.5 * np.einsum('i, ij, ijm, ij->jm', ws, uhedgedof_edgevalue[:, isInEdge], phi1,
                                                uh1celldof_edgevalue1 * (-n[isInEdge, 0])
                                                + uh2celldof_edgevalue1 * (-n[isInEdge, 1]))  # (NInE,vcldof)
 
-            row_testCell0 = CC_rowedge0[:, 0]
-            row_testCell1 = CC_rowedge1[:, 0]
-            vector_testCell[row_testCell0, 0] += block3_testFace0.reshape(-1, 1)
-            vector_testCell[row_testCell1, 0] += block3_testFace1.reshape(-1, 1)
+            row_testCell0 = CC_rowedge0[..., 0].reshape(-1,)  # CC_rowedge0.shape : (NE,vcldof,vcldof)
+            row_testCell1 = CC_rowedge1[..., 0].reshape(-1,)
+            vector_testCell[row_testCell0, 0] += block3_testFace0.reshape(-1,)
+            vector_testCell[row_testCell1, 0] += block3_testFace1.reshape(-1,)
 
             # ----------------------------------
             # get block testFace
@@ -291,28 +293,29 @@ class HHONavierStokesSpace2d:
             uhcelldof_edgevalue0 = np.einsum('ijk, jk->ij', phi0, uhcelldof0)  # (NQ,NE)
             uhcelldof_edgevalue1 = np.einsum('ijk, jk->ij', phi1, uhcelldof1)  # (NQ,NInE)
 
-            block3_trialFace0 = -0.5 * np.einsum('i, ij, ijm, ij->jm', ws, uhcelldof_edgevalue0, ephi,
-                                                 uh1celldof_edgevalue0 * n[:, 0]
-                                                 + uh2celldof_edgevalue0 * n[:, 1])  # (NE,veldof)
-            block3_trialFace1 = -0.5 * np.einsum('i, ij, ijm, ij->jm', ws, uhcelldof_edgevalue1, ephi[isInEdge],
-                                                 uh1celldof_edgevalue1 * (-n[isInEdge, 0])
-                                                 + uh2celldof_edgevalue1 * (-n[isInEdge, 1]))  # (NInE,veldof)
+            block3_testFace0 = -0.5 * np.einsum('i, ij, ijm, ij->jm', ws, uhcelldof_edgevalue0, ephi,
+                                                uh1celldof_edgevalue0 * n[:, 0]
+                                                + uh2celldof_edgevalue0 * n[:, 1])  # (NE,veldof)
+            block3_testFace1 = -0.5 * np.einsum('i, ij, ijm, ij->jm', ws, uhcelldof_edgevalue1, ephi[:, isInEdge, :],
+                                                uh1celldof_edgevalue1 * (-n[isInEdge, 0])
+                                                + uh2celldof_edgevalue1 * (-n[isInEdge, 1]))  # (NInE,veldof)
 
+            row_testFace0 = CF_row0[..., 0].reshape(-1,)  # CF_row0.shape : (NE,veldof,vcldof)
+            row_testFace1 = CF_row1[..., 0].reshape(-1,)  # CF_row0.shape : (NE,veldof,vcldof)
+            vector_testFace = np.zeros((NE*veldof, 1))
+            vector_testFace[row_testFace0, 0] += block3_testFace0.reshape(-1,)
+            vector_testFace[row_testFace1, 0] += block3_testFace1.reshape(-1,)
 
+            # ----------------------------------
+            # return results
+            # ----------------------------------
+            return vector_testCell, vector_testFace
 
+        vector_testCell0, vector_testFace0 = get_rightvector_block(0)
+        vector_testCell1, vector_testFace1 = get_rightvector_block(1)
+        right_vector = np.concatenate([vector_testCell0, vector_testFace0, vector_testCell1, vector_testFace1], axis=0)
 
-
-
-
-
-
-
-
-
-
-
-
-
+        return matrix1, matrix2, right_vector
 
     def row_col_trialCell_testCell(self):
         p = self.p
@@ -329,16 +332,18 @@ class HHONavierStokesSpace2d:
 
         # --- construct the row and col of cell-dofs at cells --- #
         row_atCell = np.einsum('i, j->ij', range(NC * vcldof),
-                        np.ones(vcldof)).reshape((NC, vcldof, vcldof))  # (NC,vcldof,vcldof)
+                               np.ones(vcldof, self.itype)).reshape((NC, vcldof, vcldof))  # (NC,vcldof,vcldof)
         col_atCell = row_atCell.swapaxes(1, -1)
 
         # --- construct the row and col of cell-dofs at faces --- #
         r0 = ((vcldof * edge2cell[:, 0]).reshape(-1, 1) + np.tile(np.arange(vcldof), (NE, 1))).flatten()
-        row_atEdge0 = np.einsum('i, j->ij', r0, np.ones(vcldof)).reshape((NE, vcldof, vcldof))  # (NE,vcldof,vcldof)
+        row_atEdge0 = np.einsum('i, j->ij', r0,
+                                np.ones(vcldof, self.itype)).reshape((NE, vcldof, vcldof))  # (NE,vcldof,vcldof)
         col_atEdge0 = row_atEdge0.swapaxes(1, -1)
 
         r1 = ((vcldof * edge2cell[isInEdge, 0]).reshape(-1, 1) + np.tile(np.arange(vcldof), (NInE, 1))).flatten()
-        row_atEdge1 = np.einsum('i, j->ij', r1, np.ones(vcldof)).reshape((NInE, vcldof, vcldof))  # (NInE,vcldof,vcldof)
+        row_atEdge1 = np.einsum('i, j->ij', r1,
+                                np.ones(vcldof, self.itype)).reshape((NInE, vcldof, vcldof))  # (NInE,vcldof,vcldof)
         col_atEdge1 = row_atEdge1.swapaxes(1, -1)
 
         return row_atCell, col_atCell, row_atEdge0, col_atEdge0, row_atEdge1, col_atEdge1
@@ -357,13 +362,13 @@ class HHONavierStokesSpace2d:
         veldof = p + 1  # number of edge local dof
 
         r0 = ((vcldof * edge2cell[:, 0]).reshape(-1, 1) + np.tile(np.arange(vcldof), (NE, 1))).flatten()
-        row0 = np.einsum('i, j->ij', r0, np.ones(veldof)).reshape((NE, vcldof, veldof))  # (NE,vcldof,veldof)
+        row0 = np.einsum('i, j->ij', r0, np.ones(veldof, self.itype)).reshape((NE, vcldof, veldof))  # (NE,vcldof,veldof)
         c0 = np.tile((np.arange(NE * veldof)).reshape(1, -1), (vcldof, 1))
         c0 = np.hsplit(c0, np.arange(veldof, NE * veldof, veldof))
         col0 = np.array(c0)  # (NE,vcldof,veldof)
 
         r1 = ((vcldof * edge2cell[isInEdge, 1]).reshape(-1, 1) + np.tile(np.arange(vcldof), (NInE, 1))).flatten()
-        row1 = np.einsum('i, j->ij', r1, np.ones(veldof)).reshape((NInE, vcldof, veldof))
+        row1 = np.einsum('i, j->ij', r1, np.ones(veldof, self.itype)).reshape((NInE, vcldof, veldof))
         c1 = np.tile(((veldof * InEdgeIdx).reshape(-1, 1) + np.tile(np.arange(veldof), (NInE, 1))).flatten(),
                      (vcldof, 1))
         c1 = np.hsplit(c1, np.arange(veldof, NInE * veldof, veldof))
@@ -384,14 +389,14 @@ class HHONavierStokesSpace2d:
         veldof = p + 1  # number of edge local dof
 
         r0 = ((veldof * np.arange(NE)).reshape(-1, 1) + np.tile(np.arange(veldof), (NE, 1))).flatten()
-        row0 = np.einsum('i, j->ij', r0, np.ones(vcldof)).reshape((NE, veldof, vcldof))  # (NE,veldof,vclodf)
+        row0 = np.einsum('i, j->ij', r0, np.ones(vcldof, self.itype)).reshape((NE, veldof, vcldof))  # (NE,veldof,vclodf)
         c0 = np.tile(((vcldof * edge2cell[:, 0]).reshape(-1, 1) +
                       np.tile(np.arange(vcldof), (NE, 1))).flatten(), (veldof, 1))
         c0 = np.hsplit(c0, np.arange(vcldof, NE * vcldof, vcldof))
         col0 = np.array(c0)
 
         r1 = ((veldof * InEdgeIdx).reshape(-1, 1) + np.tile(np.arange(veldof), (NInE, 1))).flatten()
-        row1 = np.einsum('i, j->ij', r1, np.ones(vcldof)).reshape((NInE, veldof, vcldof))  # (NE,veldof,vclodf)
+        row1 = np.einsum('i, j->ij', r1, np.ones(vcldof, self.itype)).reshape((NInE, veldof, vcldof))  # (NE,veldof,vclodf)
         c1 = np.tile(((vcldof * edge2cell[isInEdge, 1]).reshape(-1, 1) +
                       np.tile(np.arange(vcldof), (NInE, 1))).flatten(), (veldof, 1))
         c1 = np.hsplit(c1, np.arange(vcldof, NInE * vcldof, vcldof))
