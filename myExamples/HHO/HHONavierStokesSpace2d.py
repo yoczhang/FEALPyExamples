@@ -56,10 +56,11 @@ class HHONavierStokesSpace2d:
     def number_of_global_dofs(self):
         return self.dof.number_of_global_dofs()
 
-    def system_matrix(self, nu):
-        A = self.stokesspace.velocity_matrix()  # (2*vgdof,2*vgdof)
-        B = self.stokesspace.divergence_matrix()  # (pgdof,2*vgdof)
-        P = self.stokesspace.pressure_correction()  # (1,2*vgdof+pgdof)
+    def stokes_system_matrix(self, nu):
+        return self.stokesspace.system_matrix(nu)
+
+    def stokes_system_source(self, f):
+        return self.stokesspace.system_source(f)
 
     def convective_matrix(self, lastuh):
         """
@@ -173,7 +174,7 @@ class HHONavierStokesSpace2d:
         def get_matrix2_block(trial_indicator, test_indicator):
             ui = trial_indicator
             vi = test_indicator
-            last_uh = lastUH[vi]
+            LA_UH = lastUH[vi]
 
             # ----------------------------------
             # get block trialCell_testCell
@@ -181,8 +182,8 @@ class HHONavierStokesSpace2d:
             def f2(point, index=None):
                 phi = self.basis(point, index=index)  # using the cell-integration, so phi: (NQ,NC,vcldof)
                 gphi = self.grad_basis(point, index=index)  # using the cell-integration, so gphi: (NQ,NC,vcldof,2)
-                valueuh = self.value(last_uh, point, index=index)  # (NQ,NC)
-                gradvalueuh = self.grad_value(last_uh, point, index=index)  # (NQ,NC,2)
+                valueuh = self.value(LA_UH, point, index=index)  # (NQ,NC)
+                gradvalueuh = self.grad_value(LA_UH, point, index=index)  # (NQ,NC,2)
                 v = np.einsum('ijk, ijm, ij->ijmk', phi, phi, gradvalueuh[..., ui]) \
                     - np.einsum('ijk, ijm, ij->ijmk', phi, gphi[..., ui], valueuh)  # (NQ,NC,vcldof,vcldof)
                 return 0.5 * v
@@ -192,7 +193,7 @@ class HHONavierStokesSpace2d:
             matrix2_trialCell_testCell = csr_matrix((block2_trialCell_testCell.flat,
                                                      (CC_row.flat, CC_col.flat)), shape=(NC*vcldof, NC*vcldof))
             # --- part II --- #
-            uhedgedof_edgevalue = self.edge_value(last_uh, ps)  # (NQ,NE), using the edge-dofs to get edge-values
+            uhedgedof_edgevalue = self.edge_value(LA_UH, ps)  # (NQ,NE), using the edge-dofs to get edge-values
             block2_trialCell_testFace0 = 0.5 * np.einsum('i, ijk, ijm, ij, j->jmk', ws, phi0, phi0,
                                                          uhedgedof_edgevalue, n[:, ui])  # (NE,vcldof,vcldof)
             block2_trialCell_testFace1 = 0.5 * np.einsum('i, ijk, ijm, ij, j->jmk', ws, phi1, phi1,
@@ -249,7 +250,7 @@ class HHONavierStokesSpace2d:
         # ---------------------------------------
         def get_rightvector_block(test_indicator):
             vi = test_indicator
-            last_uh = lastUH[vi]
+            LA_UH = lastUH[vi]
 
             # ----------------------------------
             # get block testCell
@@ -257,10 +258,10 @@ class HHONavierStokesSpace2d:
             def f3(point, index=None):
                 phi = self.basis(point, index=index)  # using the cell-integration, so phi: (NQ,NC,vcldof)
                 gphi = self.grad_basis(point, index=index)  # using the cell-integration, so gphi: (NQ,NC,vcldof,2)
-                valueuh = self.value(last_uh, point, index=index)  # (NQ,NC)
+                valueuh = self.value(LA_UH, point, index=index)  # (NQ,NC)
                 valueuh1 = self.value(lastuh1, point, index=index)  # (NQ,NC)
                 valueuh2 = self.value(lastuh2, point, index=index)  # (NQ,NC)
-                gradvalueuh = self.grad_value(last_uh, point, index=index)  # (NQ,NC,2)
+                gradvalueuh = self.grad_value(LA_UH, point, index=index)  # (NQ,NC,2)
                 v = np.einsum('ij, ij, ijk->ijk', gradvalueuh[..., 0], valueuh1, phi) \
                     + np.einsum('ij, ij, ijk->ijk', gradvalueuh[..., 1], valueuh2, phi) \
                     - np.einsum('ij, ij, ijk->ijk', valueuh, valueuh1, gphi[..., 0]) \
@@ -269,10 +270,10 @@ class HHONavierStokesSpace2d:
 
             # --- part I --- #
             block3_testCell = self.integralalg.integral(f3, celltype=True)  # (NC,vcldof)
-            vector_testCell = block3_testCell.reshape(-1, 1)  # (NC*vcldof, 1)
+            vector_testCell = block3_testCell.reshape(-1, 1)  # (NC*vcldof,1)
 
             # --- part II --- #
-            uhedgedof_edgevalue = self.edge_value(last_uh, ps)  # (NQ,NE), using the edge-dofs to get edge-values
+            uhedgedof_edgevalue = self.edge_value(LA_UH, ps)  # (NQ,NE), using the edge-dofs to get edge-values
             block3_testFace0 = 0.5 * np.einsum('i, ij, ijm, ij->jm', ws, uhedgedof_edgevalue, phi0,
                                                uh1celldof_edgevalue0 * n[:, 0]
                                                + uh2celldof_edgevalue0 * n[:, 1])  # (NE,vcldof)
