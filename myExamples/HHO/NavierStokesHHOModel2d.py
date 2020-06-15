@@ -18,12 +18,15 @@ from scipy.sparse import spdiags
 # from scipy.sparse import csr_matrix
 from scipy.sparse.linalg import spsolve
 from timeit import default_timer as timer
+from scipy.sparse import csr_matrix, bmat
 
 
 class NavierStokesHHOModel2d:
     def __init__(self, pde, mesh, p):
         self.p = p
         self.mesh = mesh
+        self.itype = self.mesh.itype
+        self.ftype = self.mesh.ftype
         self.pde = pde
         self.space = HHONavierStokesSpace2d(mesh, p)
         self.integralalg = self.space.integralalg
@@ -57,5 +60,13 @@ class NavierStokesHHOModel2d:
             convV = np.concatenate([vec, np.zeros((zerodof, 1), dtype=self.ftype)], axis=0)
             AA = AAS + convM
 
+    def applyDirichletBC(self, A, b):
+        uD = self.pde.dirichlet  # uD(bcs): (NQ,NC,ldof,2)
+        idxDirEdge = self.setDirichletEdges()
+        AD, bD = self.space.stokesspace.applyDirichletBC(A, b, uD, idxDirEdge=idxDirEdge)
+        return AD, bD
 
+    def setDirichletEdges(self):
+        # the following default Dirichelt edges
+        return self.space.stokesspace.defaultDirichletEdges()
 
