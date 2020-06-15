@@ -36,6 +36,11 @@ class NavierStokesHHOModel2d:
         self.A = None
 
     def solver_by_Newton_iteration(self, nu):
+        uh0 = self.uh0
+        uh1 = self.uh1
+        ph = self.ph
+        vgdof = self.space.vSpace.number_of_global_dofs()
+
         # ---------------------------------------
         # get Stokes-system matrix
         # ---------------------------------------
@@ -45,20 +50,45 @@ class NavierStokesHHOModel2d:
         # ---------------------------------------
         # get convective matrix
         # ---------------------------------------
-        lastuh = self.space.vSpace.function()
-        lastuh[:] = np.random.rand(len(lastuh))
-        uh0 = np.concatenate([lastuh, lastuh])
+        # lastuh = self.space.vSpace.function()
+        # lastuh[:] = np.random.rand(len(lastuh))
+        # lastuh = np.concatenate([lastuh, lastuh])
+        lastuh = self.stokes_velocity_solver(AAS, bbS)[:-1]  # the number of all dofs is 2*vgdof+pgdof+1
         tol = 1e-8
         uherr = 1.0
         Nit = 0
-
-        matrix1, matrix2, vec = self.space.convective_matrix(uh0)
-        zerodof = AAS.shape[0] - matrix1.shape[0]
+        zerodof = self.space.pSpace.number_of_global_dofs() + 1
 
         while (uherr > tol) & (Nit < 30):
+            matrix1, matrix2, vec = self.space.convective_matrix(lastuh)
             convM = bmat([[matrix1 + matrix2, None], [None, csr_matrix(np.zeros((zerodof, zerodof), dtype=self.ftype))]])
             convV = np.concatenate([vec, np.zeros((zerodof, 1), dtype=self.ftype)], axis=0)
             AA = AAS + convM
+            bb = bbS + convV
+            self.A, b = self.applyDirichletBC(AA, bb)
+            x = np.concatenate([uh0, uh1, ph, np.zeros((1,), dtype=np.float)])  # (2*vgdof+pgdof+1,)
+            uh0[:] = x[:vgdof]
+            uh1[:] = x[vgdof:(2 * vgdof)]
+
+
+
+    def stokes_velocity_solver(self, AA, bb):
+        A, b = self.applyDirichletBC(AA, bb)
+        uh0 = self.space.vSpace.function()
+        uh1 = self.space.vSpace.function()
+        ph = self.space.pSpace.function()
+        vgdof = self.space.vSpace.number_of_global_dofs()
+
+        # --- solve the system --- #
+        x = np.concatenate([uh0, uh1, ph, np.zeros((1,), dtype=np.float)])  # (2*vgdof+pgdof+1,)
+        start = timer()
+        x[:] = spsolve(self.A, b)
+        end = timer()
+        print("Stokes-solver time:", end - start)
+
+        uh0[:] = x[:vgdof]
+        uh1[:] = x[vgdof:(2 * vgdof)]
+        return np.concatenate([uh0, uh1], axis=0)
 
     def applyDirichletBC(self, A, b):
         uD = self.pde.dirichlet  # uD(bcs): (NQ,NC,ldof,2)
