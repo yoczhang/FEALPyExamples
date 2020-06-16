@@ -29,13 +29,14 @@ class NavierStokesHHOModel2d:
         self.ftype = self.mesh.ftype
         self.pde = pde
         self.space = HHONavierStokesSpace2d(mesh, p)
+        self.stokesspace = self.space.stokesspace
         self.integralalg = self.space.integralalg
         self.uh0 = self.space.vSpace.function()
         self.uh1 = self.space.vSpace.function()
         self.ph = self.space.pSpace.function()
         self.A = None
 
-    def solver_by_Newton_iteration(self, nu):
+    def solve_by_Newton_iteration(self):
         uh0 = self.uh0
         uh1 = self.uh1
         ph = self.ph
@@ -59,6 +60,7 @@ class NavierStokesHHOModel2d:
         Nit = 0
         zerodof = self.space.pSpace.number_of_global_dofs() + 1
 
+        start = timer()
         while (err_it > tol) & (Nit < 30):
             matrix1, matrix2, vec = self.space.convective_matrix(lastuh)
             convM = bmat([[matrix1 + matrix2, None], [None, csr_matrix(np.zeros((zerodof, zerodof), dtype=self.ftype))]])
@@ -72,11 +74,23 @@ class NavierStokesHHOModel2d:
             uh1[:] = x[vgdof:(2 * vgdof)]
 
             Nit += 1
-            err_it = 1
+            err_it = self.iteration_error(lastuh)
+            lastuh = x[:-1]
+        end = timer()
+        print("NS-iteration solver time: ", end - start)
+        print("NS-iteration error: ", err_it)
+        print("NS-iteration step: ", Nit)
 
     def iteration_error(self, lastuh):
-        newuh = np.concatenate([self.uh0, self.uh1], axis=0)
+        vgdof = self.space.vSpace.number_of_global_dofs()
+        lastuh0 = lastuh[:vgdof]
+        lastuh1 = lastuh[vgdof:]
 
+        scalarL2err = self.space.vSpace.L2_error
+
+        err_it = scalarL2err(lastuh0, self.uh0)
+        err_it += scalarL2err(lastuh1, self.uh1)
+        return np.sqrt(err_it)
 
     def stokes_velocity_solver(self, AA, bb):
         A, b = self.applyDirichletBC(AA, bb)
@@ -88,13 +102,28 @@ class NavierStokesHHOModel2d:
         # --- solve the system --- #
         x = np.concatenate([uh0, uh1, ph, np.zeros((1,), dtype=np.float)])  # (2*vgdof+pgdof+1,)
         start = timer()
-        x[:] = spsolve(self.A, b)
+        x[:] = spsolve(A, b)
         end = timer()
-        print("Stokes-solver time:", end - start)
+        print("Stokes-solver time: ", end - start)
+        return x[:(2*vgdof)]
 
-        uh0[:] = x[:vgdof]
-        uh1[:] = x[vgdof:(2 * vgdof)]
-        return np.concatenate([uh0, uh1], axis=0)
+    def velocity_L2_error(self):
+        velocity = self.pde.velocity
+        uh0 = self.uh0
+        uh1 = self.uh1
+        return self.stokesspace.velocity_L2_error(velocity, uh0, uh1)
+
+    def velocity_energy_error(self):
+        velocity = self.pde.velocity
+        uh0 = self.uh0
+        uh1 = self.uh1
+        A = self.A
+        return self.stokesspace.velocity_energy_error(velocity, A, uh0, uh1)
+
+    def pressure_L2_error(self):
+        pressure = self.pde.pressure
+        ph = self.ph
+        return self.stokesspace.pressure_L2_error(pressure, ph)
 
     def applyDirichletBC(self, A, b):
         uD = self.pde.dirichlet  # uD(bcs): (NQ,NC,ldof,2)

@@ -14,7 +14,7 @@ from NavierStokes2DData import NavierStokes2DData_0
 import numpy as np
 import matplotlib.pyplot as plt
 from fealpy.tools.show import showmultirate, show_error_table
-from StokesHHOModel2d import StokesHHOModel2d
+from NavierStokesHHOModel2d import NavierStokesHHOModel2d
 from fealpy.mesh.mesh_tools import find_entity
 
 
@@ -26,7 +26,7 @@ maxit = 4  # the max iteration of the mesh
 
 nu = 1.0
 pde = NavierStokes2DData_0(nu)  # create pde model
-mesh = pde.init_mesh(n, meshtype='quad')
+mesh = pde.init_mesh(n, meshtype='polygon')
 
 # # error settings
 errorType = ['$|| u - u_h||_0$', '$||\\nabla u - \\nabla u_h||_0$', '|| p - p_h ||_0']
@@ -46,12 +46,12 @@ Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
 
 # --- start for-loop --- #
 for i in range(maxit):
-    stokes = StokesHHOModel2d(pde, mesh, p)
-    sol = stokes.solve()
-    Ndof[i] = stokes.space.number_of_global_dofs()  # get the number of dofs
-    errorMatrix[0, i] = stokes.velocity_L2_error()  # get the velocity L2 error
-    errorMatrix[1, i] = stokes.velocity_energy_error()  # get the velocity energy error
-    errorMatrix[2, i] = stokes.pressure_L2_error()  # get the pressure L2 error
+    ns = NavierStokesHHOModel2d(pde, mesh, p)
+    sol = ns.solve_by_Newton_iteration()
+    Ndof[i] = ns.space.number_of_global_dofs()  # get the number of dofs
+    errorMatrix[0, i] = ns.velocity_L2_error()  # get the velocity L2 error
+    errorMatrix[1, i] = ns.velocity_energy_error()  # get the velocity energy error
+    errorMatrix[2, i] = ns.pressure_L2_error()  # get the pressure L2 error
     if i < maxit - 1:
         n += 1
         mesh = pde.init_mesh(n, meshtype=mesh.meshtype)
