@@ -55,11 +55,11 @@ class NavierStokesHHOModel2d:
         # lastuh = np.concatenate([lastuh, lastuh])
         lastuh = self.stokes_velocity_solver(AAS, bbS)[:-1]  # the number of all dofs is 2*vgdof+pgdof+1
         tol = 1e-8
-        uherr = 1.0
+        err_it = 1.0
         Nit = 0
         zerodof = self.space.pSpace.number_of_global_dofs() + 1
 
-        while (uherr > tol) & (Nit < 30):
+        while (err_it > tol) & (Nit < 30):
             matrix1, matrix2, vec = self.space.convective_matrix(lastuh)
             convM = bmat([[matrix1 + matrix2, None], [None, csr_matrix(np.zeros((zerodof, zerodof), dtype=self.ftype))]])
             convV = np.concatenate([vec, np.zeros((zerodof, 1), dtype=self.ftype)], axis=0)
@@ -67,9 +67,15 @@ class NavierStokesHHOModel2d:
             bb = bbS + convV
             self.A, b = self.applyDirichletBC(AA, bb)
             x = np.concatenate([uh0, uh1, ph, np.zeros((1,), dtype=np.float)])  # (2*vgdof+pgdof+1,)
+            x[:] = spsolve(self.A, b)
             uh0[:] = x[:vgdof]
             uh1[:] = x[vgdof:(2 * vgdof)]
 
+            Nit += 1
+            err_it = 1
+
+    def iteration_error(self, lastuh):
+        newuh = np.concatenate([self.uh0, self.uh1], axis=0)
 
 
     def stokes_velocity_solver(self, AA, bb):
