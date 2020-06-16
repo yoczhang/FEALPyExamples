@@ -54,7 +54,7 @@ class NavierStokesHHOModel2d:
         # lastuh = self.space.vSpace.function()
         # lastuh[:] = np.random.rand(len(lastuh))
         # lastuh = np.concatenate([lastuh, lastuh])
-        lastuh = self.stokes_velocity_solver(AAS, bbS)[:-1]  # the number of all dofs is 2*vgdof+pgdof+1
+        lastuh = self.stokes_velocity_solver(AAS, bbS)  # this solver will only get the solutions of uh0 and uh1
         tol = 1e-8
         err_it = 1.0
         Nit = 0
@@ -75,7 +75,7 @@ class NavierStokesHHOModel2d:
 
             Nit += 1
             err_it = self.iteration_error(lastuh)
-            lastuh = x[:-1]
+            lastuh = x[:2*vgdof]
         end = timer()
         print("NS-iteration solver time: ", end - start)
         print("NS-iteration error: ", err_it)
@@ -132,6 +132,6 @@ class NavierStokesHHOModel2d:
         return AD, bD
 
     def setDirichletEdges(self):
-        # the following default Dirichelt edges
+        # the following default Dirichlet edges
         return self.space.stokesspace.defaultDirichletEdges()
 

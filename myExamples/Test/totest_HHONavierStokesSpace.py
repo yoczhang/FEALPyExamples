@@ -80,7 +80,7 @@ nsspace = HHONavierStokesSpace2d(pmesh, p)
 lastuh = nsspace.vSpace.function()
 lastuh[:] = np.random.rand(len(lastuh))
 lastuh = np.concatenate([lastuh, 2.0 + lastuh])
-cm = nsspace.convective_matrix(lastuh)
+cm1, cm2, cv = nsspace.convective_matrix(lastuh)
 
 # np.add.at(aa, [[0, 0, 2, 2], [1, 3, 1, 3]], bb.flatten())
 
