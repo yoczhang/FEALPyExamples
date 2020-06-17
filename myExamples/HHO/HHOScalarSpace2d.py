@@ -569,23 +569,23 @@ class HHOScalarSpace2d(object):
         smldof = self.smldof
         return self.smspace.grad_value(uh[:NC*smldof, ...], point, index=index)
 
-    # def edge_basis(self, point, index=None, p=None):
-    #     p = self.p if p is None else p
-    #     index = index if index is not None else np.s_[:]
-    #     center = self.integralalg.edgebarycenter
-    #     h = self.integralalg.edgemeasure
-    #     t = self.mesh.edge_unit_tagent()
-    #     val = np.sum((point - center[index]) * t[index], axis=-1) / h[index]
-    #     phi = np.ones(val.shape + (p + 1,), dtype=self.ftype)
-    #     if p == 1:
-    #         phi[..., 1] = -val  # note: here, we set -val, only used to compare the result with matlab-result
-    #     else:
-    #         # # note: here, we set -val, only used to compare the result with matlab-result
-    #         phi[..., 1:] = -val[..., np.newaxis]
-    #         np.multiply.accumulate(phi, axis=-1, out=phi)
-    #     return phi
     def edge_basis(self, point, index=None, p=None):
-        return self.smspace.edge_basis(point, index=index, p=p)
+        p = self.p if p is None else p
+        index = index if index is not None else np.s_[:]
+        center = self.integralalg.edgebarycenter
+        h = self.integralalg.edgemeasure
+        t = self.mesh.edge_unit_tagent()
+        val = np.sum((point - center[index]) * t[index], axis=-1) / h[index]
+        phi = np.ones(val.shape + (p + 1,), dtype=self.ftype)
+        if p == 1:
+            phi[..., 1] = -val  # note: here, we set -val, only used to compare the result with matlab-result
+        else:
+            # # note: here, we set -val, only used to compare the result with matlab-result
+            phi[..., 1:] = -val[..., np.newaxis]
+            np.multiply.accumulate(phi, axis=-1, out=phi)
+        return phi
+    # def edge_basis(self, point, index=None, p=None):
+    #     return self.smspace.edge_basis(point, index=index, p=p)
 
     def edge_value(self, uh, point):
         # point: (NQ,NE,2), NQ is the number of quadrature points, NE is the number of edges
