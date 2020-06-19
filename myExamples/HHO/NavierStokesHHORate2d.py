@@ -13,6 +13,7 @@
 from NavierStokes2DData import NavierStokes2DData_0
 import numpy as np
 import matplotlib.pyplot as plt
+from fealpy.mesh.Quadtree import Quadtree
 from fealpy.tools.show import showmultirate, show_error_table
 from NavierStokesHHOModel2d import NavierStokesHHOModel2d
 from fealpy.mesh.mesh_tools import find_entity
@@ -26,7 +27,16 @@ maxit = 4  # the max iteration of the mesh
 
 nu = 1.0
 pde = NavierStokes2DData_0(nu)  # create pde model
-mesh = pde.init_mesh(n, meshtype='polygon')
+# mesh = pde.init_mesh(n, meshtype='polygon')
+node = np.array([
+            (0, 0),
+            (1, 0),
+            (1, 1),
+            (0, 1)], dtype=np.float)
+cell = np.array([(0, 1, 2, 3)], dtype=np.int)
+qtree = Quadtree(node, cell)
+qtree.uniform_refine(n-2)
+mesh = qtree.to_pmesh()
 
 # # error settings
 errorType = ['$|| u - u_h||_0$', '$||\\nabla u - \\nabla u_h||_0$', '|| p - p_h ||_0']

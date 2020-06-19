@@ -574,7 +574,7 @@ class HHOScalarSpace2d(object):
         index = index if index is not None else np.s_[:]
         center = self.integralalg.edgebarycenter
         h = self.integralalg.edgemeasure
-        t = self.mesh.edge_unit_tagent()
+        t = self.mesh.edge_unit_tangent()
         val = np.sum((point - center[index]) * t[index], axis=-1) / h[index]
         phi = np.ones(val.shape + (p + 1,), dtype=self.ftype)
         if p == 1:
