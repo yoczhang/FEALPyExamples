@@ -194,24 +194,24 @@ class HHONavierStokesSpace2d:
                                                      (CC_row.flat, CC_col.flat)), shape=(NC*vcldof, NC*vcldof))
             # --- part II --- #
             uhedgedof_edgevalue = self.edge_value(LA_UH, ps)  # (NQ,NE), using the edge-dofs to get edge-values
-            block2_trialCell_testFace0 = 0.5 * np.einsum('i, ijk, ijm, ij, j->jmk', ws, phi0, phi0,
+            block2_trialCell_testCell0 = 0.5 * np.einsum('i, ijk, ijm, ij, j->jmk', ws, phi0, phi0,
                                                          uhedgedof_edgevalue, n[:, ui])  # (NE,vcldof,vcldof)
-            block2_trialCell_testFace1 = 0.5 * np.einsum('i, ijk, ijm, ij, j->jmk', ws, phi1, phi1,
+            block2_trialCell_testCell1 = 0.5 * np.einsum('i, ijk, ijm, ij, j->jmk', ws, phi1, phi1,
                                                          uhedgedof_edgevalue[:, isInEdge],
                                                          -n[isInEdge, ui])  # (NE,vcldof,vcldof)
 
-            matrix2_trialCell_testCell += csr_matrix((block2_trialCell_testFace0.flat,
+            matrix2_trialCell_testCell += csr_matrix((block2_trialCell_testCell0.flat,
                                                       (CC_rowedge0.flat, CC_coledge0.flat)),
                                                      shape=(NC * vcldof, NC * vcldof))
-            matrix2_trialCell_testCell += csr_matrix((block2_trialCell_testFace1.flat,
+            matrix2_trialCell_testCell += csr_matrix((block2_trialCell_testCell1.flat,
                                                       (CC_rowedge1.flat, CC_coledge1.flat)),
                                                      shape=(NC * vcldof, NC * vcldof))
 
             # ----------------------------------
             # get block trialCell_testFace
             # ----------------------------------
-            uhcelldof0 = lastuh[vcelldof[edge2cell[:, 0], :]]  # (NE,vcldof)
-            uhcelldof1 = lastuh[vcelldof[edge2cell[isInEdge, 1], :]]  # (NInE,vcldof)
+            uhcelldof0 = LA_UH[vcelldof[edge2cell[:, 0], :]]  # (NE,vcldof)
+            uhcelldof1 = LA_UH[vcelldof[edge2cell[isInEdge, 1], :]]  # (NInE,vcldof)
             uhcelldof_edgevalue0 = np.einsum('ijk, jk->ij', phi0, uhcelldof0)  # (NQ,NE)
             uhcelldof_edgevalue1 = np.einsum('ijk, jk->ij', phi1, uhcelldof1)  # (NQ,NInE)
 
@@ -274,23 +274,29 @@ class HHONavierStokesSpace2d:
 
             # --- part II --- #
             uhedgedof_edgevalue = self.edge_value(LA_UH, ps)  # (NQ,NE), using the edge-dofs to get edge-values
-            block3_testFace0 = 0.5 * np.einsum('i, ij, ijm, ij->jm', ws, uhedgedof_edgevalue, phi0,
+            block3_testCell0 = 0.5 * np.einsum('i, ij, ijm, ij->jm', ws, uhedgedof_edgevalue, phi0,
                                                uh1celldof_edgevalue0 * n[:, 0]
                                                + uh2celldof_edgevalue0 * n[:, 1])  # (NE,vcldof)
-            block3_testFace1 = 0.5 * np.einsum('i, ij, ijm, ij->jm', ws, uhedgedof_edgevalue[:, isInEdge], phi1,
+            block3_testCell1 = 0.5 * np.einsum('i, ij, ijm, ij->jm', ws, uhedgedof_edgevalue[:, isInEdge], phi1,
                                                uh1celldof_edgevalue1 * (-n[isInEdge, 0])
                                                + uh2celldof_edgevalue1 * (-n[isInEdge, 1]))  # (NInE,vcldof)
 
             row_testCell0 = CC_rowedge0[..., 0].reshape(-1,)  # CC_rowedge0.shape : (NE,vcldof,vcldof)
             row_testCell1 = CC_rowedge1[..., 0].reshape(-1,)
-            vector_testCell[row_testCell0, 0] += block3_testFace0.reshape(-1,)
-            vector_testCell[row_testCell1, 0] += block3_testFace1.reshape(-1,)
+            # vector_testCell[row_testCell0, 0] += block3_testCell0.reshape(-1,)
+            # vector_testCell[row_testCell1, 0] += block3_testCell1.reshape(-1,)
+            # np.add.at(vector_testCell, row_testCell0, block3_testCell0.reshape(-1,))  # TODO: this is wrong
+            # np.add.at(vector_testCell, row_testCell1, block3_testCell1.reshape(-1,))  # TODO: this is wrong
+            for k in range(len(row_testCell0)):  # TODO:
+                vector_testCell[row_testCell0[k], 0] += block3_testCell0.reshape(-1,)[k]
+            for k in range(len(row_testCell1)):  # TODO:
+                vector_testCell[row_testCell1[k], 0] += block3_testCell1.reshape(-1,)[k]
 
             # ----------------------------------
             # get block testFace
             # ----------------------------------
-            uhcelldof0 = lastuh[vcelldof[edge2cell[:, 0], :]]  # (NE,vcldof)
-            uhcelldof1 = lastuh[vcelldof[edge2cell[isInEdge, 1], :]]  # (NInE,vcldof)
+            uhcelldof0 = LA_UH[vcelldof[edge2cell[:, 0], :]]  # (NE,vcldof)
+            uhcelldof1 = LA_UH[vcelldof[edge2cell[isInEdge, 1], :]]  # (NInE,vcldof)
             uhcelldof_edgevalue0 = np.einsum('ijk, jk->ij', phi0, uhcelldof0)  # (NQ,NE)
             uhcelldof_edgevalue1 = np.einsum('ijk, jk->ij', phi1, uhcelldof1)  # (NQ,NInE)
 
