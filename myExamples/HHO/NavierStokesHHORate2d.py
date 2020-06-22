@@ -27,16 +27,16 @@ maxit = 4  # the max iteration of the mesh
 
 nu = 1.0
 pde = NavierStokes2DData_0(nu)  # create pde model
-mesh = pde.init_mesh(n, meshtype='polygon')
-# node = np.array([
-#             (0, 0),
-#             (1, 0),
-#             (1, 1),
-#             (0, 1)], dtype=np.float)
-# cell = np.array([(0, 1, 2, 3)], dtype=np.int)
-# qtree = Quadtree(node, cell)
-# qtree.uniform_refine(n-2)
-# mesh = qtree.to_pmesh()
+# mesh = pde.init_mesh(n, meshtype='polygon')
+node = np.array([
+            (0, 0),
+            (1, 0),
+            (1, 1),
+            (0, 1)], dtype=np.float)
+cell = np.array([(0, 1, 2, 3)], dtype=np.int)
+qtree = Quadtree(node, cell)
+qtree.uniform_refine(n-1)
+mesh = qtree.to_pmesh()
 
 # # error settings
 errorType = ['$|| u - u_h||_0$', '$||\\nabla u - \\nabla u_h||_0$', '|| p - p_h ||_0']
@@ -45,14 +45,14 @@ errorMatrix = np.zeros((len(errorType), maxit), dtype=np.float)
 Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
 
 # --- plot the mesh --- #
-# fig = plt.figure()
-# axes = fig.gca()
-# mesh.add_plot(axes, cellcolor='w')
-# find_entity(axes, mesh, entity='cell', index=None, showindex=True, color='b', markersize=10, fontsize=8)
-# find_entity(axes, mesh, entity='edge', index=None, showindex=True, color='r', markersize=10, fontsize=8)
-# find_entity(axes, mesh, entity='node', index=None, showindex=True, color='y', markersize=10, fontsize=8)
-# plt.show()
-# plt.close()
+fig = plt.figure()
+axes = fig.gca()
+mesh.add_plot(axes, cellcolor='w')
+find_entity(axes, mesh, entity='cell', index=None, showindex=True, color='b', markersize=10, fontsize=8)
+find_entity(axes, mesh, entity='edge', index=None, showindex=True, color='k', markersize=10, fontsize=8)
+find_entity(axes, mesh, entity='node', index=None, showindex=True, color='y', markersize=10, fontsize=8)
+plt.show()
+plt.close()
 
 # --- start for-loop --- #
 for i in range(maxit):
