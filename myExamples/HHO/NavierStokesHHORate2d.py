@@ -45,14 +45,14 @@ errorMatrix = np.zeros((len(errorType), maxit), dtype=np.float)
 Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
 
 # --- plot the mesh --- #
-fig = plt.figure()
-axes = fig.gca()
-mesh.add_plot(axes, cellcolor='w')
-find_entity(axes, mesh, entity='cell', index=None, showindex=True, color='b', markersize=10, fontsize=8)
-find_entity(axes, mesh, entity='edge', index=None, showindex=True, color='k', markersize=10, fontsize=8)
-find_entity(axes, mesh, entity='node', index=None, showindex=True, color='y', markersize=10, fontsize=8)
-plt.show()
-plt.close()
+# fig = plt.figure()
+# axes = fig.gca()
+# mesh.add_plot(axes, cellcolor='w')
+# find_entity(axes, mesh, entity='cell', index=None, showindex=True, color='b', markersize=10, fontsize=8)
+# find_entity(axes, mesh, entity='edge', index=None, showindex=True, color='k', markersize=10, fontsize=8)
+# find_entity(axes, mesh, entity='node', index=None, showindex=True, color='y', markersize=10, fontsize=8)
+# plt.show()
+# plt.close()
 
 # --- start for-loop --- #
 for i in range(maxit):
