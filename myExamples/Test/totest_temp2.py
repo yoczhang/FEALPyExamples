@@ -28,11 +28,11 @@ cell = np.array([
     (1, 2, 0),
     (3, 0, 2)], dtype=np.int)
 mesh = TriangleMesh(node, cell)
-mesh.uniform_refine(n)
-nmesh = TriangleMeshWithInfinityNode(mesh)
-pnode, pcell, pcellLocation = nmesh.to_polygonmesh()
-pmesh = PolygonMesh(pnode, pcell, pcellLocation)
-mesh = pmesh
+# mesh.uniform_refine(n)
+# nmesh = TriangleMeshWithInfinityNode(mesh)
+# pnode, pcell, pcellLocation = nmesh.to_polygonmesh()
+# pmesh = PolygonMesh(pnode, pcell, pcellLocation)
+# mesh = pmesh
 
 p = 1
 smspace = ScaledMonomialSpace2d(mesh, p)
