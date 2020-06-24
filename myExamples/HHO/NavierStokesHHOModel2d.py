@@ -10,6 +10,7 @@
 # ---
 
 
+# import scipy.io
 import numpy as np
 from HHONavierStokesSpace2d import HHONavierStokesSpace2d
 from fealpy.quadrature import GaussLegendreQuadrature
@@ -68,6 +69,7 @@ class NavierStokesHHOModel2d:
             convM = bmat([[matrix1 + matrix2, None],
                           [None, csr_matrix(np.zeros((pgdofp1, pgdofp1), dtype=self.ftype))]], format='csr')
             convV = np.concatenate([vec, np.zeros((pgdofp1, 1), dtype=self.ftype)], axis=0)
+            # #scipy.io.savemat('conv.mat', mdict={'convM': (matrix1 + matrix2).todense(), 'convV': vec, })
             AA = AAS + convM
             bb = bbS + convV
             self.A, b = self.applyDirichletBC(AA, bb)
@@ -84,6 +86,9 @@ class NavierStokesHHOModel2d:
             print("NS-iteration error: ", err_it)
         end = timer()
         print("NS-iteration solver time: ", end - start)
+
+        solution = {'uh0': uh0.copy(), 'uh1': uh1.copy(), 'ph': ph.copy()}
+        return solution
 
     def iteration_error(self, lastuh):
         vgdof = self.space.vSpace.number_of_global_dofs()
