@@ -54,7 +54,9 @@ class NavierStokesHHOModel2d:
         # lastuh = self.space.vSpace.function()
         # lastuh[:] = np.random.rand(len(lastuh))
         # lastuh = np.concatenate([lastuh, lastuh])
-        lastuh = self.stokes_velocity_solver(AAS, bbS)  # this solver will only get the solutions of uh0 and uh1
+        # aatest = AAS.copy()
+        # bbtest = bbS.copy()
+        lastuh = self.stokes_velocity_solver(AAS.copy(), bbS.copy())  # this solver will only get the solutions of uh0 and uh1
         tol = 1e-8
         err_it = 1.0
         Nit = 0
@@ -72,6 +74,7 @@ class NavierStokesHHOModel2d:
             x[:] = spsolve(self.A, b)
             uh0[:] = x[:vgdof]
             uh1[:] = x[vgdof:(2 * vgdof)]
+            ph[:] = x[2*vgdof:-1]
 
             Nit += 1
             err_it = self.iteration_error(lastuh)
@@ -88,9 +91,9 @@ class NavierStokesHHOModel2d:
 
         scalarL2err = self.space.vSpace.L2_error
 
-        err_it = scalarL2err(lastuh0, self.uh0)
-        err_it += scalarL2err(lastuh1, self.uh1)
-        return np.sqrt(err_it)
+        err_it1 = scalarL2err(lastuh0, self.uh0)
+        err_it2 = scalarL2err(lastuh1, self.uh1)
+        return np.sqrt(err_it1*err_it1 + err_it2*err_it2)
 
     def stokes_velocity_solver(self, AA, bb):
         A, b = self.applyDirichletBC(AA, bb)

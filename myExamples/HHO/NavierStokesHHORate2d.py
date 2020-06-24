@@ -27,7 +27,7 @@ maxit = 4  # the max iteration of the mesh
 
 nu = 1.0
 pde = NavierStokes2DData_0(nu)  # create pde model
-# mesh = pde.init_mesh(n, meshtype='polygon')
+# mesh = pde.init_mesh(n, meshtype='quad')
 node = np.array([
             (0, 0),
             (1, 0),
@@ -63,6 +63,8 @@ for i in range(maxit):
     errorMatrix[1, i] = ns.velocity_energy_error()  # get the velocity energy error
     errorMatrix[2, i] = ns.pressure_L2_error()  # get the pressure L2 error
     if i < maxit - 1:
+        # qtree.uniform_refine()  # uniform refine the mesh
+        # mesh = qtree.to_pmesh()  # transfer to polygon mesh
         n += 1
         mesh = pde.init_mesh(n, meshtype=mesh.meshtype)
 
