@@ -283,10 +283,10 @@ class HHONavierStokesSpace2d:
 
             row_testCell0 = CC_rowedge0[..., 0].reshape(-1,)  # CC_rowedge0.shape : (NE,vcldof,vcldof)
             row_testCell1 = CC_rowedge1[..., 0].reshape(-1,)
-            # vector_testCell[row_testCell0, 0] += block3_testCell0.reshape(-1,)
-            # vector_testCell[row_testCell1, 0] += block3_testCell1.reshape(-1,)
-            # np.add.at(vector_testCell, row_testCell0, block3_testCell0.reshape(-1,))  # TODO: this is wrong
-            # np.add.at(vector_testCell, row_testCell1, block3_testCell1.reshape(-1,))  # TODO: this is wrong
+            # #vector_testCell[row_testCell0, 0] += block3_testCell0.reshape(-1,)
+            # #vector_testCell[row_testCell1, 0] += block3_testCell1.reshape(-1,)
+            # #np.add.at(vector_testCell, row_testCell0, block3_testCell0.reshape(-1,))  # TODO: this is wrong
+            # #np.add.at(vector_testCell, row_testCell1, block3_testCell1.reshape(-1,))  # TODO: this is wrong
             for k in range(len(row_testCell0)):  # TODO:
                 vector_testCell[row_testCell0[k], 0] += block3_testCell0.reshape(-1,)[k]
             for k in range(len(row_testCell1)):  # TODO:

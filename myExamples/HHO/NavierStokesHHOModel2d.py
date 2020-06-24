@@ -65,13 +65,12 @@ class NavierStokesHHOModel2d:
         start = timer()
         while (err_it > tol) & (Nit < 10):
             matrix1, matrix2, vec = self.space.convective_matrix(lastuh)
-            convM = bmat([[matrix1 + matrix2, None], [None, csr_matrix(np.zeros((pgdofp1, pgdofp1), dtype=self.ftype))]], 'csr')
+            convM = bmat([[matrix1 + matrix2, None],
+                          [None, csr_matrix(np.zeros((pgdofp1, pgdofp1), dtype=self.ftype))]], format='csr')
             convV = np.concatenate([vec, np.zeros((pgdofp1, 1), dtype=self.ftype)], axis=0)
             AA = AAS + convM
             bb = bbS + convV
             self.A, b = self.applyDirichletBC(AA, bb)
-            # x = np.concatenate([uh0, uh1, ph, np.zeros((1,), dtype=np.float)])  # (2*vgdof+pgdof+1,)
-            # x[:] = spsolve(self.A, b)
             x = np.zeros(2*vgdof + pgdofp1,)
             x[:] = spsolve(self.A, b)
             uh0[:] = x[:vgdof]
