@@ -60,17 +60,19 @@ class NavierStokesHHOModel2d:
         tol = 1e-8
         err_it = 1.0
         Nit = 0
-        zerodof = self.space.pSpace.number_of_global_dofs() + 1
+        pgdofp1 = self.space.pSpace.number_of_global_dofs() + 1
 
         start = timer()
-        while (err_it > tol) & (Nit < 40):
+        while (err_it > tol) & (Nit < 10):
             matrix1, matrix2, vec = self.space.convective_matrix(lastuh)
-            convM = bmat([[matrix1 + matrix2, None], [None, csr_matrix(np.zeros((zerodof, zerodof), dtype=self.ftype))]])
-            convV = np.concatenate([vec, np.zeros((zerodof, 1), dtype=self.ftype)], axis=0)
+            convM = bmat([[matrix1 + matrix2, None], [None, csr_matrix(np.zeros((pgdofp1, pgdofp1), dtype=self.ftype))]], 'csr')
+            convV = np.concatenate([vec, np.zeros((pgdofp1, 1), dtype=self.ftype)], axis=0)
             AA = AAS + convM
             bb = bbS + convV
             self.A, b = self.applyDirichletBC(AA, bb)
-            x = np.concatenate([uh0, uh1, ph, np.zeros((1,), dtype=np.float)])  # (2*vgdof+pgdof+1,)
+            # x = np.concatenate([uh0, uh1, ph, np.zeros((1,), dtype=np.float)])  # (2*vgdof+pgdof+1,)
+            # x[:] = spsolve(self.A, b)
+            x = np.zeros(2*vgdof + pgdofp1,)
             x[:] = spsolve(self.A, b)
             uh0[:] = x[:vgdof]
             uh1[:] = x[vgdof:(2 * vgdof)]
@@ -79,10 +81,10 @@ class NavierStokesHHOModel2d:
             Nit += 1
             err_it = self.iteration_error(lastuh)
             lastuh = x[:2*vgdof]
+            print("NS-iteration step: ", Nit)
+            print("NS-iteration error: ", err_it)
         end = timer()
         print("NS-iteration solver time: ", end - start)
-        print("NS-iteration error: ", err_it)
-        print("NS-iteration step: ", Nit)
 
     def iteration_error(self, lastuh):
         vgdof = self.space.vSpace.number_of_global_dofs()

@@ -18,8 +18,8 @@ from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, spdiags, eye
 from fealpy.functionspace.function import Function
 from fealpy.quadrature import GaussLegendreQuadrature
 from fealpy.quadrature import PolygonMeshIntegralAlg
-# from fealpy.functionspace.ScaledMonomialSpace2d import SMDof2d, ScaledMonomialSpace2d
-from myScaledMonomialSpace2d import SMDof2d, ScaledMonomialSpace2d
+from fealpy.functionspace.ScaledMonomialSpace2d import SMDof2d, ScaledMonomialSpace2d
+# from myScaledMonomialSpace2d import SMDof2d, ScaledMonomialSpace2d
 
 
 class HHODof2d(object):
