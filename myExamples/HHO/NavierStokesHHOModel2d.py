@@ -61,7 +61,7 @@ class NavierStokesHHOModel2d:
         zerodof = self.space.pSpace.number_of_global_dofs() + 1
 
         start = timer()
-        while (err_it > tol) & (Nit < 30):
+        while (err_it > tol) & (Nit < 40):
             matrix1, matrix2, vec = self.space.convective_matrix(lastuh)
             convM = bmat([[matrix1 + matrix2, None], [None, csr_matrix(np.zeros((zerodof, zerodof), dtype=self.ftype))]])
             convV = np.concatenate([vec, np.zeros((zerodof, 1), dtype=self.ftype)], axis=0)
@@ -134,4 +134,13 @@ class NavierStokesHHOModel2d:
     def setDirichletEdges(self):
         # the following default Dirichlet edges
         return self.space.stokesspace.defaultDirichletEdges()
+
+    # --- the following is for test functions
+    def setFreeDofs(self):
+        freedof = np.ones(self.space.dof.number_of_global_dofs() + 1, dtype=np.int)
+        freedof[self.stokesspace.setStokesDirichletDofs()] = 0
+        FreeDofs, = np.nonzero(freedof)
+        return FreeDofs
+
+
 

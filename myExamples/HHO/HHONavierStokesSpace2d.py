@@ -348,7 +348,7 @@ class HHONavierStokesSpace2d:
                                 np.ones(vcldof, self.itype)).reshape((NE, vcldof, vcldof))  # (NE,vcldof,vcldof)
         col_atEdge0 = row_atEdge0.swapaxes(1, -1)
 
-        r1 = ((vcldof * edge2cell[isInEdge, 0]).reshape(-1, 1) + np.tile(np.arange(vcldof), (NInE, 1))).flatten()
+        r1 = ((vcldof * edge2cell[isInEdge, 1]).reshape(-1, 1) + np.tile(np.arange(vcldof), (NInE, 1))).flatten()
         row_atEdge1 = np.einsum('i, j->ij', r1,
                                 np.ones(vcldof, self.itype)).reshape((NInE, vcldof, vcldof))  # (NInE,vcldof,vcldof)
         col_atEdge1 = row_atEdge1.swapaxes(1, -1)
