@@ -19,7 +19,7 @@ from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, spdiags, eye, bmat
 from fealpy.quadrature import GaussLegendreQuadrature
 # from fealpy.quadrature import PolygonMeshIntegralAlg
 # from fealpy.functionspace.ScaledMonomialSpace2d import SMDof2d, ScaledMonomialSpace2d
-from myScaledMonomialSpace2d import SMDof2d, ScaledMonomialSpace2d
+# from myScaledMonomialSpace2d import SMDof2d, ScaledMonomialSpace2d
 from HHOStokesSpace2d import HHOStokesDof2d, HHOStokesSpace2d
 
 
@@ -287,7 +287,7 @@ class HHONavierStokesSpace2d:
             # #vector_testCell[row_testCell1, 0] += block3_testCell1.reshape(-1,)
             # #np.add.at(vector_testCell, row_testCell0, block3_testCell0.reshape(-1,))  # TODO: this is wrong
             # #np.add.at(vector_testCell, row_testCell1, block3_testCell1.reshape(-1,))  # TODO: this is wrong
-            for k in range(len(row_testCell0)):  # TODO:
+            for k in range(len(row_testCell0)):  # TODO: see the PoissonFEM to get the way adding dofs to vector.
                 vector_testCell[row_testCell0[k], 0] += block3_testCell0.reshape(-1,)[k]
             for k in range(len(row_testCell1)):  # TODO:
                 vector_testCell[row_testCell1[k], 0] += block3_testCell1.reshape(-1,)[k]
