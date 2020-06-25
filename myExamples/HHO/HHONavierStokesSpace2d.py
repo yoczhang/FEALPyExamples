@@ -285,12 +285,16 @@ class HHONavierStokesSpace2d:
             row_testCell1 = CC_rowedge1[..., 0].reshape(-1,)
             # #vector_testCell[row_testCell0, 0] += block3_testCell0.reshape(-1,)
             # #vector_testCell[row_testCell1, 0] += block3_testCell1.reshape(-1,)
-            # #np.add.at(vector_testCell, row_testCell0, block3_testCell0.reshape(-1,))  # TODO: this is wrong
-            # #np.add.at(vector_testCell, row_testCell1, block3_testCell1.reshape(-1,))  # TODO: this is wrong
+
+            vector_testCell_debug = vector_testCell.copy()
+            np.add.at(vector_testCell_debug[:, 0], row_testCell0, block3_testCell0.reshape(-1,))  # TODO: this seems right
+            np.add.at(vector_testCell_debug[:, 0], row_testCell1, block3_testCell1.reshape(-1,))  # TODO: this seems right
             for k in range(len(row_testCell0)):  # TODO: see the PoissonFEM to get the way adding dofs to vector.
                 vector_testCell[row_testCell0[k], 0] += block3_testCell0.reshape(-1,)[k]
             for k in range(len(row_testCell1)):  # TODO:
                 vector_testCell[row_testCell1[k], 0] += block3_testCell1.reshape(-1,)[k]
+            dmax = np.max(vector_testCell_debug - vector_testCell)
+            dmin = np.min(vector_testCell_debug - vector_testCell)
 
             # ----------------------------------
             # get block testFace
