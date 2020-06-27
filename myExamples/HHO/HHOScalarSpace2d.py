@@ -15,7 +15,7 @@ from numpy.linalg import inv
 from fealpy.common import block
 from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, spdiags, eye
 
-from fealpy.functionspace.function import Function
+from fealpy.functionspace.Function import Function
 from fealpy.quadrature import GaussLegendreQuadrature
 from fealpy.quadrature import PolygonMeshIntegralAlg
 from fealpy.functionspace.ScaledMonomialSpace2d import SMDof2d, ScaledMonomialSpace2d
