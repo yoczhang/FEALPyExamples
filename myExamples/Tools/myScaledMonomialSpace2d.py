@@ -14,7 +14,7 @@
 
 import numpy as np
 from numpy.linalg import inv
-from fealpy.functionspace.function import Function
+from fealpy.functionspace.Function import Function
 from fealpy.quadrature import GaussLobattoQuadrature
 from fealpy.quadrature import GaussLegendreQuadrature
 from fealpy.quadrature import PolygonMeshIntegralAlg
