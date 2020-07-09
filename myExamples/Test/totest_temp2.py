@@ -29,22 +29,36 @@ cell = np.array([
     (3, 0, 2)], dtype=np.int)
 mesh = TriangleMesh(node, cell)
 mesh.uniform_refine(n)
-nmesh = TriangleMeshWithInfinityNode(mesh)
-pnode, pcell, pcellLocation = nmesh.to_polygonmesh()
-pmesh = PolygonMesh(pnode, pcell, pcellLocation)
-mesh = pmesh
+
+# --- to pmesh
+# nmesh = TriangleMeshWithInfinityNode(mesh)
+# pnode, pcell, pcellLocation = nmesh.to_polygonmesh()
+# pmesh = PolygonMesh(pnode, pcell, pcellLocation)
+# mesh = pmesh
 
 p = 1
 smspace = ScaledMonomialSpace2d(mesh, p)
 
 
-def f(x, index=None):
-    gphi = smspace.grad_basis(x, index=index)
-    gpphi = smspace.grad_basis(x, index=index, p=p+1)
-    return np.einsum('...mn, ...kn->...km', gphi, gpphi)
+# def f(x, index=None):
+#     gphi = smspace.grad_basis(x, index=index)
+#     gpphi = smspace.grad_basis(x, index=index, p=p+1)
+#     return np.einsum('...mn, ...kn->...km', gphi, gpphi)
+#
+#
+# S = smspace.integralalg.integral(f, celltype=True, barycenter=False)
+
+# --- another test
+uh = smspace.function()
 
 
-S = smspace.integralalg.integral(f, celltype=True, barycenter=False)
+def f1(x, index=None):
+    return uh.value(x, index)
+
+
+S1 = smspace.integralalg.integral(f1, celltype=True, barycenter=False)
+
+
 
 # ------------------------------------------------- #
 print("End of this test file")

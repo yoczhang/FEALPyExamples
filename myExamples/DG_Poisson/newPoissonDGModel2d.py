@@ -71,9 +71,12 @@ class PoissonDGModel2d(object):
         u = self.pde.solution
         uh = self.uh  # note that, here, type(uh) is the space.function variable
 
-        def f(x, index):
+        def f(x, index=None):
             return (u(x) - uh.value(x, index))**2
-        e = self.integralalg.integral(f, celltype=True)
+        if self.mesh.meshtype == 'tri':
+            e = self.integralalg.integral(f, celltype=True, barycenter=False)
+        else:
+            e = self.integralalg.integral(f, celltype=True)
 
         return np.sqrt(e.sum())
 
@@ -348,11 +351,14 @@ class PoissonDGModel2d(object):
         smspace = self.smspace
         phi = smspace.basis
 
-        def u(x, index):
+        def u(x, index=None):
             return np.einsum('ij, ijm->ijm', f(x), phi(x, index=index))
             # # f(x).shape: (NQ,NC).    phi(x,...).shape: (NQ,NC,ldof)
 
-        fh = self.integralalg.integral(u, celltype=True)  # (NC,ldof)
+        if self.mesh.meshtype == 'tri':
+            fh = self.integralalg.integral(u, celltype=True, barycenter=False)  # (NC,ldof)
+        else:
+            fh = self.integralalg.integral(u, celltype=True)  # (NC,ldof)
 
         gdof = smspace.number_of_global_dofs()
 
