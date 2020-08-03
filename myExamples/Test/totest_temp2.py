@@ -11,10 +11,13 @@
 
 from fealpy.functionspace.ScaledMonomialSpace2d import ScaledMonomialSpace2d
 import numpy as np
+import matplotlib.pyplot as plt
+from fealpy.mesh.mesh_tools import find_entity
 
 from fealpy.mesh import PolygonMesh
 from fealpy.mesh import StructureQuadMesh, QuadrangleMesh
 from fealpy.mesh import TriangleMesh, TriangleMeshWithInfinityNode
+from fealpy.decorator import cartesian, barycentric
 
 
 # --- mesh
@@ -36,6 +39,17 @@ mesh.uniform_refine(n)
 # pmesh = PolygonMesh(pnode, pcell, pcellLocation)
 # mesh = pmesh
 
+# ---- plot mesh ----
+# fig1 = plt.figure()
+# axes = fig1.gca()
+# mesh.add_plot(axes, cellcolor='w')
+# find_entity(axes, mesh, entity='cell', showindex=True, color='b', markersize=10, fontsize=8)
+# find_entity(axes, mesh, entity='edge', showindex=True, color='r', markersize=10, fontsize=8)
+# find_entity(axes, mesh, entity='node', showindex=True, color='y', markersize=10, fontsize=8)
+# plt.show()
+# plt.close()
+# -------------------
+
 p = 1
 smspace = ScaledMonomialSpace2d(mesh, p)
 
@@ -51,12 +65,12 @@ smspace = ScaledMonomialSpace2d(mesh, p)
 # --- another test
 uh = smspace.function()
 
-
+@cartesian
 def f1(x, index=None):
     return uh.value(x, index)
 
-
-S1 = smspace.integralalg.integral(f1, celltype=True, barycenter=False)
+# S1 = smspace.integralalg.integral(f1, celltype=True)
+S2 = smspace.integralalg.integral(f1, celltype=True, barycenter=False)
 
 
 
