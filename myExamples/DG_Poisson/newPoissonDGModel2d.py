@@ -3,7 +3,7 @@
 # ---
 # @Software: PyCharm
 # @Site:
-# @File: PoissonDGRate2d.py
+# @File: newPoissonDGModel2d.py
 # @Author: Yongchao Zhang
 # @E-mail: yoczhang@126.com
 # @Time: Feb 13, 2020
@@ -35,7 +35,6 @@ class PoissonDGModel2d(object):
         AJDir, JADir, JJDir = self.DirichletEdge_matrix(isDirEdge)
 
         A = S - (AJIn + AJDir) + epsilon*(JAIn + JADir) + eta*(JJIn + JJDir)
-
         return A
 
     def get_right_vector(self):
@@ -119,7 +118,7 @@ class PoissonDGModel2d(object):
             In FEALPy, n_e is given by nm=mesh.edge_normal() (NE,2).
             Note that, the length of the normal-vector 'nm' isn't 1, is the length of corresponding edge.
             And the The direction of normal vector is from edge2cell[i,0] to edge2cell[i,1]
-            (that is, from the cell with smaller number to the cell with larger number).
+            (that is, from the cell with smaller-index to the cell with larger-index).
 
 
         -------
@@ -212,7 +211,7 @@ class PoissonDGModel2d(object):
         Get the average-jump, jump-average and jump-jump matrix at Dirichlet edges.
 
         -------
-        The explanations see interiorEdge_matrix()
+        The explanations see interiorEdge_matrix().
 
         """
 
@@ -286,7 +285,7 @@ class PoissonDGModel2d(object):
         """
         Get the stiff matrix on ScaledMonomialSpace2d.
 
-        ---
+        -------
         The mass matrix on ScaledMonomialSpace2d can be found in class ScaledMonomialSpace2d(): mass_matrix()
 
         """

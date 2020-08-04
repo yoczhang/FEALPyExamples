@@ -27,10 +27,9 @@ def sum_t(x):
     cc += sum(r)
     # return r
 
+
 # map(sum_t, zip(aa, bb))
 dd = list(map(sum_t, zip(aa, bb)))
-
-
 
 # --- another test --- #
 z1 = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
@@ -46,3 +45,25 @@ x = np.einsum('ijk, ik->ij', A, b)
 
 # ------------------------------------------------- #
 print("End of this test file")
+
+
+# old api
+def integral(self, u, celltype=False, barycenter=True):
+    """
+        """
+    qf = self.integrator
+    bcs = qf.quadpts  # 积分点 (NQ, 3)
+    ws = qf.weights  # 积分点对应的权重 (NQ, )
+    if barycenter or u.coordtype == 'barycentric':
+        val = u(bcs)
+    else:
+        ps = self.mesh.bc_to_point(bcs)  # (NQ, NC, 2)
+        val = u(ps)
+    dim = len(ws.shape)
+    s0 = 'abcde'
+    s1 = '{}, {}j..., j->j...'.format(s0[0:dim], s0[0:dim])
+    e = np.einsum(s1, ws, val, self.cellmeasure)
+    if celltype is True:
+        return e
+    else:
+        return e.sum()
