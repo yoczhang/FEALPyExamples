@@ -69,8 +69,10 @@ uh = smspace.function()
 def f1(x, index=None):
     return uh.value(x, index)
 
+
 # S1 = smspace.integralalg.integral(f1, celltype=True)
-S2 = smspace.integralalg.integral(f1, celltype=True, barycenter=False)
+# S2 = smspace.integralalg.integral(f1, celltype=True, barycenter=False)
+S3 = smspace.integralalg.cell_integral(f1)
 
 
 
