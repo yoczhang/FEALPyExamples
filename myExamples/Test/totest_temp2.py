@@ -66,13 +66,13 @@ smspace = ScaledMonomialSpace2d(mesh, p)
 uh = smspace.function()
 
 @cartesian
-def f1(x, index=None):
+def f1(x, index=np.s_[:]):
     return uh.value(x, index)
 
 
 # S1 = smspace.integralalg.integral(f1, celltype=True)
-# S2 = smspace.integralalg.integral(f1, celltype=True, barycenter=False)
-S3 = smspace.integralalg.cell_integral(f1)
+S2 = smspace.integralalg.integral(f1, celltype=True, barycenter=False)
+# S3 = smspace.integralalg.cell_integral(f1)
 
 
 
