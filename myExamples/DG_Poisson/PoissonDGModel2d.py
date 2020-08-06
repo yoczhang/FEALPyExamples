@@ -3,9 +3,8 @@
 # ---
 # @Software: PyCharm
 # @File: oldPoissonDGModel2d.py
-# @Author: Yongchao Zhang
-# @Institution: Northwest University, Xi'an, Shaanxi, China
-# @E-mail: yoczhang@126.com, yoczhang@nwu.edu.cn
+# @Author: Yongchao Zhang, Northwest University
+# @E-mail: yoczhang@nwu.edu.cn
 # @Site:
 # @Time: Feb 13, 2020
 # ---
