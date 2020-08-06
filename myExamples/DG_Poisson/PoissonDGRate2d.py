@@ -18,6 +18,8 @@ from fealpy.tools.show import showmultirate, show_error_table
 from PoissonDGModel2d import PoissonDGModel2d
 from fealpy.mesh.mesh_tools import find_entity
 from fealpy.mesh import MeshFactory
+from fealpy.mesh import HalfEdgeMesh2d
+from fealpy.mesh import PolygonMesh
 
 # --- begin setting --- #
 d = 2  # the dimension
@@ -43,18 +45,19 @@ Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
 # --- mesh setting --- #
 box = [0, 1, 0, 1]  # [0, 1]^2 domain
 mf = MeshFactory()
-meshtype = 'quad'
+meshtype = 'tri'
 mesh = mf.boxmesh2d(box, nx=n, ny=n, meshtype=meshtype)
+mesh = HalfEdgeMesh2d.from_mesh(mesh)
+mesh.init_level_info()
 
 # --- plot the mesh --- #
-fig = plt.figure()
-axes = fig.gca()
-mesh.add_plot(axes, cellcolor='w')
-find_entity(axes, mesh, entity='cell', showindex=True, color='b', markersize=10, fontsize=8)
-find_entity(axes, mesh, entity='edge', showindex=True, color='r', markersize=10, fontsize=8)
-find_entity(axes, mesh, entity='node', showindex=True, color='y', markersize=10, fontsize=8)
-plt.show()
-plt.close()
+# fig = plt.figure()
+# axes = fig.gca()
+# mesh.add_plot(axes, cellcolor='w')
+# find_entity(axes, mesh, entity='cell', showindex=True, color='b', markersize=10, fontsize=8)
+# find_entity(axes, mesh, entity='edge', showindex=True, color='r', markersize=10, fontsize=8)
+# find_entity(axes, mesh, entity='node', showindex=True, color='y', markersize=10, fontsize=8)
+# plt.show()
 
 
 # --- start for-loop --- #
@@ -65,7 +68,8 @@ for i in range(maxit):
     errorMatrix[0, i] = dg.L2_error()  # get the L2 error
     errorMatrix[1, i] = dg.H1_semi_error()  # get the H1-semi error
     if i < maxit - 1:
-        mesh = mf.boxmesh2d(box, nx=n*2**(i+1), ny=n*2**(i+1), meshtype=meshtype)
+        mesh.refine_poly()
+        # mesh = mf.boxmesh2d(box, nx=n*2**(i+1), ny=n*2**(i+1), meshtype=meshtype)
 
 
 # --- get the convergence rate --- #
