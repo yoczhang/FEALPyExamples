@@ -2,10 +2,11 @@
 # -*- coding: utf-8 -*-
 # ---
 # @Software: PyCharm
-# @Site: 
-# @File: PoissonDGRate2d.py
+# @File: PoissonDGModel2d.py
 # @Author: Yongchao Zhang
-# @E-mail: yoczhang@126.com
+# @Institution: Northwest University, Xi'an, Shaanxi, China
+# @E-mail: yoczhang@126.com, yoczhang@nwu.edu.cn
+# @Site:
 # @Time: Jan 31, 2020
 # ---
 
@@ -14,15 +15,9 @@ from fealpy.pde.poisson_2d import CosCosData as PDE
 import numpy as np
 import matplotlib.pyplot as plt
 from fealpy.tools.show import showmultirate, show_error_table
-from newPoissonDGModel2d import PoissonDGModel2d
-from fealpy.mesh.simple_mesh_generator import triangle
+from PoissonDGModel2d import PoissonDGModel2d
 from fealpy.mesh.mesh_tools import find_entity
-
-import os
-import sys
-cwd = os.getcwd()
-sys.path.append(cwd)
-
+from fealpy.mesh import MeshFactory
 
 # --- begin setting --- #
 d = 2  # the dimension
@@ -46,35 +41,20 @@ errorMatrix = np.zeros((len(errorType), maxit), dtype=np.float)
 Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
 
 # --- mesh setting --- #
-# # mesh 1:
-# # quad-tree mesh
-qtree = pde.init_mesh(n, meshtype='quadtree')
-mesh = qtree.to_pmesh()
-
-# # mesh 2:
-# # tri mesh
-# h = 1./4
-# box = [0, 1, 0, 1]  # [0, 1]^2 domain
-# mesh = triangle(box, h, meshtype='tri')
-
-# # mesh 3:
-# # polygon mesh
-# h = 1./4
-# box = [0, 1, 0, 1]  # [0, 1]^2 domain
-# mesh = triangle(box, h, meshtype='polygon')
-
-# # TODO: import mesh from other files
-
+box = [0, 1, 0, 1]  # [0, 1]^2 domain
+mf = MeshFactory()
+meshtype = 'quad'
+mesh = mf.boxmesh2d(box, nx=n, ny=n, meshtype=meshtype)
 
 # --- plot the mesh --- #
-# fig = plt.figure()
-# axes = fig.gca()
-# mesh.add_plot(axes, cellcolor='w')
-# find_entity(axes, mesh, entity='cell', index='all', showindex=True, color='b', markersize=10, fontsize=8)
-# find_entity(axes, mesh, entity='edge', index='all', showindex=True, color='r', markersize=10, fontsize=8)
-# find_entity(axes, mesh, entity='node', index='all', showindex=True, color='y', markersize=10, fontsize=8)
-# plt.show()
-# plt.close()
+fig = plt.figure()
+axes = fig.gca()
+mesh.add_plot(axes, cellcolor='w')
+find_entity(axes, mesh, entity='cell', showindex=True, color='b', markersize=10, fontsize=8)
+find_entity(axes, mesh, entity='edge', showindex=True, color='r', markersize=10, fontsize=8)
+find_entity(axes, mesh, entity='node', showindex=True, color='y', markersize=10, fontsize=8)
+plt.show()
+plt.close()
 
 
 # --- start for-loop --- #
@@ -85,16 +65,7 @@ for i in range(maxit):
     errorMatrix[0, i] = dg.L2_error()  # get the L2 error
     errorMatrix[1, i] = dg.H1_semi_error()  # get the H1-semi error
     if i < maxit - 1:
-        if mesh.meshtype == 'polygon':
-            if 'qtree' in locals().keys():
-                qtree.uniform_refine()  # uniform refine the mesh
-                mesh = qtree.to_pmesh()  # transfer to polygon mesh
-            else:
-                h = h/2
-                box = [0, 1, 0, 1]  # [0, 1]^2 domain
-                mesh = triangle(box, h, meshtype='polygon')
-        else:
-            mesh.uniform_refine()
+        mesh = mf.boxmesh2d(box, nx=n*2**(i+1), ny=n*2**(i+1), meshtype=meshtype)
 
 
 # --- get the convergence rate --- #

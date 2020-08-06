@@ -35,7 +35,7 @@ pde = CosCosData()  # pde 模型
 box = pde.domain()  # 模型区域
 mf = MeshFactory() # 网格工场
 
-for i in range(maxit)
+for i in range(maxit):
     mesh = mf.boxmesh2d(box, nx=n, ny=n, meshtype='tri')
 
     space = RaviartThomasFiniteElementSpace2d(mesh, p=p)
