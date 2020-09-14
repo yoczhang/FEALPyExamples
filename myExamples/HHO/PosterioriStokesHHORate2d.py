@@ -43,7 +43,7 @@ meshtype = 'quad'
 mesh = mf.boxmesh2d(box, nx=n, ny=n, meshtype=meshtype)
 mesh = HalfEdgeMesh2d.from_mesh(mesh)
 mesh.init_level_info()
-mesh.uniform_refine(n)
+mesh.uniform_refine(n)  # refine the mesh at beginning
 
 # --- start for-loop --- #
 for i in range(maxit):
@@ -54,6 +54,8 @@ for i in range(maxit):
     errorMatrix[1, i] = stokes.velocity_energy_error()  # get the velocity energy error
     errorMatrix[2, i] = stokes.pressure_L2_error()  # get the pressure L2 error
 
+    # --- adaptive settings --- #
+    aopts = mesh.adaptive_options(method='numrefine', maxcoarsen=3, HB=True)
 
 
 
