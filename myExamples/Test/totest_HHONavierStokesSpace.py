@@ -57,14 +57,14 @@ pmesh = triangle(box, h, meshtype='polygon')
 
 
 # ---- plot poly mesh ----
-# fig2 = plt.figure()
-# axes = fig2.gca()
-# pmesh.add_plot(axes, cellcolor='w')
-# find_entity(axes, pmesh, entity='cell', index=None, showindex=True, color='b', markersize=10, fontsize=8)
-# find_entity(axes, pmesh, entity='edge', index=None, showindex=True, color='r', markersize=10, fontsize=8)
-# find_entity(axes, pmesh, entity='node', index=None, showindex=True, color='y', markersize=10, fontsize=8)
-# plt.show()
-# plt.close()
+fig2 = plt.figure()
+axes = fig2.gca()
+pmesh.add_plot(axes, cellcolor='w')
+find_entity(axes, pmesh, entity='cell', index=None, showindex=True, color='b', markersize=10, fontsize=8)
+find_entity(axes, pmesh, entity='edge', index=None, showindex=True, color='r', markersize=10, fontsize=8)
+find_entity(axes, pmesh, entity='node', index=None, showindex=True, color='y', markersize=10, fontsize=8)
+plt.show()
+plt.close()
 # -------------------
 # pmesh.ds.cell_to_edge()
 # edge2cell = pmesh.ds.edge2cell

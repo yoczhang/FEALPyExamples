@@ -9,3 +9,71 @@
 # @Time: Sep 15, 2020
 # ---
 
+import numpy as np
+import matplotlib.pyplot as plt
+from fealpy.mesh.mesh_tools import find_node, find_entity
+from fealpy.functionspace.ScaledMonomialSpace2d import ScaledMonomialSpace2d
+from fealpy.mesh import MeshFactory
+from fealpy.mesh import HalfEdgeMesh2d
+from HHOStokesSpace2d import HHOStokesSpace2d
+from Stokes2DData import Stokes2DData_0
+
+
+# --- begin --- #
+n = 2
+p = 1
+nu = 1.0
+pde = Stokes2DData_0(nu)  # create pde model
+
+# --- mesh setting --- #
+box = [0, 1, 0, 1]  # [0, 1]^2 domain
+mf = MeshFactory()
+meshtype = 'quad'
+mesh = mf.boxmesh2d(box, nx=n, ny=n, meshtype=meshtype)
+mesh = HalfEdgeMesh2d.from_mesh(mesh)
+mesh.init_level_info()
+mesh.uniform_refine(n-2)  # refine the mesh at beginning
+
+# --- plot the mesh --- #
+# fig = plt.figure()
+# axes = fig.gca()
+# mesh.add_plot(axes, cellcolor='w')
+# find_entity(axes, mesh, entity='cell', showindex=True, color='b', markersize=10, fontsize=8)
+# find_entity(axes, mesh, entity='edge', showindex=True, color='r', markersize=10, fontsize=8)
+# find_entity(axes, mesh, entity='node', showindex=True, color='y', markersize=10, fontsize=8)
+# plt.show()
+
+# #
+# #
+# --- HHO space setting --- #
+smspace = ScaledMonomialSpace2d(mesh, p)
+integralalg = smspace.integralalg
+sspace = HHOStokesSpace2d(mesh, p)
+vSpace = sspace.vSpace
+
+# --- test begin --- #
+lastuh = vSpace.function()
+lastuh[:] = np.random.rand(len(lastuh))
+# lastuh = np.concatenate([lastuh, 2.0 + lastuh])
+
+fh = vSpace.project(pde.source, dim=2)
+
+
+def osc_f(x, index=np.s_[:]):
+    fhval = vSpace.value(fh, x, index=index)  # the evalue has the same shape of x.
+    fval = pde.source(x)
+    return (fval - fhval)**2
+
+
+err = vSpace.integralalg.integral(osc_f, celltype=True)
+
+
+# #
+# #
+# ------------------------------------------------- #
+print("End of this test file")
+
+
+
+
+

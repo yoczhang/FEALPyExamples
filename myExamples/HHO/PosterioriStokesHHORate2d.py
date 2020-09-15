@@ -45,6 +45,15 @@ mesh = HalfEdgeMesh2d.from_mesh(mesh)
 mesh.init_level_info()
 mesh.uniform_refine(n)  # refine the mesh at beginning
 
+# --- plot the mesh --- #
+# fig = plt.figure()
+# axes = fig.gca()
+# mesh.add_plot(axes, cellcolor='w')
+# find_entity(axes, mesh, entity='cell', showindex=True, color='b', markersize=10, fontsize=8)
+# find_entity(axes, mesh, entity='edge', showindex=True, color='r', markersize=10, fontsize=8)
+# find_entity(axes, mesh, entity='node', showindex=True, color='y', markersize=10, fontsize=8)
+# plt.show()
+
 # --- start for-loop --- #
 for i in range(maxit):
     stokes = StokesHHOModel2d(pde, mesh, p)
