@@ -50,6 +50,8 @@ smspace = ScaledMonomialSpace2d(mesh, p)
 integralalg = smspace.integralalg
 sspace = HHOStokesSpace2d(mesh, p)
 vSpace = sspace.vSpace
+vdof = sspace.dof
+
 
 # --- test begin --- #
 lastuh = vSpace.function()
