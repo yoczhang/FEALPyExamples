@@ -43,6 +43,7 @@ mesh.uniform_refine(n-2)  # refine the mesh at beginning
 # find_entity(axes, mesh, entity='node', showindex=True, color='y', markersize=10, fontsize=8)
 # plt.show()
 
+cell2edge, cellLocation = mesh.ds.cell_to_edge()
 # #
 # #
 # --- HHO space setting --- #
@@ -69,6 +70,12 @@ def osc_f(x, index=np.s_[:]):
 
 err = vSpace.integralalg.integral(osc_f, celltype=True)
 
+# --- to test the residual_estimate0 --- #
+nu = 1.0
+uh = vSpace.function(dim=2)
+uh = np.zeros(uh.shape)
+
+eta = sspace.residual_estimate0(nu, uh, pde.source)
 
 # #
 # #
