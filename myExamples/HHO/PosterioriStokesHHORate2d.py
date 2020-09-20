@@ -64,9 +64,14 @@ for i in range(maxit):
     errorMatrix[2, i] = stokes.pressure_L2_error()  # get the pressure L2 error
 
     # --- adaptive settings --- #
+    uh = sol['uh']
+    eta = stokes.space.residual_estimate0(nu, uh, pde.source)
     aopts = mesh.adaptive_options(method='numrefine', maxcoarsen=3, HB=True)
+    print('number of cells: ', mesh.number_of_cells())
+    mesh.adaptive(eta, aopts)
 
-
+# ---
+print('end of the program')
 
 
 
