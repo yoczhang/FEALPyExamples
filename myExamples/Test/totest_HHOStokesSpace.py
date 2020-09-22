@@ -59,23 +59,29 @@ lastuh = vSpace.function()
 lastuh[:] = np.random.rand(len(lastuh))
 # lastuh = np.concatenate([lastuh, 2.0 + lastuh])
 
+# --- test fh --- #
 fh = vSpace.project(pde.source, dim=2)
-
-
 def osc_f(x, index=np.s_[:]):
     fhval = vSpace.value(fh, x, index=index)  # the evalue has the same shape of x.
     fval = pde.source(x)
     return (fval - fhval)**2
-
-
 err = vSpace.integralalg.integral(osc_f, celltype=True)
 
 # --- to test the residual_estimate0 --- #
 nu = 1.0
-uh = vSpace.function(dim=2)
-uh = np.zeros(uh.shape)
+uh = vSpace.function(dim=3)
+uh = np.random.standard_normal(uh.shape)
 
 eta = sspace.residual_estimate0(nu, uh, pde.source)
+
+# --- --- #
+cb = mesh.cell_barycenter()
+guhval = vSpace.grad_value(uh, cb)
+
+
+def grad_uh(point, index=np.s_[:]):
+    return vSpace.grad_value(uh, point=point, index=index)
+guh = vSpace.integralalg.integral(grad_uh, celltype=True)
 
 # #
 # #
