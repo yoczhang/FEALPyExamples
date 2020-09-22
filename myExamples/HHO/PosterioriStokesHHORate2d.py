@@ -19,13 +19,16 @@ from ShowCls import show
 from StokesHHOModel2d import StokesHHOModel2d
 from fealpy.mesh import MeshFactory
 from fealpy.mesh import HalfEdgeMesh2d
+from fealpy.tools.show import showmultirate, show_error_table
+from fealpy.mesh.mesh_tools import find_entity
+import matplotlib.pyplot as plt
 
 
 # --- begin setting --- #
 d = 2  # the dimension
 p = 1  # the polynomial order
 n = 2  # the number of refine mesh
-maxit = 4  # the max iteration of the mesh
+maxit = 9  # the max iteration of the mesh
 
 nu = 1.0e-3
 pde = Stokes2DData_0(nu)  # create pde model
@@ -43,7 +46,7 @@ meshtype = 'quad'
 mesh = mf.boxmesh2d(box, nx=n, ny=n, meshtype=meshtype)
 mesh = HalfEdgeMesh2d.from_mesh(mesh)
 mesh.init_level_info()
-mesh.uniform_refine(n)  # refine the mesh at beginning
+mesh.uniform_refine(n-1)  # refine the mesh at beginning
 
 # --- plot the mesh --- #
 # fig = plt.figure()
@@ -66,9 +69,20 @@ for i in range(maxit):
     # --- adaptive settings --- #
     uh = sol['uh']
     eta = stokes.space.residual_estimate0(nu, uh, pde.source)
-    aopts = mesh.adaptive_options(method='numrefine', maxcoarsen=3, HB=True)
-    print('number of cells: ', mesh.number_of_cells())
+    aopts = mesh.adaptive_options(method='max', theta=0.2, maxcoarsen=0, HB=True)
+    print('before refine: number of cells: ', mesh.number_of_cells())
     mesh.adaptive(eta, aopts)
+    # mesh.uniform_refine()
+    print('after refine: number of cells: ', mesh.number_of_cells())
+
+
+# --- get the convergence rate --- #
+# # show the error table
+show_error_table(Ndof, errorType, errorMatrix)
+
+# # plot the rate
+showmultirate(plt, 0, Ndof, errorMatrix, errorType)
+plt.show()
 
 # ---
 print('end of the program')
