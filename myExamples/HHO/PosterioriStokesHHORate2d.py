@@ -30,7 +30,7 @@ p = 1  # the polynomial order
 n = 2  # the number of refine mesh
 maxit = 9  # the max iteration of the mesh
 
-nu = 1.0e-3
+nu = 1.0e-5
 pde = Stokes2DData_0(nu)  # create pde model
 
 # --- error settings --- #
@@ -76,12 +76,18 @@ for i in range(maxit):
     print('after refine: number of cells: ', mesh.number_of_cells())
 
 
-# --- get the convergence rate --- #
-# # show the error table
-show_error_table(Ndof, errorType, errorMatrix)
+# # --- get the convergence rate --- #
+# # # show the error table
+# show_error_table(Ndof, errorType, errorMatrix)
+#
+# # # plot the rate
+# showmultirate(plt, 0, Ndof, errorMatrix, errorType)
+# plt.show()
 
-# # plot the rate
-showmultirate(plt, 0, Ndof, errorMatrix, errorType)
+# --- get the convergence rate --- #
+sh = show(plt, mesh.meshtype, mesh.geo_dimension(), maxit-3, errorType, Ndof, errorMatrix)
+sh.show_error_table()
+sh.showmultirate()
 plt.show()
 
 # ---
