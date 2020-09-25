@@ -68,7 +68,7 @@ for i in range(maxit):
 
     # --- adaptive settings --- #
     uh = sol['uh']
-    eta = stokes.space.residual_estimate0(nu, uh, pde.source)
+    eta = stokes.space.residual_estimate0(nu, uh, pde.source, pde.velocity)
     aopts = mesh.adaptive_options(method='max', theta=0.2, maxcoarsen=0, HB=True)
     print('before refine: number of cells: ', mesh.number_of_cells())
     mesh.adaptive(eta, aopts)
