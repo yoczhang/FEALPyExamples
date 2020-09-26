@@ -30,7 +30,7 @@ p = 1  # the polynomial order
 n = 2  # the number of refine mesh
 maxit = 9  # the max iteration of the mesh
 
-nu = 1.0e-0
+nu = 1.0e-5
 pde = Stokes2DData_0(nu)  # create pde model
 
 # --- error settings --- #
@@ -62,13 +62,15 @@ for i in range(maxit):
     stokes = StokesHHOModel2d(pde, mesh, p)
     sol = stokes.solve()
     Ndof[i] = stokes.space.number_of_global_dofs()  # get the number of dofs
-    errorMatrix[0, i] = stokes.velocity_L2_error()  # get the velocity L2 error
-    errorMatrix[1, i] = stokes.velocity_energy_error()  # get the velocity energy error
-    errorMatrix[2, i] = stokes.pressure_L2_error()  # get the pressure L2 error
+    errorMatrix[0, i] = nu * stokes.velocity_L2_error()  # get the velocity L2 error
+    errorMatrix[1, i] = nu * stokes.velocity_energy_error()  # get the velocity energy error
+    errorMatrix[2, i] = nu**(-1) * stokes.pressure_L2_error()  # get the pressure L2 error
 
     # --- adaptive settings --- #
     uh = sol['uh']
     eta = stokes.space.residual_estimate0(nu, uh, pde.source, pde.velocity)
+    eff = np.sqrt(sum(eta)**2/(errorMatrix[1, i]*errorMatrix[1, i] + errorMatrix[2, i]*errorMatrix[2, i]))
+    print('eff: ', eff)
     aopts = mesh.adaptive_options(method='max', theta=0.2, maxcoarsen=0, HB=True)
     print('before refine: number of cells: ', mesh.number_of_cells())
     mesh.adaptive(eta, aopts)
