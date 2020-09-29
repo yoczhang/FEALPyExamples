@@ -15,6 +15,7 @@ The solver hybrid high-order (HHO) method.
 
 import numpy as np
 from scipy.sparse.linalg import spsolve
+from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, spdiags, eye, bmat
 
 
 class HHOSolver:
@@ -52,7 +53,27 @@ class HHOSolver:
 
         MB1_0 = M[:uTgNdof, 2*ugNdof:2*ugNdof + pTgNdof]
         MB1_b = M[uTgNdof:ugNdof, 2*ugNdof:2*ugNdof + pTgNdof]
-        
+        MB2_0 = M[ugNdof:ugNdof + uTgNdof, 2*ugNdof:2*ugNdof + pTgNdof]
+        MB2_b = M[ugNdof + uTgNdof:2*ugNdof, 2*ugNdof:2*ugNdof + pTgNdof]
+
+        MB1_0t = M[2*ugNdof:2*ugNdof + pTgNdof, :uTgNdof]
+        MB1_bt = M[2*ugNdof:2*ugNdof + pTgNdof, uTgNdof:ugNdof]
+        MB2_0t = M[2*ugNdof:2*ugNdof + pTgNdof, ugNdof:ugNdof + uTgNdof]
+        MB2_bt = M[2*ugNdof:2*ugNdof + pTgNdof, ugNdof + uTgNdof:2*ugNdof]
+
+        L = M[2*ugNdof:2*ugNdof + pTgNdof, -1]
+        Lt = M[-1, 2*ugNdof:2*ugNdof + pTgNdof]
+
+        uT0 = csr_matrix((uTgNdof, uTgNdof))
+        LT0 = csr_matrix((uTgNdof, 1))
+        pT0 = csr_matrix((pTgNdof, pTgNdof))
+        A = bmat([[MA1_00, uT0, MB1_0, LT0], [uT0, MA2_00, MB2_0, LT0], [MB1_0t, MB2_0t, pT0, L], [LT0.T, LT0.T, Lt, 0]], format='csr')
+
+
+        print("solve system:")
+
+
+
 
 
 
