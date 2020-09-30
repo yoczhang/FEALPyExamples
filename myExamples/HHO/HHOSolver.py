@@ -46,10 +46,10 @@ class HHOSolver:
         MA1_b0 = M[uTgNdof:ugNdof, :uTgNdof]
         MA1_bb = M[uTgNdof:ugNdof, uTgNdof:ugNdof]
 
-        MA2_00 = np.copy(MA1_00)
-        MA2_0b = np.copy(MA1_0b)
-        MA2_b0 = np.copy(MA1_b0)
-        MA2_bb = np.copy(MA1_bb)
+        MA2_00 = MA1_00.copy()
+        MA2_0b = MA1_0b.copy()
+        MA2_b0 = MA1_b0.copy()
+        MA2_bb = MA1_bb.copy()
 
         MB1_0 = M[:uTgNdof, 2*ugNdof:2*ugNdof + pTgNdof]
         MB1_b = M[uTgNdof:ugNdof, 2*ugNdof:2*ugNdof + pTgNdof]
@@ -68,7 +68,12 @@ class HHOSolver:
         LT0 = csr_matrix((uTgNdof, 1))
         pT0 = csr_matrix((pTgNdof, pTgNdof))
         A = bmat([[MA1_00, uT0, MB1_0, LT0], [uT0, MA2_00, MB2_0, LT0], [MB1_0t, MB2_0t, pT0, L], [LT0.T, LT0.T, Lt, 0]], format='csr')
+        A0 = bmat([[MA1_00, uT0], [uT0, MA2_00]], format='csr')
 
+        # --- test
+        bb = bmat([[MB1_0], [MB2_0], [pT0], [Lt]], format='csr')
+
+        # np.linalg.matrix_rank
 
         print("solve system:")
 
