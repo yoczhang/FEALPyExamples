@@ -77,6 +77,13 @@ class HHOSolver:
 
         print("solve system:")
 
+    def StokesSolver_1(self):
+        ivM0, divM1 = self.space.cell_divergence_matrix()
+
+
+
+
+
 
 
 
