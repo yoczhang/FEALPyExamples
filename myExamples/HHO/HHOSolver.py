@@ -19,12 +19,12 @@ from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, spdiags, eye, bmat
 
 
 class HHOSolver:
-    def __init__(self, M, R, space):
+    def __init__(self, M, R, vSpace):
         self.M = M
         self.R = R
-        self.space = space
-        self.p = self.space.p
-        self.mesh = self.space.mesh
+        self.vSpace = vSpace
+        self.p = self.vSpace.p
+        self.mesh = self.vSpace.mesh
         self.NC = self.mesh.number_of_cells()
         self.NE = self.mesh.number_of_edges()
 
@@ -65,8 +65,17 @@ class HHOSolver:
         MB2_00t = M[ugNdof:(ugNdof + uTgNdof), 2*ugNdof:(2*ugNdof + pTgNdof)]
         MB2_b0 = M[(ugNdof + uTgNdof):2*ugNdof, 2*ugNdof:(2*ugNdof + pTgNdof)]
 
-        L = M[-1, 2 * ugNdof:2 * ugNdof + pTgNdof]  # the Lagrange multiplier vector (for the pressure condition: \int p = 0).
+        # # the Lagrange multiplier vector (for the pressure condition: \int p = 0)
+        L = M[-1, 2 * ugNdof:2 * ugNdof + pTgNdof]
         Lt = M[2*ugNdof:2*ugNdof + pTgNdof, -1]
+
+        pphi = self.vSpace.basis  # (NQ,NC,pldof)
+        intp = self.vSpace.integralalg.integral(pphi, celltype=True)  # (NC,pldof)
+
+        LF = intp[:, 0][np.newaxis, :]  # (NC,1)
+        LT = intp[:, 1:].reshape(1, -1)
+        L = bmat([[csr_matrix((1, 2*uTgNdof)), LT, csr_matrix((1, 2*uFgNdof)), LF]], format='csr')
+
 
         # --- to reconstruct the global matrix
         pgIdx = np.arange(0, pTgNdof, pTlNdof)  # (NC,)
@@ -101,15 +110,15 @@ class HHOSolver:
         print("solve system:")
 
     def StokesSolver_1(self):
-        space = self.space
+        vSpace = self.vSpace
 
         # --- the Poisson (scalar) HHO space
-        gdof_scal = space.vSpace.dof.number_of_global_dofs()
-        StiffM = space.vSpace.reconstruction_stiff_matrix()  # list, its len is NC, each-term.shape (Cldof,Cldof)
-        StabM = space.vSpace.reconstruction_stabilizer_matrix()  # list, its len is NC, each-term.shape (Cldof,Cldof)
+        gdof_scal = vSpace.dof.number_of_global_dofs()
+        StiffM = vSpace.reconstruction_stiff_matrix()  # list, its len is NC, each-term.shape (Cldof,Cldof)
+        StabM = vSpace.reconstruction_stabilizer_matrix()  # list, its len is NC, each-term.shape (Cldof,Cldof)
 
         # --- the divergence term
-        divM0, divM1 = space.cell_divergence_matrix()  # divM0, list, (NC,); divM1, list, (NC,)
+        divM0, divM1 = vSpace.cell_divergence_matrix()  # divM0, list, (NC,); divM1, list, (NC,)
 
 
 
