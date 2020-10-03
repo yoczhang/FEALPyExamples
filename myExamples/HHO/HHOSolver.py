@@ -36,10 +36,14 @@ class HHOSolver:
         NC = self.NC
         NE = self.NE
 
-        uTgNdof = NC * (p + 1) * (p + 2) // 2
-        uFgNdof = NE * (p + 1)
+        uTlNdof = (p + 1) * (p + 2) // 2
+        uFlNdof = p + 1
+        pTlNdof = (p + 1) * (p + 2) // 2
+
+        uTgNdof = NC * uTlNdof
+        uFgNdof = NE * uFlNdof
         ugNdof = uTgNdof + uFgNdof
-        pTgNdof = NC * (p + 1) * (p + 2) // 2
+        pTgNdof = NC * pTlNdof
 
         MA1_00 = M[:uTgNdof, :uTgNdof]
         MA1_0b = M[:uTgNdof, uTgNdof:ugNdof]
@@ -51,23 +55,42 @@ class HHOSolver:
         MA2_b0 = MA1_b0.copy()
         MA2_bb = MA1_bb.copy()
 
-        MB1_0 = M[:uTgNdof, 2*ugNdof:2*ugNdof + pTgNdof]
-        MB1_b = M[uTgNdof:ugNdof, 2*ugNdof:2*ugNdof + pTgNdof]
-        MB2_0 = M[ugNdof:ugNdof + uTgNdof, 2*ugNdof:2*ugNdof + pTgNdof]
-        MB2_b = M[ugNdof + uTgNdof:2*ugNdof, 2*ugNdof:2*ugNdof + pTgNdof]
+        MB1_00 = M[2*ugNdof:(2*ugNdof + pTgNdof), :uTgNdof]
+        MB1_0b = M[2*ugNdof:(2*ugNdof + pTgNdof), uTgNdof:ugNdof]
+        MB2_00 = M[2*ugNdof:(2*ugNdof + pTgNdof), ugNdof:(ugNdof + uTgNdof)]
+        MB2_0b = M[2*ugNdof:(2*ugNdof + pTgNdof), (ugNdof + uTgNdof):2*ugNdof]
 
-        MB1_0t = M[2*ugNdof:2*ugNdof + pTgNdof, :uTgNdof]
-        MB1_bt = M[2*ugNdof:2*ugNdof + pTgNdof, uTgNdof:ugNdof]
-        MB2_0t = M[2*ugNdof:2*ugNdof + pTgNdof, ugNdof:ugNdof + uTgNdof]
-        MB2_bt = M[2*ugNdof:2*ugNdof + pTgNdof, ugNdof + uTgNdof:2*ugNdof]
+        MB1_00t = M[:uTgNdof, 2*ugNdof:(2*ugNdof + pTgNdof)]
+        MB1_b0 = M[uTgNdof:ugNdof, 2*ugNdof:(2*ugNdof + pTgNdof)]
+        MB2_00t = M[ugNdof:(ugNdof + uTgNdof), 2*ugNdof:(2*ugNdof + pTgNdof)]
+        MB2_b0 = M[(ugNdof + uTgNdof):2*ugNdof, 2*ugNdof:(2*ugNdof + pTgNdof)]
 
-        L = M[2*ugNdof:2*ugNdof + pTgNdof, -1]
-        Lt = M[-1, 2*ugNdof:2*ugNdof + pTgNdof]
+        L = M[-1, 2 * ugNdof:2 * ugNdof + pTgNdof]  # the Lagrange multiplier vector (for the pressure condition: \int p = 0).
+        Lt = M[2*ugNdof:2*ugNdof + pTgNdof, -1]
+
+        # --- to reconstruct the global matrix
+        pgIdx = np.arange(0, pTgNdof, pTlNdof)  # (NC,)
+        MB1_bb = MB1_0b[pgIdx, :]  # (NC,uFgNdof)
+        MB2_bb = MB2_0b[pgIdx, :]  # (NC,uFgNdof)
+        MB1_bbt = MB1_bb[:, pgIdx]  # (uFgNdof,NC)
+        MB2_bbt = MB2_bb[:, pgIdx]  # (uFgNdof,NC)
+
+        MB1_00 = np.delete(MB1_00, pgIdx, axis=0)
+        MB1_0b = np.delete(MB1_0b, pgIdx, axis=0)
+        MB2_00 = np.delete(MB2_00, pgIdx, axis=0)
+        MB2_0b = np.delete(MB2_0b, pgIdx, axis=0)
+
+        MB1_00t = np.delete(MB1_00t, pgIdx, axis=1)
+        MB1_b0 = np.delete(MB1_b0, pgIdx, axis=1)
+        MB2_00t = np.delete(MB2_00t, pgIdx, axis=1)
+        MB2_b0 = np.delete(MB2_b0, pgIdx, axis=1)
+
+
 
         uT0 = csr_matrix((uTgNdof, uTgNdof))
         LT0 = csr_matrix((uTgNdof, 1))
         pT0 = csr_matrix((pTgNdof, pTgNdof))
-        A = bmat([[MA1_00, uT0, MB1_0, LT0], [uT0, MA2_00, MB2_0, LT0], [MB1_0t, MB2_0t, pT0, L], [LT0.T, LT0.T, Lt, 0]], format='csr')
+        A = bmat([[MA1_00, uT0, MB1_00t, LT0], [uT0, MA2_00, MB2_00t, LT0], [MB1_00, MB2_00, pT0, L], [LT0.T, LT0.T, Lt, 0]], format='csr')
         A0 = bmat([[MA1_00, uT0], [uT0, MA2_00]], format='csr')
 
         # --- test
@@ -78,7 +101,17 @@ class HHOSolver:
         print("solve system:")
 
     def StokesSolver_1(self):
-        divM0, divM1 = self.space.cell_divergence_matrix()
+        space = self.space
+
+        # --- the Poisson (scalar) HHO space
+        gdof_scal = space.vSpace.dof.number_of_global_dofs()
+        StiffM = space.vSpace.reconstruction_stiff_matrix()  # list, its len is NC, each-term.shape (Cldof,Cldof)
+        StabM = space.vSpace.reconstruction_stabilizer_matrix()  # list, its len is NC, each-term.shape (Cldof,Cldof)
+
+        # --- the divergence term
+        divM0, divM1 = space.cell_divergence_matrix()  # divM0, list, (NC,); divM1, list, (NC,)
+
+
 
 
 
