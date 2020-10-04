@@ -14,7 +14,7 @@ The solver hybrid high-order (HHO) method.
 """
 
 import numpy as np
-from scipy.sparse.linalg import spsolve, inv
+from scipy.sparse.linalg import spsolve
 from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, spdiags, eye, bmat
 
 
@@ -118,7 +118,6 @@ class HHOSolver:
         invA = np.zeros((NC*AlNdof, NC*AlNdof), dtype=np.float)
 
         def func_invA(x):
-            print('in func_invA')
             stiffM_TT = nu * x[0][:uTlNdof, :uTlNdof]
             stabM_TT = nu * x[1][:uTlNdof, :uTlNdof]
             divM0_TT = x[2][1:, :uTlNdof]
@@ -141,14 +140,16 @@ class HHOSolver:
 
             u0Idx = CIdx * uTlNdof + np.arange(uTlNdof)
             u1Idx = uTgNdof + u0Idx
-            pIdx = 2*uTgNdof + u0Idx
+            pIdx = 2*uTgNdof + CIdx * (pTlNdof - 1) + np.arange(pTlNdof - 1)
             Idx = np.concatenate([u0Idx, u1Idx, pIdx])
 
-            # invA[Idx, Idx] = inv(Al)
+            i, j = np.ix_(Idx, Idx)
+            invA[i, j] = np.linalg.inv(Al)
             return None
 
-        temp = map(func_invA, zip(StiffM, StabM, divM0_split, divM1_split, list(np.arange(NC))))
-
+        t = list(map(func_invA, zip(StiffM, StabM, divM0_split, divM1_split, range(NC))))  # TODO: why here list() is necessary?
+        # tt = np.max(abs(np.linalg.inv(A.todense())-invA))
+        # print("max( abs(invA - inv(A)) ) = ", tt)
 
         print("solve system:")
 
