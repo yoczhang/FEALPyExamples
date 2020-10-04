@@ -19,16 +19,17 @@ from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, spdiags, eye, bmat
 
 
 class HHOSolver:
-    def __init__(self, M, R, vSpace):
+    def __init__(self, M, R, space):
         self.M = M
         self.R = R
-        self.vSpace = vSpace
-        self.p = self.vSpace.p
-        self.mesh = self.vSpace.mesh
+        self.space = space
+        self.p = self.space.p
+        self.mesh = self.space.mesh
         self.NC = self.mesh.number_of_cells()
         self.NE = self.mesh.number_of_edges()
 
     def StokesSolver(self):
+        vSpace = self.space.vSpace
         M = self.M
         R = self.R
         p = self.p
@@ -69,56 +70,54 @@ class HHOSolver:
         L = M[-1, 2 * ugNdof:2 * ugNdof + pTgNdof]
         Lt = M[2*ugNdof:2*ugNdof + pTgNdof, -1]
 
-        pphi = self.vSpace.basis  # (NQ,NC,pldof)
-        intp = self.vSpace.integralalg.integral(pphi, celltype=True)  # (NC,pldof)
+        pphi = vSpace.basis  # (NQ,NC,pldof)
+        intp = vSpace.integralalg.integral(pphi, celltype=True)  # (NC,pldof)
 
-        LF = intp[:, 0][np.newaxis, :]  # (NC,1)
-        LT = intp[:, 1:].reshape(1, -1)
+        LF = intp[:, 0][np.newaxis, :]  # (1,NC)
+        LT = intp[:, 1:].reshape(1, -1)  # (1,...)
         L = bmat([[csr_matrix((1, 2*uTgNdof)), LT, csr_matrix((1, 2*uFgNdof)), LF]], format='csr')
-
 
         # --- to reconstruct the global matrix
         pgIdx = np.arange(0, pTgNdof, pTlNdof)  # (NC,)
         MB1_bb = MB1_0b[pgIdx, :]  # (NC,uFgNdof)
         MB2_bb = MB2_0b[pgIdx, :]  # (NC,uFgNdof)
-        MB1_bbt = MB1_bb[:, pgIdx]  # (uFgNdof,NC)
-        MB2_bbt = MB2_bb[:, pgIdx]  # (uFgNdof,NC)
+        MB1_bbt = MB1_b0[:, pgIdx]  # (uFgNdof,NC)
+        MB2_bbt = MB2_b0[:, pgIdx]  # (uFgNdof,NC)
 
-        MB1_00 = np.delete(MB1_00, pgIdx, axis=0)
-        MB1_0b = np.delete(MB1_0b, pgIdx, axis=0)
-        MB2_00 = np.delete(MB2_00, pgIdx, axis=0)
-        MB2_0b = np.delete(MB2_0b, pgIdx, axis=0)
+        MB1_00 = np.delete(MB1_00.todense(), pgIdx, axis=0)
+        MB1_0b = np.delete(MB1_0b.todense(), pgIdx, axis=0)
+        MB2_00 = np.delete(MB2_00.todense(), pgIdx, axis=0)
+        MB2_0b = np.delete(MB2_0b.todense(), pgIdx, axis=0)
 
-        MB1_00t = np.delete(MB1_00t, pgIdx, axis=1)
-        MB1_b0 = np.delete(MB1_b0, pgIdx, axis=1)
-        MB2_00t = np.delete(MB2_00t, pgIdx, axis=1)
-        MB2_b0 = np.delete(MB2_b0, pgIdx, axis=1)
+        MB1_00t = np.delete(MB1_00t.todense(), pgIdx, axis=1)
+        MB1_b0 = np.delete(MB1_b0.todense(), pgIdx, axis=1)
+        MB2_00t = np.delete(MB2_00t.todense(), pgIdx, axis=1)
+        MB2_b0 = np.delete(MB2_b0.todense(), pgIdx, axis=1)
 
+        # # get global matrix
+        VP_F0 = np.zeros((NC, uTgNdof))  # here, NC is also the number of global dofs of pressure
+        LF0 = np.zeros((1, uFgNdof))
+        LT0 = np.zeros((1, uTgNdof))
+        A = bmat([[MA1_00, None, MB1_00t], [None, MA2_00, MB2_00t], [MB1_00, MB2_00, None]], format='csr')
+        B = bmat([[MA1_0b, None, VP_F0.T, LT0.T], [None, MA2_0b, VP_F0.T, LT0.T], [MB1_0b, MB2_0b, None, LT.T]], format='csr')
+        C = bmat([[MA1_b0, None, MB1_b0], [None, MA2_b0, MB2_b0], [VP_F0, VP_F0, None], [LT0, LT0, LT]], format='csr')
+        D = bmat([[MA1_bb, None, MB1_bbt, LF0.T], [None, MA2_bb, MB2_bbt, LF0.T], [MB1_bb, MB2_bb, None, LF.T], [LF0, LF0, LF, None]], format='csr')
 
+        # # to get the inv A
 
-        uT0 = csr_matrix((uTgNdof, uTgNdof))
-        LT0 = csr_matrix((uTgNdof, 1))
-        pT0 = csr_matrix((pTgNdof, pTgNdof))
-        A = bmat([[MA1_00, uT0, MB1_00t, LT0], [uT0, MA2_00, MB2_00t, LT0], [MB1_00, MB2_00, pT0, L], [LT0.T, LT0.T, Lt, 0]], format='csr')
-        A0 = bmat([[MA1_00, uT0], [uT0, MA2_00]], format='csr')
-
-        # --- test
-        bb = bmat([[MB1_0], [MB2_0], [pT0], [Lt]], format='csr')
-
-        # np.linalg.matrix_rank
 
         print("solve system:")
 
     def StokesSolver_1(self):
-        vSpace = self.vSpace
+        vSpace = self.space
 
         # --- the Poisson (scalar) HHO space
-        gdof_scal = vSpace.dof.number_of_global_dofs()
-        StiffM = vSpace.reconstruction_stiff_matrix()  # list, its len is NC, each-term.shape (Cldof,Cldof)
-        StabM = vSpace.reconstruction_stabilizer_matrix()  # list, its len is NC, each-term.shape (Cldof,Cldof)
+        gdof_scal = self.space.dof.number_of_global_dofs()
+        StiffM = self.space.reconstruction_stiff_matrix()  # list, its len is NC, each-term.shape (Cldof,Cldof)
+        StabM = self.space.reconstruction_stabilizer_matrix()  # list, its len is NC, each-term.shape (Cldof,Cldof)
 
         # --- the divergence term
-        divM0, divM1 = vSpace.cell_divergence_matrix()  # divM0, list, (NC,); divM1, list, (NC,)
+        divM0, divM1 = self.space.cell_divergence_matrix()  # divM0, list, (NC,); divM1, list, (NC,)
 
 
 
