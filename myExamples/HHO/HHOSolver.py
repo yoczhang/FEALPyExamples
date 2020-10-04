@@ -14,15 +14,16 @@ The solver hybrid high-order (HHO) method.
 """
 
 import numpy as np
-from scipy.sparse.linalg import spsolve
+from scipy.sparse.linalg import spsolve, inv
 from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, spdiags, eye, bmat
 
 
 class HHOSolver:
-    def __init__(self, M, R, space):
+    def __init__(self, M, R, space, pde):
         self.M = M
         self.R = R
         self.space = space
+        self.pde = pde
         self.p = self.space.p
         self.mesh = self.space.mesh
         self.NC = self.mesh.number_of_cells()
@@ -30,6 +31,7 @@ class HHOSolver:
 
     def StokesSolver(self):
         vSpace = self.space.vSpace
+        nu = self.pde.nu
         M = self.M
         R = self.R
         p = self.p
@@ -104,6 +106,48 @@ class HHOSolver:
         D = bmat([[MA1_bb, None, MB1_bbt, LF0.T], [None, MA2_bb, MB2_bbt, LF0.T], [MB1_bb, MB2_bb, None, LF.T], [LF0, LF0, LF, None]], format='csr')
 
         # # to get the inv A
+        cell2dof, doflocation = vSpace.dof.cell_to_dof()
+        StiffM = vSpace.reconstruction_stiff_matrix()  # list, (NC,), each-term.shape (Cldof,Cldof)
+        StabM = vSpace.reconstruction_stabilizer_matrix()  # list, (NC,), each-term.shape (Cldof,Cldof)
+        divM0, divM1 = self.space.cell_divergence_matrix()  # e.g., divM0, list, (NC,); divM0: (pTlNdof,\sum_C{Cldof})
+        divM0_split = np.hsplit(divM0, doflocation[1:-1])
+        divM1_split = np.hsplit(divM1, doflocation[1:-1])
+
+        AlNdof = 2*uTlNdof + pTlNdof - 1
+        Al = np.zeros((AlNdof, AlNdof), dtype=np.float)
+        invA = np.zeros((NC*AlNdof, NC*AlNdof), dtype=np.float)
+
+        def func_invA(x):
+            print('in func_invA')
+            stiffM_TT = nu * x[0][:uTlNdof, :uTlNdof]
+            stabM_TT = nu * x[1][:uTlNdof, :uTlNdof]
+            divM0_TT = x[2][1:, :uTlNdof]
+            divM1_TT = x[3][1:, :uTlNdof]
+            CIdx = x[4]
+
+            Al[:uTlNdof, :uTlNdof] = stiffM_TT + stabM_TT
+            Al[uTlNdof:2*uTlNdof, uTlNdof:2*uTlNdof] = stiffM_TT + stabM_TT
+            Al[2*uTlNdof:, :uTlNdof] = divM0_TT
+            Al[2*uTlNdof:, uTlNdof:2*uTlNdof] = divM1_TT
+            Al[:uTlNdof, 2*uTlNdof:] = divM0_TT.T
+            Al[uTlNdof:2*uTlNdof, 2*uTlNdof:] = divM1_TT.T
+
+            # u0Tdof_C = CIdx * uTlNdof + np.arange(uTlNdof)
+            # u0T_rowIdx = np.einsum('i, k->ik', u0Tdof_C, np.ones(AlNdof, ))
+            # u1T_rowIdx = uTgNdof + u0T_rowIdx
+            # pT_rowIdx = 2*uTgNdof + u0T_rowIdx
+            # rowIdx = np.concatenate([u0T_rowIdx, u1T_rowIdx, pT_rowIdx], axis=0)
+            # colIdx = rowIdx.T
+
+            u0Idx = CIdx * uTlNdof + np.arange(uTlNdof)
+            u1Idx = uTgNdof + u0Idx
+            pIdx = 2*uTgNdof + u0Idx
+            Idx = np.concatenate([u0Idx, u1Idx, pIdx])
+
+            # invA[Idx, Idx] = inv(Al)
+            return None
+
+        temp = map(func_invA, zip(StiffM, StabM, divM0_split, divM1_split, list(np.arange(NC))))
 
 
         print("solve system:")
