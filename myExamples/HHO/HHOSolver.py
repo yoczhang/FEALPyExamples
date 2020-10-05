@@ -69,9 +69,6 @@ class HHOSolver:
         MB2_b0 = M[(ugNdof + uTgNdof):2*ugNdof, 2*ugNdof:(2*ugNdof + pTgNdof)]
 
         # # the Lagrange multiplier vector (for the pressure condition: \int p = 0)
-        L = M[-1, 2 * ugNdof:2 * ugNdof + pTgNdof]
-        Lt = M[2*ugNdof:2*ugNdof + pTgNdof, -1]
-
         pphi = vSpace.basis  # (NQ,NC,pldof)
         intp = vSpace.integralalg.integral(pphi, celltype=True)  # (NC,pldof)
 
@@ -148,8 +145,8 @@ class HHOSolver:
             return None
 
         t = list(map(func_invA, zip(StiffM, StabM, divM0_split, divM1_split, range(NC))))  # TODO: why here list() is necessary?
-        # tt = np.max(abs(np.linalg.inv(A.todense())-invA))
-        # print("max( abs(invA - inv(A)) ) = ", tt)
+        tt = np.max(abs(np.linalg.inv(A.todense())-invA))
+        print("max( abs(invA - inv(A)) ) = ", tt)
 
         print("solve system:")
 

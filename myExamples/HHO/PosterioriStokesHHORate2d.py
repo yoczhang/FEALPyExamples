@@ -30,7 +30,7 @@ p = 1  # the polynomial order
 n = 2  # the number of refine mesh
 maxit = 9  # the max iteration of the mesh
 
-nu = 1.0e-0
+nu = 1.0e-3
 pde = Stokes2DData_0(nu)  # create pde model
 
 # --- error settings --- #
