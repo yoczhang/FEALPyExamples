@@ -14,8 +14,10 @@ The solver hybrid high-order (HHO) method.
 """
 
 import numpy as np
+from numpy.linalg import solve, inv
 from scipy.sparse.linalg import spsolve
 from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, spdiags, eye, bmat
+from timeit import default_timer as timer
 
 
 class HHOSolver:
@@ -39,15 +41,22 @@ class HHOSolver:
         NC = self.NC
         NE = self.NE
 
-        uTlNdof = (p + 1) * (p + 2) // 2
+        # # 'l' denotes 'local';
+        # # 'g' denotes 'global'.
+        TlNdof = (p + 1) * (p + 2) // 2
+        uTlNdof = TlNdof
         uFlNdof = p + 1
-        pTlNdof = (p + 1) * (p + 2) // 2
+        pTlNdof = TlNdof - 1
+        pFlNdof = 1
 
         uTgNdof = NC * uTlNdof
         uFgNdof = NE * uFlNdof
         ugNdof = uTgNdof + uFgNdof
         pTgNdof = NC * pTlNdof
+        pFgNdof = NC * pFlNdof
+        pgNdof = pTgNdof + pFgNdof
 
+        # --- matrix setting --- #
         MA1_00 = M[:uTgNdof, :uTgNdof]
         MA1_0b = M[:uTgNdof, uTgNdof:ugNdof]
         MA1_b0 = M[uTgNdof:ugNdof, :uTgNdof]
@@ -58,15 +67,21 @@ class HHOSolver:
         MA2_b0 = MA1_b0.copy()
         MA2_bb = MA1_bb.copy()
 
-        MB1_00 = M[2*ugNdof:(2*ugNdof + pTgNdof), :uTgNdof]
-        MB1_0b = M[2*ugNdof:(2*ugNdof + pTgNdof), uTgNdof:ugNdof]
-        MB2_00 = M[2*ugNdof:(2*ugNdof + pTgNdof), ugNdof:(ugNdof + uTgNdof)]
-        MB2_0b = M[2*ugNdof:(2*ugNdof + pTgNdof), (ugNdof + uTgNdof):2*ugNdof]
+        MB1_00 = M[2*ugNdof:(2*ugNdof + pgNdof), :uTgNdof]
+        MB1_0b = M[2*ugNdof:(2*ugNdof + pgNdof), uTgNdof:ugNdof]
+        MB2_00 = M[2*ugNdof:(2*ugNdof + pgNdof), ugNdof:(ugNdof + uTgNdof)]
+        MB2_0b = M[2*ugNdof:(2*ugNdof + pgNdof), (ugNdof + uTgNdof):2*ugNdof]
 
-        MB1_00t = M[:uTgNdof, 2*ugNdof:(2*ugNdof + pTgNdof)]
-        MB1_b0 = M[uTgNdof:ugNdof, 2*ugNdof:(2*ugNdof + pTgNdof)]
-        MB2_00t = M[ugNdof:(ugNdof + uTgNdof), 2*ugNdof:(2*ugNdof + pTgNdof)]
-        MB2_b0 = M[(ugNdof + uTgNdof):2*ugNdof, 2*ugNdof:(2*ugNdof + pTgNdof)]
+        MB1_00t = M[:uTgNdof, 2*ugNdof:(2*ugNdof + pgNdof)]
+        MB1_b0 = M[uTgNdof:ugNdof, 2*ugNdof:(2*ugNdof + pgNdof)]
+        MB2_00t = M[ugNdof:(ugNdof + uTgNdof), 2*ugNdof:(2*ugNdof + pgNdof)]
+        MB2_b0 = M[(ugNdof + uTgNdof):2*ugNdof, 2*ugNdof:(2*ugNdof + pgNdof)]
+
+        # # the right hand side
+        r0_0 = R[:uTgNdof, :]
+        r0_1 = R[ugNdof:(ugNdof+uTgNdof), :]
+        R0 = np.concatenate([r0_0, r0_1, np.zeros((pTgNdof, 1), dtype=np.float)])  # (2*uTgNdof+pTgNdof, 1)
+        Rb = np.zeros((2*uFgNdof+pFgNdof+1, 1), dtype=np.float)
 
         # # the Lagrange multiplier vector (for the pressure condition: \int p = 0)
         pphi = vSpace.basis  # (NQ,NC,pldof)
@@ -74,10 +89,9 @@ class HHOSolver:
 
         LF = intp[:, 0][np.newaxis, :]  # (1,NC)
         LT = intp[:, 1:].reshape(1, -1)  # (1,...)
-        L = bmat([[csr_matrix((1, 2*uTgNdof)), LT, csr_matrix((1, 2*uFgNdof)), LF]], format='csr')
 
-        # --- to reconstruct the global matrix
-        pgIdx = np.arange(0, pTgNdof, pTlNdof)  # (NC,)
+        # # to reconstruct the global matrix
+        pgIdx = np.arange(0, pgNdof, TlNdof)  # (NC,)
         MB1_bb = MB1_0b[pgIdx, :]  # (NC,uFgNdof)
         MB2_bb = MB2_0b[pgIdx, :]  # (NC,uFgNdof)
         MB1_bbt = MB1_b0[:, pgIdx]  # (uFgNdof,NC)
@@ -93,8 +107,8 @@ class HHOSolver:
         MB2_00t = np.delete(MB2_00t.todense(), pgIdx, axis=1)
         MB2_b0 = np.delete(MB2_b0.todense(), pgIdx, axis=1)
 
-        # # get global matrix
-        VP_F0 = np.zeros((NC, uTgNdof))  # here, NC is also the number of global dofs of pressure
+        # --- get global matrix --- #
+        VP_F0 = np.zeros((pFgNdof, uTgNdof))
         LF0 = np.zeros((1, uFgNdof))
         LT0 = np.zeros((1, uTgNdof))
         A = bmat([[MA1_00, None, MB1_00t], [None, MA2_00, MB2_00t], [MB1_00, MB2_00, None]], format='csr')
@@ -106,13 +120,12 @@ class HHOSolver:
         cell2dof, doflocation = vSpace.dof.cell_to_dof()
         StiffM = vSpace.reconstruction_stiff_matrix()  # list, (NC,), each-term.shape (Cldof,Cldof)
         StabM = vSpace.reconstruction_stabilizer_matrix()  # list, (NC,), each-term.shape (Cldof,Cldof)
-        divM0, divM1 = self.space.cell_divergence_matrix()  # e.g., divM0, list, (NC,); divM0: (pTlNdof,\sum_C{Cldof})
+        divM0, divM1 = self.space.cell_divergence_matrix()  # e.g., divM0, list, (NC,); divM0: (TlNdof,\sum_C{Cldof})
         divM0_split = np.hsplit(divM0, doflocation[1:-1])
         divM1_split = np.hsplit(divM1, doflocation[1:-1])
 
-        AlNdof = 2*uTlNdof + pTlNdof - 1
-        Al = np.zeros((AlNdof, AlNdof), dtype=np.float)
-        invA = np.zeros((NC*AlNdof, NC*AlNdof), dtype=np.float)
+        AlNdof = 2*uTlNdof + pTlNdof
+        invA = np.zeros((NC * AlNdof, NC * AlNdof), dtype=np.float)
 
         def func_invA(x):
             stiffM_TT = nu * x[0][:uTlNdof, :uTlNdof]
@@ -121,6 +134,8 @@ class HHOSolver:
             divM1_TT = x[3][1:, :uTlNdof]
             CIdx = x[4]
 
+            Al = np.zeros((AlNdof, AlNdof), dtype=np.float)
+
             Al[:uTlNdof, :uTlNdof] = stiffM_TT + stabM_TT
             Al[uTlNdof:2*uTlNdof, uTlNdof:2*uTlNdof] = stiffM_TT + stabM_TT
             Al[2*uTlNdof:, :uTlNdof] = divM0_TT
@@ -128,27 +143,73 @@ class HHOSolver:
             Al[:uTlNdof, 2*uTlNdof:] = divM0_TT.T
             Al[uTlNdof:2*uTlNdof, 2*uTlNdof:] = divM1_TT.T
 
-            # u0Tdof_C = CIdx * uTlNdof + np.arange(uTlNdof)
-            # u0T_rowIdx = np.einsum('i, k->ik', u0Tdof_C, np.ones(AlNdof, ))
-            # u1T_rowIdx = uTgNdof + u0T_rowIdx
-            # pT_rowIdx = 2*uTgNdof + u0T_rowIdx
-            # rowIdx = np.concatenate([u0T_rowIdx, u1T_rowIdx, pT_rowIdx], axis=0)
-            # colIdx = rowIdx.T
-
             u0Idx = CIdx * uTlNdof + np.arange(uTlNdof)
             u1Idx = uTgNdof + u0Idx
-            pIdx = 2*uTgNdof + CIdx * (pTlNdof - 1) + np.arange(pTlNdof - 1)
+            pIdx = 2 * uTgNdof + CIdx * pTlNdof + np.arange(pTlNdof)
             Idx = np.concatenate([u0Idx, u1Idx, pIdx])
 
+            # # one way assembling, this way is more quickly
             i, j = np.ix_(Idx, Idx)
-            invA[i, j] = np.linalg.inv(Al)
+            invA[i, j] = inv(Al)
+
+            # # other way assembling
+            # u0Tdof_C = CIdx * uTlNdof + np.arange(uTlNdof)
+            # u0T_rowIdx = np.einsum('i, k->ik', u0Tdof_C, np.ones((AlNdof, ), dtype=np.int))
+            # u1T_rowIdx = uTgNdof + u0T_rowIdx
+            # pTdof_C = 2*uTgNdof + CIdx * pTlNdof + np.arange(pTlNdof)
+            # pT_rowIdx = np.einsum('i, k->ik', pTdof_C, np.ones((AlNdof, ), dtype=np.int))
+            # rowIdx = np.concatenate([u0T_rowIdx, u1T_rowIdx, pT_rowIdx], axis=0)
+            # rowIdx = np.einsum('i, k->ik', Idx, np.ones((AlNdof, ), dtype=np.int))
+            # colIdx = rowIdx.T
+            # r = csr_matrix((inv(Al).flat, (rowIdx.flat, colIdx.flat)), shape=(NC * AlNdof, NC * AlNdof), dtype=np.float)
             return None
 
-        t = list(map(func_invA, zip(StiffM, StabM, divM0_split, divM1_split, range(NC))))  # TODO: why here list() is necessary?
-        tt = np.max(abs(np.linalg.inv(A.todense())-invA))
-        print("max( abs(invA - inv(A)) ) = ", tt)
+        start = timer()
+        # TODO: why here list() is necessary?
+        # invAt = sum(list(map(func_invA, zip(StiffM, StabM, divM0_split, divM1_split, range(NC)))))
+        invAt = list(map(func_invA, zip(StiffM, StabM, divM0_split, divM1_split, range(NC))))
+        end = timer()
+        print("get inv matrix (cell-by-cell):", end - start)
 
-        print("solve system:")
+        start = timer()
+        # invAtt = inv(A)
+        invAtt = np.linalg.inv(A.todense())
+        end = timer()
+        print("get inv matrix (directly):", end - start)
+        print("max( abs(invA - inv(A)) ) = ", np.max(abs(invAtt-invA)))
+
+        # --- solve the Static Condensation system --- #
+        # print("solve system:")
+        stacM = D - C@invA@B
+        stacR = Rb - C@invA@R0
+
+        # # deal the Dirichlet boundary edges
+        uD = self.pde.dirichlet  # uD(bcs): (NQ,NC,ldof,2)
+        idxDirEdge = self.pde.idxDirEdge
+        MD, RD = self.space.applyDirichletBC(stacM, stacR, uD, idxDirEdge=idxDirEdge, StaticCondensation=True)
+
+        # # solve the system
+        print("in static solver, begin solve algebraic equations:")
+        start = timer()
+        Xb = solve(MD, RD)
+        end = timer()
+        print("in static solver, solve algebraic equations:", end - start)
+
+        X0 = invA@(R0 - B@Xb)
+
+        # # rearrange the dofs
+        X = np.zeros((2*ugNdof + pgNdof + 1, 1))
+        X[:uTgNdof] = X0[:uTgNdof]
+        X[uTgNdof:ugNdof] = Xb[:uFgNdof]
+        X[ugNdof:ugNdof+uTgNdof] = X0[uTgNdof:2*uTgNdof]
+        X[ugNdof+uTgNdof:2*ugNdof] = Xb[uFgNdof:2*uFgNdof]
+
+        P0 = X0[2*uTgNdof:].reshape(-1, pTlNdof)  # (pTgNdof,)
+        Pb = Xb[2*uFgNdof:-1]  # (PFgNdof,)
+        P = np.concatenate([Pb, P0], axis=1)
+
+        X[2*ugNdof:-1] = P.reshape(-1, 1)
+        return np.squeeze(X)
 
     def StokesSolver_1(self):
         vSpace = self.space
