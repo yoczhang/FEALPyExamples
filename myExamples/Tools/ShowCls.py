@@ -44,6 +44,13 @@ class show:
         print('\\begin{table}[!htdp]', file=out, end='\n')
         print('\\begin{tabular}[c]{|' + n * 'c|' + '}\hline', file=out, end='\n')
 
+        s = 'h' + sep + np.array2string(hh, separator=sep, )
+        s = s.replace('\n', '')
+        s = s.replace('[', '')
+        s = s.replace(']', '')
+        print(s, file=out, end=end)
+        print('\\\\\\hline', file=out)
+
         s = 'Dof' + sep + np.array2string(NdofList, separator=sep, )
         s = s.replace('\n', '')
         s = s.replace('[', '')

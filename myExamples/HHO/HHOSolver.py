@@ -155,12 +155,6 @@ class HHOSolver:
             invA[i, j] = inv(Al)
 
             # # other way assembling
-            # #u0Tdof_C = CIdx * uTlNdof + np.arange(uTlNdof)
-            # #u0T_rowIdx = np.einsum('i, k->ik', u0Tdof_C, np.ones((AlNdof, ), dtype=np.int))
-            # #u1T_rowIdx = uTgNdof + u0T_rowIdx
-            # #pTdof_C = 2*uTgNdof + CIdx * pTlNdof + np.arange(pTlNdof)
-            # #pT_rowIdx = np.einsum('i, k->ik', pTdof_C, np.ones((AlNdof, ), dtype=np.int))
-            # #rowIdx = np.concatenate([u0T_rowIdx, u1T_rowIdx, pT_rowIdx], axis=0)
             # rowIdx = np.einsum('i, k->ik', Idx, np.ones((AlNdof, ), dtype=np.int))
             # colIdx = rowIdx.T
             # r = csr_matrix((inv(Al).flat, (rowIdx.flat, colIdx.flat)), shape=(NC * AlNdof, NC * AlNdof), dtype=np.float)
@@ -174,7 +168,7 @@ class HHOSolver:
         # pool.close()
         # pool.join()
         end = timer()
-        print("TIME: get inv matrix (cell-by-cell):", end - start)
+        print("  |--- TIME: get inv matrix (cell-by-cell):", end - start)
 
         # start = timer()
         # invAtt = inv(A)
@@ -195,34 +189,27 @@ class HHOSolver:
         MD, RD = self.space.applyDirichletBC(stacM, stacR, uD, idxDirEdge=idxDirEdge, StaticCondensation=True)
 
         # # solve the system
-        print("in static solver, begin solve 'dense' algebraic equations:")
+        print("  |--- Begin solve 'sparse' algebraic equations:")
         start = timer()
-        Xb = solve(MD, RD)
+        Xb = spsolve(MD, RD)
         end = timer()
-        print("TIME: in static solver, solve 'dense' algebraic equations:", end - start)
+        print("  |--- TIME: in static solver, solve 'sparse' algebraic equations:", end - start)
 
-        print("in static solver, begin solve 'sparse' algebraic equations:")
-        start = timer()
-        sMD = csr_matrix(MD)
-        Xb1 = spsolve(sMD, RD)
-        end = timer()
-        print("TIME: in static solver, solve 'sparse' algebraic equations:", end - start)
-
-        X0 = invA@(R0 - B@Xb)
+        X0 = invA@(np.squeeze(R0) - B@Xb)
 
         # # rearrange the dofs
-        X = np.zeros((2*ugNdof + pgNdof + 1, 1))
+        X = np.zeros((2*ugNdof + pgNdof + 1,))
         X[:uTgNdof] = X0[:uTgNdof]
         X[uTgNdof:ugNdof] = Xb[:uFgNdof]
         X[ugNdof:ugNdof+uTgNdof] = X0[uTgNdof:2*uTgNdof]
         X[ugNdof+uTgNdof:2*ugNdof] = Xb[uFgNdof:2*uFgNdof]
 
-        P0 = X0[2*uTgNdof:].reshape(-1, pTlNdof)  # (pTgNdof,)
-        Pb = Xb[2*uFgNdof:-1]  # (PFgNdof,)
+        P0 = X0[2*uTgNdof:].reshape(-1, pTlNdof)  # (pTgNdof,pTlNdof)
+        Pb = Xb[2*uFgNdof:-1].reshape(-1, 1)  # (PFgNdof,1)
         P = np.concatenate([Pb, P0], axis=1)
 
-        X[2*ugNdof:-1] = P.reshape(-1, 1)
-        return np.squeeze(X)
+        X[2*ugNdof:-1] = P.flatten()
+        return X
 
     def StokesSolver_1(self):
         vSpace = self.space
