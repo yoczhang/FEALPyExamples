@@ -168,7 +168,7 @@ class HHOSolver:
         # pool.close()
         # pool.join()
         end = timer()
-        print("  |--- TIME: get inv matrix (cell-by-cell):", end - start)
+        print("  |___ TIME: get inv matrix (cell-by-cell):", end - start)
 
         # start = timer()
         # invAtt = inv(A)
@@ -189,11 +189,11 @@ class HHOSolver:
         MD, RD = self.space.applyDirichletBC(stacM, stacR, uD, idxDirEdge=idxDirEdge, StaticCondensation=True)
 
         # # solve the system
-        print("  |--- Begin solve 'sparse' algebraic equations:")
+        print("  |___ Begin solve 'sparse' algebraic equations:")
         start = timer()
         Xb = spsolve(MD, RD)
         end = timer()
-        print("  |--- TIME: in static solver, solve 'sparse' algebraic equations:", end - start)
+        print("  |___ TIME: in static solver, solve 'sparse' algebraic equations:", end - start)
 
         X0 = invA@(np.squeeze(R0) - B@Xb)
 

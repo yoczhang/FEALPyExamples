@@ -14,6 +14,29 @@
 import sys
 import numpy as np
 from types import ModuleType
+from scipy.special import comb, perm
+
+
+class showMeshInfo:
+    def __init__(self, p, mesh):
+        self.p = p
+        self.mesh = mesh
+
+    def showMeshInfo(self, out=sys.stdout):
+        p = self.p
+        mesh = self.mesh
+        GD = mesh.geo_dimension()
+        NC = mesh.number_of_cells()
+        NE = mesh.number_of_edges()
+        eldof = int(comb(p + GD - 1, GD - 1))
+        smsldof = int(comb(p + GD, GD))
+
+        egdof = NE * eldof
+        smsgdof = NC * smsldof
+
+        s0 = 'Polynomial order: ' + str(p) + ' .'
+        s1 = 'Global edge-dofs: ' + str(egdof) + ';  Global smspace cell-dofs: ' + str(smsgdof) + ' .'
+        s2 = 'Number of cells: ' + str(NC) + ';  Number of edges: ' + str(NE) + ' .'
 
 
 class show:

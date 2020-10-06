@@ -1,14 +1,2 @@
 \begin{table}[!htdp]
 \begin{tabular}[c]{|c|c|c|c|c|}\hline
-Dof &   3 &  12 &  48 & 192
-\\\hline
-$|| u - u_h||_0$ & 5.2891e-16 & 1.4430e-01 & 1.8811e-02 & 2.1738e-03
-\\\hline
-Order & -- & -47.95 &   2.94 &   3.11
-\\\hline
-$||\nabla u - \nabla u_h||_0$ & 1.4960e-15 & 8.1680e-01 & 2.4411e-01 & 6.5220e-02
-\\\hline
-Order & -- & -48.96 &   1.74 &   1.9 
-\\\hline
-\end{tabular}
-\end{table}

@@ -62,7 +62,7 @@ class PoissonDGModel2d(object):
         end = timer()
         print("Solve time:", end - start)
 
-        ls = {'A': A, 'b': b, 'solution': self.uh.copy()}
+        ls = {'A': A, 'b': b, 'solution': self.uh}
 
         return ls  # return the linear system
 

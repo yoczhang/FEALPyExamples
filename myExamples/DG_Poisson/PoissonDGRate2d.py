@@ -73,6 +73,10 @@ for i in range(maxit):
     if i < maxit - 1:
         mesh.refine_poly()
 
+# --- plot solution --- #
+uh = ls['solution']
+uh.add_plot(plt, cmap='rainbow')
+
 # --- get the convergence rate --- #
 sh = show(plt, mesh.meshtype, mesh.geo_dimension(), maxit-2, errorType, Ndof, errorMatrix)
 sh.show_error_table()
