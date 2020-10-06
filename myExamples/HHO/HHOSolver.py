@@ -18,6 +18,7 @@ from numpy.linalg import solve, inv
 from scipy.sparse.linalg import spsolve
 from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, spdiags, eye, bmat
 from timeit import default_timer as timer
+from multiprocessing.dummy import Pool as ThreadPool
 
 
 class HHOSolver:
@@ -128,6 +129,7 @@ class HHOSolver:
         invA = np.zeros((NC * AlNdof, NC * AlNdof), dtype=np.float)
 
         def func_invA(x):
+            r = None
             stiffM_TT = nu * x[0][:uTlNdof, :uTlNdof]
             stabM_TT = nu * x[1][:uTlNdof, :uTlNdof]
             divM0_TT = x[2][1:, :uTlNdof]
@@ -153,33 +155,37 @@ class HHOSolver:
             invA[i, j] = inv(Al)
 
             # # other way assembling
-            # u0Tdof_C = CIdx * uTlNdof + np.arange(uTlNdof)
-            # u0T_rowIdx = np.einsum('i, k->ik', u0Tdof_C, np.ones((AlNdof, ), dtype=np.int))
-            # u1T_rowIdx = uTgNdof + u0T_rowIdx
-            # pTdof_C = 2*uTgNdof + CIdx * pTlNdof + np.arange(pTlNdof)
-            # pT_rowIdx = np.einsum('i, k->ik', pTdof_C, np.ones((AlNdof, ), dtype=np.int))
-            # rowIdx = np.concatenate([u0T_rowIdx, u1T_rowIdx, pT_rowIdx], axis=0)
+            # #u0Tdof_C = CIdx * uTlNdof + np.arange(uTlNdof)
+            # #u0T_rowIdx = np.einsum('i, k->ik', u0Tdof_C, np.ones((AlNdof, ), dtype=np.int))
+            # #u1T_rowIdx = uTgNdof + u0T_rowIdx
+            # #pTdof_C = 2*uTgNdof + CIdx * pTlNdof + np.arange(pTlNdof)
+            # #pT_rowIdx = np.einsum('i, k->ik', pTdof_C, np.ones((AlNdof, ), dtype=np.int))
+            # #rowIdx = np.concatenate([u0T_rowIdx, u1T_rowIdx, pT_rowIdx], axis=0)
             # rowIdx = np.einsum('i, k->ik', Idx, np.ones((AlNdof, ), dtype=np.int))
             # colIdx = rowIdx.T
             # r = csr_matrix((inv(Al).flat, (rowIdx.flat, colIdx.flat)), shape=(NC * AlNdof, NC * AlNdof), dtype=np.float)
-            return None
+            return r
 
         start = timer()
-        # TODO: why here list() is necessary?
         # invAt = sum(list(map(func_invA, zip(StiffM, StabM, divM0_split, divM1_split, range(NC)))))
         invAt = list(map(func_invA, zip(StiffM, StabM, divM0_split, divM1_split, range(NC))))
+        # pool = ThreadPool()
+        # invAt = sum(pool.map(func_invA, zip(StiffM, StabM, divM0_split, divM1_split, range(NC))))
+        # pool.close()
+        # pool.join()
         end = timer()
-        print("get inv matrix (cell-by-cell):", end - start)
+        print("TIME: get inv matrix (cell-by-cell):", end - start)
 
-        start = timer()
+        # start = timer()
         # invAtt = inv(A)
-        invAtt = np.linalg.inv(A.todense())
-        end = timer()
-        print("get inv matrix (directly):", end - start)
-        print("max( abs(invA - inv(A)) ) = ", np.max(abs(invAtt-invA)))
+        # invAtt = np.linalg.inv(A.todense())
+        # end = timer()
+        # print("get inv matrix (directly):", end - start)
+        # print("max( abs(invA - inv(A)) ) = ", np.max(abs(invAtt-invA)))
 
         # --- solve the Static Condensation system --- #
         # print("solve system:")
+        invA = csr_matrix(invA)  # To makesure invA is sparse matrix is important!!!
         stacM = D - C@invA@B
         stacR = Rb - C@invA@R0
 
@@ -189,11 +195,18 @@ class HHOSolver:
         MD, RD = self.space.applyDirichletBC(stacM, stacR, uD, idxDirEdge=idxDirEdge, StaticCondensation=True)
 
         # # solve the system
-        print("in static solver, begin solve algebraic equations:")
+        print("in static solver, begin solve 'dense' algebraic equations:")
         start = timer()
         Xb = solve(MD, RD)
         end = timer()
-        print("in static solver, solve algebraic equations:", end - start)
+        print("TIME: in static solver, solve 'dense' algebraic equations:", end - start)
+
+        print("in static solver, begin solve 'sparse' algebraic equations:")
+        start = timer()
+        sMD = csr_matrix(MD)
+        Xb1 = spsolve(sMD, RD)
+        end = timer()
+        print("TIME: in static solver, solve 'sparse' algebraic equations:", end - start)
 
         X0 = invA@(R0 - B@Xb)
 
