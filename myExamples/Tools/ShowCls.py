@@ -58,11 +58,21 @@ class showSolution:
     def showSolution(self, uhIdx=None):
         mesh = self.mesh
         uh = self.uh
+        node = mesh.node
+        bc = mesh.cell_barycenter()
+        edge = mesh.entity('edge')
+        edge2cell = mesh.ds.edge_to_cell()
 
         # --- divide the poly-elems into tri-elems --- #
-        Ntri = mesh
+        Ntri = sum(mesh.number_of_edges_of_cells())
+        maskTri = np.arange(Ntri*3).reshape(-1, 3)
 
+        tri0 = np.array([bc[edge2cell[:, 0]], node[edge[:, 0]], node[edge[:, 1]]])  # (3,NE,2)
+        tri0 = tri0.swapaxes(0, 1).reshape(-1, 2)  # (3*NE,2), each 3-lines is one triangle
 
+        isInEdge = (edge2cell[:, 0] != edge2cell[:, 1])
+        tri1 = np.array([bc[edge2cell[isInEdge, 1]], node[edge[isInEdge, 1]], node[edge[isInEdge, 0]]])  # (3,NInE,2)
+        tri1 = tri1.swapaxes(0, 1).reshape(-1, 2)  # (3*NInE,2), each 3-lines is one triangle
 
 
 class show:
