@@ -10,34 +10,28 @@
 # ---
 
 
-import matplotlib.pyplot as plt
 import numpy as np
-import matplotlib.tri as mtri
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import cm
+
+n_angles = 36
+n_radii = 8
+# An array of radii
+# Does not include radius r=0, this is to eliminate duplicate points
+radii = np.linspace(0.125, 1.0, n_radii)
+# An array of angles
+angles = np.linspace(0, 2 * np.pi, n_angles, endpoint=False)
+# Repeat all angles for each radius
+angles = np.repeat(angles[..., np.newaxis], n_radii, axis=1)
+# Convert polar (radii, angles) coords to cartesian (x, y) coords
+# (0, 0) is added here. There are no duplicate points in the (x, y) plane
+x = np.append(0, (radii * np.cos(angles)).flatten())
+y = np.append(0, (radii * np.sin(angles)).flatten())
+# Pringle surface
+z = np.sin(-x * y)
 
 fig = plt.figure()
 ax = fig.gca(projection='3d')
-
-xy = [[0.3, 0.5],
-      [0.6, 0.8],
-      [0.5, 0.1],
-      [0.1, 0.2]]
-xy = np.array(xy)
-z = np.zeros(8)
-
-triangles = [[0, 2, 1],
-             [2, 0, 3]]
-
-triang = mtri.Triangulation(xy[:, 0], xy[:, 1], triangles=triangles)
-plt.triplot(triang, marker="o")
-
-ax.plot_trisurf(triang, z, linewidth=0.2, antialiased=True)
-
-ax.view_init(45, -90)
-ax.set_xlabel("X")
-ax.set_ylabel("Y")
-ax.set_zlabel("Z")
-ax.set_aspect("equal")
-
-fig.set_size_inches(8, 8)
-
+ax.plot_trisurf(x, y, z, cmap=cm.jet, linewidth=0.2)
 plt.show()

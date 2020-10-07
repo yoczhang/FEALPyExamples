@@ -17,10 +17,11 @@ from types import ModuleType
 from scipy.special import comb, perm
 
 
-class showMeshInfo:
-    def __init__(self, p, mesh):
+class showSolution:
+    def __init__(self, p, mesh, uh):
         self.p = p
         self.mesh = mesh
+        self.uh = uh
 
     def showMeshInfo(self, out=sys.stdout):
         p = self.p
@@ -37,6 +38,31 @@ class showMeshInfo:
         s0 = 'Polynomial order: ' + str(p) + ' .'
         s1 = 'Global edge-dofs: ' + str(egdof) + ';  Global smspace cell-dofs: ' + str(smsgdof) + ' .'
         s2 = 'Number of cells: ' + str(NC) + ';  Number of edges: ' + str(NE) + ' .'
+
+        print(s0)
+        print(s1)
+        print(s2)
+
+        flag = False
+        if type(out) == type(''):
+            flag = True
+            out = open(out, 'w')
+
+        print(s0, file=out, end='\n')
+        print(s1, file=out, end='\n')
+        print(s2, file=out, end='\n')
+
+        if flag:
+            out.close()
+
+    def showSolution(self, uhIdx=None):
+        mesh = self.mesh
+        uh = self.uh
+
+        # --- divide the poly-elems into tri-elems --- #
+        Ntri = mesh
+
+
 
 
 class show:
