@@ -15,7 +15,7 @@ The fealpy program for posteriori Stokes problem.
 
 from Stokes2DData import Stokes2DData_0
 import numpy as np
-from ShowCls import show
+from ShowCls import showConvergence
 from StokesHHOModel2d import StokesHHOModel2d
 from fealpy.mesh import MeshFactory
 from fealpy.mesh import HalfEdgeMesh2d
@@ -87,9 +87,9 @@ for i in range(maxit):
 # plt.show()
 
 # --- get the convergence rate --- #
-sh = show(plt, mesh.meshtype, mesh.geo_dimension(), maxit-3, errorType, Ndof, errorMatrix)
-sh.show_error_table()
-sh.showmultirate()
+shC = showConvergence(plt, mesh.meshtype, mesh.geo_dimension(), maxit-3, errorType, Ndof, errorMatrix)
+shC.show_error_table()
+shC.showmultirate()
 plt.show()
 
 # ---

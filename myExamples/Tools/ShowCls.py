@@ -15,13 +15,27 @@ import sys
 import numpy as np
 from types import ModuleType
 from scipy.special import comb, perm
+import matplotlib.pyplot as plt
+from fealpy.mesh.mesh_tools import find_entity
 
 
-class showSolution:
-    def __init__(self, p, mesh, uh):
+class showResult:
+    def __init__(self, p, mesh):
         self.p = p
         self.mesh = mesh
-        self.uh = uh
+
+    def showMesh(self, markCell=True, markEdge=True, markNode=True):
+        mesh = self.mesh
+        fig = plt.figure()
+        axes = fig.gca()
+        mesh.add_plot(axes, cellcolor='w')
+        if markCell:
+            find_entity(axes, mesh, entity='cell', showindex=True, color='b', markersize=10, fontsize=8)
+        if markEdge:
+            find_entity(axes, mesh, entity='edge', showindex=True, color='r', markersize=10, fontsize=8)
+        if markNode:
+            find_entity(axes, mesh, entity='node', showindex=True, color='y', markersize=10, fontsize=8)
+        plt.show()
 
     def showMeshInfo(self, out=sys.stdout):
         p = self.p
@@ -55,9 +69,8 @@ class showSolution:
         if flag:
             out.close()
 
-    def showSolution(self, uhIdx=None):
+    def showSolution(self, space=None, uh=None):
         mesh = self.mesh
-        uh = self.uh
         node = mesh.node
         bc = mesh.cell_barycenter()
         edge = mesh.entity('edge')
@@ -65,17 +78,24 @@ class showSolution:
 
         # --- divide the poly-elems into tri-elems --- #
         Ntri = sum(mesh.number_of_edges_of_cells())
-        maskTri = np.arange(Ntri*3).reshape(-1, 3)
+        maskTri = np.arange(Ntri * 3).reshape(-1, 3)
 
-        tri0 = np.array([bc[edge2cell[:, 0]], node[edge[:, 0]], node[edge[:, 1]]])  # (3,NE,2)
-        tri0 = tri0.swapaxes(0, 1).reshape(-1, 2)  # (3*NE,2), each 3-lines is one triangle
+        triCoord0 = np.array([bc[edge2cell[:, 0]], node[edge[:, 0]], node[edge[:, 1]]])  # (3,NE,2)
+        # triCoord0 = triCoord0.swapaxes(0, 1)  # (NE,3,2)
+        # cell0 = edge2cell[:, 0]  # (NE,)
+        triCoord0 = triCoord0.swapaxes(0, 1).reshape(-1, 2)  # (3*NE,2), each 3-lines is one triangle
 
         isInEdge = (edge2cell[:, 0] != edge2cell[:, 1])
-        tri1 = np.array([bc[edge2cell[isInEdge, 1]], node[edge[isInEdge, 1]], node[edge[isInEdge, 0]]])  # (3,NInE,2)
-        tri1 = tri1.swapaxes(0, 1).reshape(-1, 2)  # (3*NInE,2), each 3-lines is one triangle
+        triCoord1 = np.array([bc[edge2cell[isInEdge, 1]], node[edge[isInEdge, 1]], node[edge[isInEdge, 0]]])  # (3,NInE,2)
+        triCoord1 = triCoord1.swapaxes(0, 1).reshape(-1, 2)  # (3*NInE,2), each 3-lines is one triangle
+
+        triCoord = np.concatenate([triCoord0, triCoord1], axis=0)
+
+        triValue = space.value(uh)
+        
 
 
-class show:
+class showConvergence:
     def __init__(self, plot, meshtype, GD, k_slope, errortypeList, NdofList, errorMatrix):
         self.plot = plot
         self.meshtype = meshtype
@@ -92,7 +112,7 @@ class show:
         errortypeList = self.errortypeList
         errorMatrix = self.errorMatrix
 
-        hh = np.power(1/NdofList, 1/GD)
+        hh = np.power(1 / NdofList, 1 / GD)
 
         flag = False
         if type(out) == type(''):
@@ -134,7 +154,7 @@ class show:
             if meshtype == 'tri':
                 order = np.log(line[0:-1] / line[1:]) / np.log(2)
             else:
-                order = np.log(line[0:-1] / line[1:]) / np.log(hh[0:-1]/hh[1:])
+                order = np.log(line[0:-1] / line[1:]) / np.log(hh[0:-1] / hh[1:])
             s = 'Order' + sep + '--' + sep + np.array2string(order, separator=sep, precision=2)
             s = s.replace('\n', '')
             s = s.replace('[', '')
@@ -186,4 +206,3 @@ class show:
             s = 0.75 * error[k[0]] / N[k[0]] ** c[0]
             line1, = axes.loglog(N[k], s * N[k] ** c[0], label='C$N^{%0.4f}$' % (c[0]),
                                  lw=lw, ls=line0.get_linestyle(), color=line0.get_color())
-
