@@ -98,9 +98,7 @@ class showResult:
 
         triValue = space.value(uh, triCoord, cellIdx)
 
-        # --- 首先得到每个单元中所有顶点的坐标 --- #
-        cell2node, cell2nodeIdx = mesh.ds.cell_to_node()
-
+        # --- plot solution --- #
         fig0 = plt.figure()
         fig0.set_facecolor('white')
         axes = fig0.gca(projection='3d')
