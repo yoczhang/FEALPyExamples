@@ -20,9 +20,10 @@ from fealpy.mesh.mesh_tools import find_entity
 
 
 class showResult:
-    def __init__(self, p, mesh):
+    def __init__(self, p, mesh, out=sys.stdout):
         self.p = p
         self.mesh = mesh
+        self.out = out
 
     def showMesh(self, markCell=True, markEdge=True, markNode=True):
         mesh = self.mesh
@@ -37,9 +38,10 @@ class showResult:
             find_entity(axes, mesh, entity='node', showindex=True, color='y', markersize=10, fontsize=8)
         plt.show()
 
-    def showMeshInfo(self, out=sys.stdout):
+    def showMeshInfo(self):
         p = self.p
         mesh = self.mesh
+        out = self.out
         GD = mesh.geo_dimension()
         NC = mesh.number_of_cells()
         NE = mesh.number_of_edges()
@@ -58,7 +60,7 @@ class showResult:
         print(s2)
 
         flag = False
-        if type(out) == type(''):
+        if isinstance(out, str):
             flag = True
             out = open(out, 'w')
 
@@ -71,6 +73,7 @@ class showResult:
 
     def showSolution(self, space=None, uh=None):
         mesh = self.mesh
+        out = self.out
         node = mesh.node
         bc = mesh.cell_barycenter()
         edge = mesh.entity('edge')
@@ -82,17 +85,28 @@ class showResult:
 
         triCoord0 = np.array([bc[edge2cell[:, 0]], node[edge[:, 0]], node[edge[:, 1]]])  # (3,NE,2)
         # triCoord0 = triCoord0.swapaxes(0, 1)  # (NE,3,2)
-        # cell0 = edge2cell[:, 0]  # (NE,)
         triCoord0 = triCoord0.swapaxes(0, 1).reshape(-1, 2)  # (3*NE,2), each 3-lines is one triangle
+        cell0 = np.repeat(edge2cell[:, 0], 3)  # (3*NE,)
 
         isInEdge = (edge2cell[:, 0] != edge2cell[:, 1])
         triCoord1 = np.array([bc[edge2cell[isInEdge, 1]], node[edge[isInEdge, 1]], node[edge[isInEdge, 0]]])  # (3,NInE,2)
         triCoord1 = triCoord1.swapaxes(0, 1).reshape(-1, 2)  # (3*NInE,2), each 3-lines is one triangle
+        cell1 = np.repeat(edge2cell[isInEdge, 1], 3)  # (3*NInE,)
 
         triCoord = np.concatenate([triCoord0, triCoord1], axis=0)
+        cellIdx = np.concatenate([cell0, cell1])
 
-        triValue = space.value(uh)
-        
+        triValue = space.value(uh, triCoord, cellIdx)
+
+        # --- 首先得到每个单元中所有顶点的坐标 --- #
+        cell2node, cell2nodeIdx = mesh.ds.cell_to_node()
+
+        fig0 = plt.figure()
+        fig0.set_facecolor('white')
+        axes = fig0.gca(projection='3d')
+        axes.plot_trisurf(triCoord[:, 0], triCoord[:, 1], maskTri, triValue, cmap=plt.cm.jet, lw=0.0)
+        plt.savefig(out) if isinstance(out, str) else None
+        plt.close()
 
 
 class showConvergence:
@@ -115,7 +129,7 @@ class showConvergence:
         hh = np.power(1 / NdofList, 1 / GD)
 
         flag = False
-        if type(out) == type(''):
+        if isinstance(out, str):
             flag = True
             out = open(out, 'w')
 

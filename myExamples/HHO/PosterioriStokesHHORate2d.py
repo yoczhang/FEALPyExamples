@@ -46,7 +46,7 @@ meshtype = 'quad'
 mesh = mf.boxmesh2d(box, nx=n, ny=n, meshtype=meshtype)
 mesh = HalfEdgeMesh2d.from_mesh(mesh)
 mesh.init_level_info()
-mesh.uniform_refine(n-1)  # refine the mesh at beginning
+mesh.uniform_refine(n+2)  # refine the mesh at beginning
 
 # --- plot the mesh --- #
 # fig = plt.figure()
@@ -61,6 +61,7 @@ mesh.uniform_refine(n-1)  # refine the mesh at beginning
 for i in range(maxit):
     stokes = StokesHHOModel2d(pde, mesh, p)
     sol = stokes.solve()
+    stokes.showSolution()
     Ndof[i] = stokes.space.number_of_global_dofs()  # get the number of dofs
     errorMatrix[0, i] = nu * stokes.velocity_L2_error()  # get the velocity L2 error
     errorMatrix[1, i] = nu * stokes.velocity_energy_error()  # get the velocity energy error
