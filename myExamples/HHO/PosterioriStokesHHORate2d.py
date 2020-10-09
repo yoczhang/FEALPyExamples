@@ -15,7 +15,7 @@ The fealpy program for posteriori Stokes problem.
 
 from Stokes2DData import Stokes2DData_0
 import numpy as np
-from ShowCls import showConvergence
+from ShowCls import ShowCls
 from StokesHHOModel2d import StokesHHOModel2d
 from fealpy.mesh import MeshFactory
 from fealpy.mesh import HalfEdgeMesh2d
@@ -36,7 +36,6 @@ pde = Stokes2DData_0(nu)  # create pde model
 # --- error settings --- #
 errorType = ['$|| u - u_h||_0$', '$||\\nabla u - \\nabla u_h||_0$', '|| p - p_h ||_0']
 errorMatrix = np.zeros((len(errorType), maxit), dtype=np.float)
-
 Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
 
 # --- mesh setting --- #
@@ -46,7 +45,7 @@ meshtype = 'quad'
 mesh = mf.boxmesh2d(box, nx=n, ny=n, meshtype=meshtype)
 mesh = HalfEdgeMesh2d.from_mesh(mesh)
 mesh.init_level_info()
-mesh.uniform_refine(n+2)  # refine the mesh at beginning
+mesh.uniform_refine(n-1)  # refine the mesh at beginning
 
 # --- plot the mesh --- #
 # fig = plt.figure()
@@ -56,6 +55,13 @@ mesh.uniform_refine(n+2)  # refine the mesh at beginning
 # find_entity(axes, mesh, entity='edge', showindex=True, color='r', markersize=10, fontsize=8)
 # find_entity(axes, mesh, entity='node', showindex=True, color='y', markersize=10, fontsize=8)
 # plt.show()
+sc = ShowCls(p, mesh, errorType=errorType, Ndof=Ndof, errorMatrix=errorMatrix)
+sc.showMeshInfo()
+sc.showMesh()
+
+# mesh.uniform_refine(1)
+# print("------------------")
+# sc.showMeshInfo()
 
 # --- start for-loop --- #
 for i in range(maxit):
@@ -88,9 +94,8 @@ for i in range(maxit):
 # plt.show()
 
 # --- get the convergence rate --- #
-shC = showConvergence(plt, mesh.meshtype, mesh.geo_dimension(), maxit-3, errorType, Ndof, errorMatrix)
-shC.show_error_table()
-shC.showmultirate()
+sc.show_error_table()
+sc.showmultirate(plt, maxit-3)
 plt.show()
 
 # ---

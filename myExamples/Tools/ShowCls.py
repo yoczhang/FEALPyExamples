@@ -19,10 +19,13 @@ import matplotlib.pyplot as plt
 from fealpy.mesh.mesh_tools import find_entity
 
 
-class showResult:
-    def __init__(self, p, mesh, out=sys.stdout):
+class ShowCls:
+    def __init__(self, p, mesh, errorType=None, Ndof=None, errorMatrix=None, out=sys.stdout):
         self.p = p
         self.mesh = mesh
+        self.errorType = errorType
+        self.Ndof = Ndof
+        self.errorMatrix = errorMatrix
         self.out = out
 
     def showMesh(self, markCell=True, markEdge=True, markNode=True):
@@ -38,7 +41,7 @@ class showResult:
             find_entity(axes, mesh, entity='node', showindex=True, color='y', markersize=10, fontsize=8)
         plt.show()
 
-    def showMeshInfo(self):
+    def showMeshInfo(self, outFlag=True):
         p = self.p
         mesh = self.mesh
         out = self.out
@@ -51,22 +54,22 @@ class showResult:
         egdof = NE * eldof
         smsgdof = NC * smsldof
 
-        s0 = 'Polynomial order: ' + str(p) + ' .'
-        s1 = 'Global edge-dofs: ' + str(egdof) + ';  Global smspace cell-dofs: ' + str(smsgdof) + ' .'
-        s2 = 'Number of cells: ' + str(NC) + ';  Number of edges: ' + str(NE) + ' .'
+        s0 = 'Mesh and Dof info:'
+        s0 = '  |___ Polynomial order: ' + str(p) + '.'
+        s1 = '  |___ Number of cells: ' + str(NC) + ';  Number of edges: ' + str(NE) + '.'
+        s2 = '  |___ Global edge-dofs: ' + str(egdof) + ';  Global smspace cell-dofs: ' + str(smsgdof) + '.'
 
         print(s0)
         print(s1)
         print(s2)
 
         flag = False
-        if isinstance(out, str):
+        if isinstance(out, str) & outFlag:
             flag = True
             out = open(out, 'w')
-
-        print(s0, file=out, end='\n')
-        print(s1, file=out, end='\n')
-        print(s2, file=out, end='\n')
+            print(s0, file=out, end='\n')
+            print(s1, file=out, end='\n')
+            print(s2, file=out, end='\n')
 
         if flag:
             out.close()
@@ -109,28 +112,18 @@ class showResult:
         # plt.close()
         # plt.cm.jet
 
-
-class showConvergence:
-    def __init__(self, plot, meshtype, GD, k_slope, errortypeList, NdofList, errorMatrix):
-        self.plot = plot
-        self.meshtype = meshtype
-        self.GD = GD
-        self.k_slope = k_slope
-        self.errortypeList = errortypeList
-        self.NdofList = NdofList
-        self.errorMatrix = errorMatrix
-
-    def show_error_table(self, f='e', pre=4, sep=' & ', out=sys.stdout, end='\n'):
-        GD = self.GD
-        meshtype = self.meshtype
-        NdofList = self.NdofList
-        errortypeList = self.errortypeList
+    def show_error_table(self, f='e', pre=4, sep=' & ', end='\n', outFlag=True):
+        GD = self.mesh.geo_dimension()
+        meshtype = self.mesh.meshtype
+        Ndof = self.Ndof
+        errorType = self.errorType
         errorMatrix = self.errorMatrix
+        out = self.out
 
-        hh = np.power(1 / NdofList, 1 / GD)
+        hh = np.power(1 / Ndof, 1 / GD)
 
         flag = False
-        if isinstance(out, str):
+        if isinstance(out, str) & outFlag:
             flag = True
             out = open(out, 'w')
 
@@ -145,17 +138,17 @@ class showConvergence:
         print(s, file=out, end=end)
         print('\\\\\\hline', file=out)
 
-        s = 'Dof' + sep + np.array2string(NdofList, separator=sep, )
+        s = 'Dof' + sep + np.array2string(Ndof, separator=sep, )
         s = s.replace('\n', '')
         s = s.replace('[', '')
         s = s.replace(']', '')
         print(s, file=out, end=end)
         print('\\\\\\hline', file=out)
 
-        n = len(errortypeList)
+        n = len(errorType)
         ff = '%.' + str(pre) + f
         for i in range(n):
-            first = errortypeList[i]
+            first = errorType[i]
             line = errorMatrix[i]
             s = first + sep + np.array2string(line, separator=sep,
                                               precision=pre, formatter=dict(float=lambda x: ff % x))
@@ -183,12 +176,10 @@ class showConvergence:
         if flag:
             out.close()
 
-    def showmultirate(self, optionlist=None, lw=1, ms=4, propsize=10):
-        plot = self.plot
-        k_slope = self.k_slope
-        NdofList = self.NdofList
+    def showmultirate(self, plot, k_slope, optionlist=None, lw=1, ms=4, propsize=10):
+        Ndof = self.Ndof
         errorMatrix = self.errorMatrix
-        errortypeList = self.errortypeList
+        errorType = self.errorType
         if isinstance(plot, ModuleType):
             fig = plot.figure()
             fig.set_facecolor('white')
@@ -200,10 +191,10 @@ class showConvergence:
 
         m, n = errorMatrix.shape
         for i in range(m):
-            if len(NdofList.shape) == 1:
-                self.showrate(axes, k_slope, NdofList, errorMatrix[i], optionlist[i], label=errortypeList[i], lw=lw, ms=ms)
+            if len(Ndof.shape) == 1:
+                self.showrate(axes, k_slope, Ndof, errorMatrix[i], optionlist[i], label=errorType[i], lw=lw, ms=ms)
             else:
-                self.showrate(axes, k_slope, NdofList[i], errorMatrix[i], optionlist[i], label=errortypeList[i], lw=lw, ms=ms)
+                self.showrate(axes, k_slope, Ndof[i], errorMatrix[i], optionlist[i], label=errorType[i], lw=lw, ms=ms)
         axes.legend(loc=3, framealpha=0.2, fancybox=True, prop={'size': propsize})
         return axes
 
