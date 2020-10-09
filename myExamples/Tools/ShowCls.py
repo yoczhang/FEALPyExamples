@@ -102,9 +102,12 @@ class showResult:
         fig0 = plt.figure()
         fig0.set_facecolor('white')
         axes = fig0.gca(projection='3d')
-        axes.plot_trisurf(triCoord[:, 0], triCoord[:, 1], maskTri, triValue, cmap=plt.cm.jet, lw=0.0)
+        axes.plot_trisurf(triCoord[:, 0], triCoord[:, 1], maskTri, triValue, cmap=plt.get_cmap('jet'), lw=0.0)
+        axes.contourf(triCoord[:, 0], triCoord[:, 1], triValue, zdir='z', offset=-2)  # offset : 表示等高线图投射到指定页面的某个刻度
+        axes.set_zlim(-2, 2)  # 设置图像z轴的显示范围，x、y轴设置方式相同
         plt.savefig(out) if isinstance(out, str) else None
-        plt.close()
+        # plt.close()
+        # plt.cm.jet
 
 
 class showConvergence:
