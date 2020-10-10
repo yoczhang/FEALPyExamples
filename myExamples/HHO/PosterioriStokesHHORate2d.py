@@ -21,6 +21,7 @@ from fealpy.mesh import MeshFactory
 from fealpy.mesh import HalfEdgeMesh2d
 import matplotlib.pyplot as plt
 import datetime
+
 # from fealpy.tools.show import showmultirate, show_error_table
 # from fealpy.mesh.mesh_tools import find_entity
 
@@ -29,7 +30,7 @@ import datetime
 d = 2  # the dimension
 p = 1  # the polynomial order
 n = 2  # the number of refine mesh
-maxit = 4  # the max iteration of the mesh
+maxit = 9  # the max iteration of the mesh
 
 nu = 1.0e-3
 pde = Stokes2DData_0(nu)  # create pde model
@@ -46,7 +47,7 @@ meshtype = 'quad'
 mesh = mf.boxmesh2d(box, nx=n, ny=n, meshtype=meshtype)
 mesh = HalfEdgeMesh2d.from_mesh(mesh)
 mesh.init_level_info()
-mesh.uniform_refine(n-1)  # refine the mesh at beginning
+mesh.uniform_refine(n - 1)  # refine the mesh at beginning
 
 now_time = datetime.datetime.now()
 outPath = '../Outputs/PostStokes' + now_time.strftime('%y-%m-%d(%H\'%M\'%S)')
@@ -71,17 +72,18 @@ sc = ShowCls(p, mesh, errorType=errorType, Ndof=Ndof, errorMatrix=errorMatrix, o
 stokes = None
 sol = None
 for i in range(maxit):
+    print('\n# --------------------- i = %d ------------------------- #' % i)
     stokes = StokesHHOModel2d(pde, mesh, p)
     sol = stokes.solve()
     Ndof[i] = stokes.space.number_of_global_dofs()  # get the number of dofs
     errorMatrix[0, i] = nu * stokes.velocity_L2_error()  # get the velocity L2 error
     errorMatrix[1, i] = nu * stokes.velocity_energy_error()  # get the velocity energy error
-    errorMatrix[2, i] = nu**(-1) * stokes.pressure_L2_error()  # get the pressure L2 error
+    errorMatrix[2, i] = nu ** (-1) * stokes.pressure_L2_error()  # get the pressure L2 error
 
     # --- adaptive settings --- #
     uh = sol['uh']
     eta = stokes.space.residual_estimate0(nu, uh, pde.source, pde.velocity)
-    eff = np.sqrt(sum(eta)**2/(errorMatrix[1, i]*errorMatrix[1, i] + errorMatrix[2, i]*errorMatrix[2, i]))
+    eff = np.sqrt(sum(eta) ** 2 / (errorMatrix[1, i] * errorMatrix[1, i] + errorMatrix[2, i] * errorMatrix[2, i]))
     print('Posteriori Info:')
     print('  |___ eff: ', eff)
     aopts = mesh.adaptive_options(method='max', theta=0.2, maxcoarsen=0, HB=True)
@@ -95,10 +97,8 @@ stokes.showSolution(sc)
 
 # --- get the convergence rate --- #
 sc.show_error_table()
-sc.showmultirate(maxit-3)
+sc.showmultirate(maxit - 3)
 plt.show()
 
 # ---
 print('end of the program')
-
-
