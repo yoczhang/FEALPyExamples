@@ -19,16 +19,17 @@ from ShowCls import ShowCls
 from StokesHHOModel2d import StokesHHOModel2d
 from fealpy.mesh import MeshFactory
 from fealpy.mesh import HalfEdgeMesh2d
-from fealpy.tools.show import showmultirate, show_error_table
-from fealpy.mesh.mesh_tools import find_entity
 import matplotlib.pyplot as plt
+import datetime
+# from fealpy.tools.show import showmultirate, show_error_table
+# from fealpy.mesh.mesh_tools import find_entity
 
 
 # --- begin setting --- #
 d = 2  # the dimension
 p = 1  # the polynomial order
 n = 2  # the number of refine mesh
-maxit = 9  # the max iteration of the mesh
+maxit = 4  # the max iteration of the mesh
 
 nu = 1.0e-3
 pde = Stokes2DData_0(nu)  # create pde model
@@ -47,6 +48,9 @@ mesh = HalfEdgeMesh2d.from_mesh(mesh)
 mesh.init_level_info()
 mesh.uniform_refine(n-1)  # refine the mesh at beginning
 
+now_time = datetime.datetime.now()
+outPath = '../Outputs/PostStokes' + now_time.strftime('%y-%m-%d(%H\'%M\'%S)')
+
 # --- plot the mesh --- #
 # fig = plt.figure()
 # axes = fig.gca()
@@ -55,19 +59,20 @@ mesh.uniform_refine(n-1)  # refine the mesh at beginning
 # find_entity(axes, mesh, entity='edge', showindex=True, color='r', markersize=10, fontsize=8)
 # find_entity(axes, mesh, entity='node', showindex=True, color='y', markersize=10, fontsize=8)
 # plt.show()
-sc = ShowCls(p, mesh, errorType=errorType, Ndof=Ndof, errorMatrix=errorMatrix)
-sc.showMeshInfo()
-sc.showMesh()
+sc = ShowCls(p, mesh, errorType=errorType, Ndof=Ndof, errorMatrix=errorMatrix, out=outPath)
+# sc.showMeshInfo()
+# sc.showMesh()
 
 # mesh.uniform_refine(1)
 # print("------------------")
 # sc.showMeshInfo()
 
 # --- start for-loop --- #
+stokes = None
+sol = None
 for i in range(maxit):
     stokes = StokesHHOModel2d(pde, mesh, p)
     sol = stokes.solve()
-    stokes.showSolution()
     Ndof[i] = stokes.space.number_of_global_dofs()  # get the number of dofs
     errorMatrix[0, i] = nu * stokes.velocity_L2_error()  # get the velocity L2 error
     errorMatrix[1, i] = nu * stokes.velocity_energy_error()  # get the velocity energy error
@@ -77,16 +82,20 @@ for i in range(maxit):
     uh = sol['uh']
     eta = stokes.space.residual_estimate0(nu, uh, pde.source, pde.velocity)
     eff = np.sqrt(sum(eta)**2/(errorMatrix[1, i]*errorMatrix[1, i] + errorMatrix[2, i]*errorMatrix[2, i]))
-    print('eff: ', eff)
+    print('Posteriori Info:')
+    print('  |___ eff: ', eff)
     aopts = mesh.adaptive_options(method='max', theta=0.2, maxcoarsen=0, HB=True)
-    print('before refine: number of cells: ', mesh.number_of_cells())
-    mesh.adaptive(eta, aopts)
+    print('  |___ before refine: number of cells: ', mesh.number_of_cells())
+    mesh.adaptive(eta, aopts) if i < maxit - 1 else None
     # mesh.uniform_refine()
-    print('after refine: number of cells: ', mesh.number_of_cells())
+    print('  |___ after refine: number of cells: ', mesh.number_of_cells())
+
+# --- plot solution --- #
+stokes.showSolution(sc)
 
 # --- get the convergence rate --- #
 sc.show_error_table()
-sc.showmultirate(plt, maxit-3)
+sc.showmultirate(maxit-3)
 plt.show()
 
 # ---

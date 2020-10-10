@@ -13,10 +13,11 @@
 
 import sys
 import numpy as np
-from types import ModuleType
+import scipy.io as io
 from scipy.special import comb, perm
 import matplotlib.pyplot as plt
 from fealpy.mesh.mesh_tools import find_entity
+# from types import ModuleType
 
 
 class ShowCls:
@@ -40,11 +41,12 @@ class ShowCls:
         if markNode:
             find_entity(axes, mesh, entity='node', showindex=True, color='y', markersize=10, fontsize=8)
         plt.show()
+        plt.close()
 
-    def showMeshInfo(self, outFlag=True):
+    def showMeshInfo(self, out=None, outFlag=True, onlywrite=False):
         p = self.p
         mesh = self.mesh
-        out = self.out
+        out = self.out if out is None else out
         GD = mesh.geo_dimension()
         NC = mesh.number_of_cells()
         NE = mesh.number_of_edges()
@@ -55,24 +57,30 @@ class ShowCls:
         smsgdof = NC * smsldof
 
         s0 = 'Mesh and Dof info:'
-        s0 = '  |___ Polynomial order: ' + str(p) + '.'
-        s1 = '  |___ Number of cells: ' + str(NC) + ';  Number of edges: ' + str(NE) + '.'
-        s2 = '  |___ Global edge-dofs: ' + str(egdof) + ';  Global smspace cell-dofs: ' + str(smsgdof) + '.'
+        s1 = '  |___ Polynomial order: ' + str(p) + '.'
+        s2 = '  |___ Number of cells: ' + str(NC) + ';  Number of edges: ' + str(NE) + '.'
+        s3 = '  |___ Global edge-dofs: ' + str(egdof) + ';  Global smspace cell-dofs: ' + str(smsgdof) + '.'
 
-        print(s0)
-        print(s1)
-        print(s2)
+        if onlywrite is False:
+            print(s0)
+            print(s1)
+            print(s2)
+            print(s3)
 
         flag = False
+        outPath = None
         if isinstance(out, str) & outFlag:
             flag = True
-            out = open(out, 'w')
-            print(s0, file=out, end='\n')
-            print(s1, file=out, end='\n')
-            print(s2, file=out, end='\n')
+            outPath = out if ('.' in out) else out + '_MeshInfo.txt'
+            outPath = open(outPath, 'a+')
+            print(s0, file=outPath, end='\n')
+            print(s1, file=outPath, end='\n')
+            print(s2, file=outPath, end='\n')
+            print(s3, file=outPath, end='\n')
+            print('\n\n------------------------------------------------', file=outPath, end='\n\n')
 
         if flag:
-            out.close()
+            outPath.close()
 
     def showSolution(self, space=None, uh=None, outFlag=True):
         mesh = self.mesh
@@ -101,48 +109,54 @@ class ShowCls:
 
         triValue = space.value(uh, triCoord, cellIdx)
 
+        # --- save data --- #
+        if isinstance(out, str) & outFlag:
+            outmat = out + '_plotSolData.mat'
+            io.savemat(outmat, {'maskTri': maskTri, 'triCoord': triCoord, 'triValue': triValue})
+
         # --- plot solution --- #
         fig0 = plt.figure()
         fig0.set_facecolor('white')
         axes = fig0.gca(projection='3d')
         axes.plot_trisurf(triCoord[:, 0], triCoord[:, 1], maskTri, triValue, cmap=plt.get_cmap('jet'), lw=0.0)
-        axes.contourf(triCoord[:, 0], triCoord[:, 1], triValue, zdir='z', offset=-2)  # offset : 表示等高线图投射到指定页面的某个刻度
-        axes.set_zlim(-2, 2)  # 设置图像z轴的显示范围，x、y轴设置方式相同
-        plt.savefig(out) if (isinstance(out, str) & outFlag) else None
+        # axes.set_zlim(-2, 2)  # 设置图像z轴的显示范围，x、y轴设置方式相同
+        plt.savefig(out + '_Solution.png') if (isinstance(out, str) & outFlag) else None
         plt.close()
 
-    def show_error_table(self, f='e', pre=4, sep=' & ', end='\n', outFlag=True):
+    def show_error_table(self, out=None, f='e', pre=4, sep=' & ', end='\n', outFlag=True):
         GD = self.mesh.geo_dimension()
         meshtype = self.mesh.meshtype
         Ndof = self.Ndof
         errorType = self.errorType
         errorMatrix = self.errorMatrix
-        out = self.out
-
-        hh = np.power(1 / Ndof, 1 / GD)
+        out = self.out if out is None else out
+        hh = np.power(1. / Ndof, 1. / GD)
 
         flag = False
+        outPather = None
         if isinstance(out, str) & outFlag:
             flag = True
-            out = open(out, 'w')
+            outPath = out + '_errtable.txt'
+            self.showMeshInfo(out=outPath, onlywrite=True)
+            outPather = open(outPath, 'a+')
 
         n = errorMatrix.shape[1] + 1
-        print('\\begin{table}[!htdp]', file=out, end='\n')
-        print('\\begin{tabular}[c]{|' + n * 'c|' + '}\hline', file=out, end='\n')
+        print('\\begin{table}[!htdp]', file=outPather, end='\n')
+        print('\\begin{tabular}[c]{|' + n * 'c|' + '}\hline', file=outPather, end='\n')
 
         s = 'h' + sep + np.array2string(hh, separator=sep, )
         s = s.replace('\n', '')
         s = s.replace('[', '')
         s = s.replace(']', '')
-        print(s, file=out, end=end)
-        print('\\\\\\hline', file=out)
+        print(s, file=outPather, end=end)
+        print('\\\\\\hline', file=outPather)
 
         s = 'Dof' + sep + np.array2string(Ndof, separator=sep, )
         s = s.replace('\n', '')
         s = s.replace('[', '')
         s = s.replace(']', '')
-        print(s, file=out, end=end)
-        print('\\\\\\hline', file=out)
+        print(s, file=outPather, end=end)
+        print('\\\\\\hline', file=outPather)
 
         n = len(errorType)
         ff = '%.' + str(pre) + f
@@ -155,8 +169,8 @@ class ShowCls:
             s = s.replace('\n', '')
             s = s.replace('[', '')
             s = s.replace(']', '')
-            print(s, file=out, end=end)
-            print('\\\\\\hline', file=out)
+            print(s, file=outPather, end=end)
+            print('\\\\\\hline', file=outPather)
 
             if meshtype == 'tri':
                 order = np.log(line[0:-1] / line[1:]) / np.log(2)
@@ -166,14 +180,15 @@ class ShowCls:
             s = s.replace('\n', '')
             s = s.replace('[', '')
             s = s.replace(']', '')
-            print(s, file=out, end=end)
-            print('\\\\\\hline', file=out)
+            print(s, file=outPather, end=end)
+            print('\\\\\\hline', file=outPather)
 
-        print('\\end{tabular}', file=out, end='\n')
-        print('\\end{table}', file=out, end='\n')
+        print('\\end{tabular}', file=outPather, end='\n')
+        print('\\end{table}', file=outPather, end='\n')
+        print('\n------------------------------------------------', file=outPather, end='\n')
 
         if flag:
-            out.close()
+            outPather.close()
 
     def showmultirate(self, k_slope, optionlist=None, lw=1, ms=4, propsize=10, outFlag=True):
         Ndof = self.Ndof
@@ -189,6 +204,7 @@ class ShowCls:
             optionlist = ['k-*', 'r-o', 'b-D', 'g-->', 'k--8', 'm--x', 'r-.x', 'b-.+', 'b-.h', 'm:s', 'm:p', 'm:h']
 
         m, n = errorMatrix.shape
+        k_slope = 0 if (k_slope < 0) else k_slope
         for i in range(m):
             if len(Ndof.shape) == 1:
                 self.showrate(axes, k_slope, Ndof, errorMatrix[i], optionlist[i], label=errorType[i], lw=lw, ms=ms)
@@ -196,9 +212,9 @@ class ShowCls:
                 self.showrate(axes, k_slope, Ndof[i], errorMatrix[i], optionlist[i], label=errorType[i], lw=lw, ms=ms)
         axes.legend(loc=3, framealpha=0.2, fancybox=True, prop={'size': propsize})
 
-        plt.show()
-        plt.savefig(out) if (isinstance(out, str) & outFlag) else None
-        plt.close()
+        plt.plot
+        plt.savefig(out + '_rate.png') if (isinstance(out, str) & outFlag) else None
+        # plt.show()
         plt.close()
         return axes
 
