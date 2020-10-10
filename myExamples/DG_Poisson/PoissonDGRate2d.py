@@ -15,12 +15,12 @@ The interior penalty discontinuous Galerkin (IPDG) method for Poisson equation w
 
 from fealpy.pde.poisson_2d import CosCosData as PDE
 import numpy as np
-import matplotlib.pyplot as plt
-from ShowCls import show
+from ShowCls import ShowCls
 from PoissonDGModel2d import PoissonDGModel2d
-from fealpy.mesh.mesh_tools import find_entity
 from fealpy.mesh import MeshFactory
 from fealpy.mesh import HalfEdgeMesh2d
+# from fealpy.mesh.mesh_tools import find_entity
+# import matplotlib.pyplot as plt
 
 # --- begin setting --- #
 d = 2  # the dimension
@@ -61,6 +61,9 @@ mesh.uniform_refine(n)
 # find_entity(axes, mesh, entity='edge', showindex=True, color='r', markersize=10, fontsize=8)
 # find_entity(axes, mesh, entity='node', showindex=True, color='y', markersize=10, fontsize=8)
 # plt.show()
+sc = ShowCls(p, mesh, errorType=errorType, Ndof=Ndof, errorMatrix=errorMatrix)
+sc.showMeshInfo()
+# sc.showMesh()
 
 
 # --- start for-loop --- #
@@ -74,12 +77,8 @@ for i in range(maxit):
         mesh.refine_poly()
 
 # --- plot solution --- #
-uh = ls['solution']
-uh.add_plot(plt, cmap='rainbow')
 
 # --- get the convergence rate --- #
-sh = show(plt, mesh.meshtype, mesh.geo_dimension(), maxit-2, errorType, Ndof, errorMatrix)
-sh.show_error_table()
-sh.showmultirate()
-plt.show()
+sc.show_error_table()
+sc.showmultirate(maxit-3)
 

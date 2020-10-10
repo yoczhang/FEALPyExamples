@@ -74,7 +74,7 @@ class ShowCls:
         if flag:
             out.close()
 
-    def showSolution(self, space=None, uh=None):
+    def showSolution(self, space=None, uh=None, outFlag=True):
         mesh = self.mesh
         out = self.out
         node = mesh.node
@@ -108,9 +108,8 @@ class ShowCls:
         axes.plot_trisurf(triCoord[:, 0], triCoord[:, 1], maskTri, triValue, cmap=plt.get_cmap('jet'), lw=0.0)
         axes.contourf(triCoord[:, 0], triCoord[:, 1], triValue, zdir='z', offset=-2)  # offset : 表示等高线图投射到指定页面的某个刻度
         axes.set_zlim(-2, 2)  # 设置图像z轴的显示范围，x、y轴设置方式相同
-        plt.savefig(out) if isinstance(out, str) else None
-        # plt.close()
-        # plt.cm.jet
+        plt.savefig(out) if (isinstance(out, str) & outFlag) else None
+        plt.close()
 
     def show_error_table(self, f='e', pre=4, sep=' & ', end='\n', outFlag=True):
         GD = self.mesh.geo_dimension()
@@ -176,16 +175,16 @@ class ShowCls:
         if flag:
             out.close()
 
-    def showmultirate(self, plot, k_slope, optionlist=None, lw=1, ms=4, propsize=10):
+    def showmultirate(self, k_slope, optionlist=None, lw=1, ms=4, propsize=10, outFlag=True):
         Ndof = self.Ndof
         errorMatrix = self.errorMatrix
         errorType = self.errorType
-        if isinstance(plot, ModuleType):
-            fig = plot.figure()
-            fig.set_facecolor('white')
-            axes = fig.gca()
-        else:
-            axes = plot
+        out = self.out
+
+        fig = plt.figure()
+        fig.set_facecolor('white')
+        axes = fig.gca()
+
         if optionlist is None:
             optionlist = ['k-*', 'r-o', 'b-D', 'g-->', 'k--8', 'm--x', 'r-.x', 'b-.+', 'b-.h', 'm:s', 'm:p', 'm:h']
 
@@ -196,6 +195,11 @@ class ShowCls:
             else:
                 self.showrate(axes, k_slope, Ndof[i], errorMatrix[i], optionlist[i], label=errorType[i], lw=lw, ms=ms)
         axes.legend(loc=3, framealpha=0.2, fancybox=True, prop={'size': propsize})
+
+        plt.show()
+        plt.savefig(out) if (isinstance(out, str) & outFlag) else None
+        plt.close()
+        plt.close()
         return axes
 
     def showrate(self, axes, k, N, error, option, label=None, lw=1, ms=4):

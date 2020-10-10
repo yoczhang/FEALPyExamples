@@ -84,15 +84,6 @@ for i in range(maxit):
     # mesh.uniform_refine()
     print('after refine: number of cells: ', mesh.number_of_cells())
 
-
-# # --- get the convergence rate --- #
-# # # show the error table
-# show_error_table(Ndof, errorType, errorMatrix)
-#
-# # # plot the rate
-# showmultirate(plt, 0, Ndof, errorMatrix, errorType)
-# plt.show()
-
 # --- get the convergence rate --- #
 sc.show_error_table()
 sc.showmultirate(plt, maxit-3)
