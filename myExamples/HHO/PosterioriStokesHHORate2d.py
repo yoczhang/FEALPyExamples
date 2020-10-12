@@ -13,7 +13,7 @@ __doc__ = """
 The fealpy program for posteriori Stokes problem. 
 """
 
-from Stokes2DData import Stokes2DData_0
+from Stokes2DData import Stokes2DData_0, Stokes2DData_1, Stokes2DData_2
 import numpy as np
 from ShowCls import ShowCls
 from StokesHHOModel2d import StokesHHOModel2d
@@ -30,13 +30,13 @@ import datetime
 d = 2  # the dimension
 p = 1  # the polynomial order
 n = 2  # the number of refine mesh
-maxit = 9  # the max iteration of the mesh
+maxit = 4  # the max iteration of the mesh
 
-nu = 1.0e-3
-pde = Stokes2DData_0(nu)  # create pde model
+nu = 1.0e-0
+pde = Stokes2DData_2(nu)  # create pde model
 
 # --- error settings --- #
-errorType = ['$|| u - u_h||_0$', '$||\\nabla u - \\nabla u_h||_0$', '|| p - p_h ||_0']
+errorType = ['$|| u - u_h||_0$', '$||\\nabla u - \\nabla u_h||_0$', '|| p - p_h ||_0', 'eta']
 errorMatrix = np.zeros((len(errorType), maxit), dtype=np.float)
 Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
 
@@ -83,13 +83,27 @@ for i in range(maxit):
     # --- adaptive settings --- #
     uh = sol['uh']
     eta = stokes.space.residual_estimate0(nu, uh, pde.source, pde.velocity)
+    errorMatrix[3, i] = np.sum(eta)
     eff = np.sqrt(sum(eta) ** 2 / (errorMatrix[1, i] * errorMatrix[1, i] + errorMatrix[2, i] * errorMatrix[2, i]))
     print('Posteriori Info:')
     print('  |___ eff: ', eff)
-    aopts = mesh.adaptive_options(method='max', theta=0.2, maxcoarsen=0, HB=True)
     print('  |___ before refine: number of cells: ', mesh.number_of_cells())
-    mesh.adaptive(eta, aopts) if i < maxit - 1 else None
-    # mesh.uniform_refine()
+    # sc.showMesh(markCell=False, markEdge=False, markNode=False)
+    fig1 = plt.figure()
+    axes = fig1.gca()
+    mesh.add_plot(axes)
+    outPath_1 = outPath + str(i) + '-mesh.png'
+    plt.savefig(outPath_1)
+    plt.close()
+
+    # --- refine the mesh --- #
+    # aopts = mesh.adaptive_options(method='max', theta=0.3, maxcoarsen=0.1, HB=True)
+    # mesh.adaptive(eta, aopts) if i < maxit - 1 else None
+
+    # isMarkedCell = stokes.space.post_estimator_markcell(eta, theta=0.5)
+    # mesh.refine_poly(isMarkedCell) if i < maxit - 1 else None
+
+    mesh.uniform_refine() if i < maxit - 1 else None
     print('  |___ after refine: number of cells: ', mesh.number_of_cells())
 
 # --- plot solution --- #
@@ -97,7 +111,7 @@ stokes.showSolution(sc)
 
 # --- get the convergence rate --- #
 sc.show_error_table()
-sc.showmultirate(maxit - 3)
+sc.showmultirate(0)
 plt.show()
 
 # ---
