@@ -60,7 +60,7 @@ outPath = '../Outputs/PostStokes' + now_time.strftime('%y-%m-%d(%H\'%M\'%S)')
 # find_entity(axes, mesh, entity='edge', showindex=True, color='r', markersize=10, fontsize=8)
 # find_entity(axes, mesh, entity='node', showindex=True, color='y', markersize=10, fontsize=8)
 # plt.show()
-sc = ShowCls(p, mesh, errorType=errorType, Ndof=Ndof, errorMatrix=errorMatrix, out=outPath)
+sc = ShowCls(p, mesh, errorType=errorType, Ndof=Ndof, errorMatrix=errorMatrix, out=None)
 # sc.showMeshInfo()
 # sc.showMesh()
 
@@ -83,18 +83,19 @@ for i in range(maxit):
     # --- adaptive settings --- #
     uh = sol['uh']
     eta = stokes.space.residual_estimate0(nu, uh, pde.source, pde.velocity)
-    errorMatrix[3, i] = np.sum(eta)
-    eff = np.sqrt(sum(eta) ** 2 / (errorMatrix[1, i] * errorMatrix[1, i] + errorMatrix[2, i] * errorMatrix[2, i]))
+    errorMatrix[3, i] = np.sqrt(np.sum(eta**2))
+    eff = np.sqrt(sum(eta**2) / (errorMatrix[1, i] * errorMatrix[1, i] + errorMatrix[2, i] * errorMatrix[2, i]))
+    # TODO: eta 目前是按单元来计算的, 所有的 error 也应该按单元来计算, 然后再计算 eff.
     print('Posteriori Info:')
     print('  |___ eff: ', eff)
     print('  |___ before refine: number of cells: ', mesh.number_of_cells())
     # sc.showMesh(markCell=False, markEdge=False, markNode=False)
-    fig1 = plt.figure()
-    axes = fig1.gca()
-    mesh.add_plot(axes)
-    outPath_1 = outPath + str(i) + '-mesh.png'
-    plt.savefig(outPath_1)
-    plt.close()
+    # fig1 = plt.figure()
+    # axes = fig1.gca()
+    # mesh.add_plot(axes)
+    # outPath_1 = outPath + str(i) + '-mesh.png'
+    # plt.savefig(outPath_1)
+    # plt.close()
 
     # --- refine the mesh --- #
     # aopts = mesh.adaptive_options(method='max', theta=0.3, maxcoarsen=0.1, HB=True)
