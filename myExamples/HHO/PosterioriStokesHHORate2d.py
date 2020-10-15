@@ -36,7 +36,7 @@ nu = 1.0e-0
 pde = Stokes2DData_2(nu)  # create pde model
 
 # --- error settings --- #
-errorType = ['$|| u - u_h||_0$', '$||\\nabla u - \\nabla u_h||_0$', '|| p - p_h ||_0', 'eta']
+errorType = ['$|| u - u_h||_0$', '$||\\nabla u - \\nabla u_h||_0$', '$|| u - u_h||_{E}$', '|| p - p_h ||_0', 'eta0', 'etaE']
 errorMatrix = np.zeros((len(errorType), maxit), dtype=np.float)
 Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
 
@@ -76,18 +76,18 @@ for i in range(maxit):
     stokes = StokesHHOModel2d(pde, mesh, p)
     sol = stokes.solve()
     Ndof[i] = stokes.space.number_of_global_dofs()  # get the number of dofs
-    errorMatrix[0, i] = nu * stokes.velocity_L2_error()  # get the velocity L2 error
-    errorMatrix[1, i] = nu * stokes.velocity_energy_error()  # get the velocity energy error
-    errorMatrix[2, i] = nu ** (-1) * stokes.pressure_L2_error()  # get the pressure L2 error
+    errorMatrix[0, i] = nu ** 0.5 * np.sqrt(np.sum(stokes.velocity_L2_error(celltype=True)**2))  # get the velocity L2 error
+    errorMatrix[1, i] = nu ** 0.5 * np.sqrt(np.sum(stokes.velocity_energy_error(celltype=True) ** 2))  # get the velocity energy error
+    errorMatrix[2, i] = nu ** 0.5 * np.sqrt(np.sum(stokes.velocity_energy_error(celltype=True)**2))  # get the velocity energy error
+    errorMatrix[3, i] = nu ** (-0.5) * np.sqrt(np.sum(stokes.pressure_L2_error(celltype=True)**2))  # get the pressure L2 error
 
     # --- adaptive settings --- #
     uh = sol['uh']
     eta = stokes.space.residual_estimate0(nu, uh, pde.source, pde.velocity)
     errorMatrix[3, i] = np.sqrt(np.sum(eta**2))
-    eff = np.sqrt(sum(eta**2) / (errorMatrix[1, i] * errorMatrix[1, i] + errorMatrix[2, i] * errorMatrix[2, i]))
-    # TODO: eta 目前是按单元来计算的, 所有的 error 也应该按单元来计算, 然后再计算 eff.
+    eff0 = np.sqrt(np.sum(eta**2) / (errorMatrix[1, i]**2 + errorMatrix[2, i]**2))
     print('Posteriori Info:')
-    print('  |___ eff: ', eff)
+    print('  |___ eff: ', eff0)
     print('  |___ before refine: number of cells: ', mesh.number_of_cells())
     # sc.showMesh(markCell=False, markEdge=False, markNode=False)
     # fig1 = plt.figure()
