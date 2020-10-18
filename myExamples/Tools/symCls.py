@@ -12,22 +12,29 @@
 
 from sympy import *
 
-x, y, nu = symbols('x y nu')
+x, y, nu, pi = symbols('x y nu pi')
+# --- ex0 --- #
+u1 = sin(pi * x) * cos(pi * y)
+u2 = -cos(pi * x) * sin(pi * y)
+p = 1 / (y ** 2 + 1) - pi / 4
+
 # --- ex1 --- #
 # u1 = -exp(x)*(y*cos(y)+sin(y))
 # u2 = exp(x)*y*sin(y)
 # p = 2*exp(x)*sin(y) - (2*(1-exp(1))*(cos(1)-1))
 
 # --- ex1 --- #
-u1 = -0.5*cos(x)**2*cos(y)*sin(y)
-u2 = 0.5*cos(y)**2*cos(x)*sin(x)
-p = sin(x) - sin(y)
+# u1 = -0.5*cos(x)**2*cos(y)*sin(y)
+# u2 = 0.5*cos(y)**2*cos(x)*sin(x)
+# p = sin(x) - sin(y)
 
 
 u1x = diff(u1, x)
 u1xx = diff(u1x, x)
 u1y = diff(u1, y)
 u1yy = diff(u1y, y)
+print('u1x = ', u1x)
+print('u1y = ', u1y)
 print('u1xx = ', u1xx)
 print('u1yy = ', u1yy)
 
@@ -35,6 +42,8 @@ u2x = diff(u2, x)
 u2xx = diff(u2x, x)
 u2y = diff(u2, y)
 u2yy = diff(u2y, y)
+print('u2x = ', u2x)
+print('u2y = ', u2y)
 print('u2xx = ', u2xx)
 print('u2yy = ', u2yy)
 
