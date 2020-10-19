@@ -28,15 +28,15 @@ import datetime
 
 # --- begin setting --- #
 d = 2  # the dimension
-p = 2  # the polynomial order
+p = 1  # the polynomial order
 n = 2  # the number of refine mesh
 maxit = 4  # the max iteration of the mesh
 
 nu = 1.0e-0
-pde = Stokes2DData_2(nu)  # create pde model
+pde = Stokes2DData_1(nu)  # create pde model
 
 # --- error settings --- #
-errorType = ['$|| u - u_h||_0$', '$||\\nabla u - \\nabla u_h||_0$', '$|| u - u_h||_{E}$', '|| p - p_h ||_0', 'eta0', 'etaE']
+errorType = ['$|| u - u_h||_0$', '$||\\nabla u - \\nabla u_h||_0 + s(uh,uh)$', '$|| u - u_h||_{E}$', '|| p - p_h ||_0', 'eta0']
 errorMatrix = np.zeros((len(errorType), maxit), dtype=np.float)
 Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
 
@@ -75,19 +75,23 @@ for i in range(maxit):
     print('\n# --------------------- i = %d ------------------------- #' % i)
     stokes = StokesHHOModel2d(pde, mesh, p)
     sol = stokes.solve()
+    uh = sol['uh']
     Ndof[i] = stokes.space.number_of_global_dofs()  # get the number of dofs
-    errorMatrix[0, i] = nu ** 0.5 * np.sqrt(np.sum(stokes.velocity_L2_error(celltype=True)**2))  # get the velocity L2 error
-    errorMatrix[1, i] = nu ** 0.5 * np.sqrt(np.sum(stokes.velocity_energy_error(celltype=True) ** 2))  # get the velocity energy error
-    errorMatrix[2, i] = nu ** 0.5 * np.sqrt(np.sum(stokes.velocity_energy_error(celltype=True)**2))  # get the velocity energy error
-    errorMatrix[3, i] = nu ** (-0.5) * np.sqrt(np.sum(stokes.pressure_L2_error(celltype=True)**2))  # get the pressure L2 error
+    errorMatrix[0, i] = (nu ** 0.5) * np.sqrt(np.sum(stokes.velocity_L2_error(celltype=True)**2))  # get the velocity L2 error
+
+    u_post_energyerr = stokes.space.posterror_enengyerror(nu, pde.grad, uh)
+    # u_post_energyerr = 0
+    errorMatrix[1, i] = np.sqrt(np.sum(u_post_energyerr**2))  # get the velocity energy error
+    errorMatrix[2, i] = (nu ** 0.5) * stokes.velocity_energy_error()  # get the velocity energy error
+    errorMatrix[3, i] = (nu ** (-0.5)) * np.sqrt(np.sum(stokes.pressure_L2_error(celltype=True)**2))  # get the pressure L2 error
 
     # --- adaptive settings --- #
-    uh = sol['uh']
     eta = stokes.space.residual_estimate0(nu, uh, pde.source, pde.velocity)
-    errorMatrix[3, i] = np.sqrt(np.sum(eta**2))
-    eff0 = np.sqrt(np.sum(eta**2) / (errorMatrix[1, i]**2 + errorMatrix[2, i]**2))
+    errorMatrix[4, i] = np.sqrt(np.sum(eta**2))
+    eff0 = 1./np.sqrt(np.sum(eta**2) / (errorMatrix[1, i]**2 + errorMatrix[3, i]**2))
+    eff1 = 1. / np.sqrt(np.sum(eta ** 2) / (errorMatrix[2, i] ** 2 + errorMatrix[3, i] ** 2))
     print('Posteriori Info:')
-    print('  |___ eff: ', eff0)
+    print('  |___ eff0 = %f, eff1 = %f: ' % (eff0, eff1))
     print('  |___ before refine: number of cells: ', mesh.number_of_cells())
     # sc.showMesh(markCell=False, markEdge=False, markNode=False)
     # fig1 = plt.figure()
