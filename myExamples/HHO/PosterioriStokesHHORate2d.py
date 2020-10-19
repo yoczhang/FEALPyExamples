@@ -33,7 +33,7 @@ n = 2  # the number of refine mesh
 maxit = 4  # the max iteration of the mesh
 
 nu = 1.0e-0
-pde = Stokes2DData_1(nu)  # create pde model
+pde = Stokes2DData_2(nu)  # create pde model
 
 # --- error settings --- #
 errorType = ['$|| u - u_h||_0$', '$||\\nabla u - \\nabla u_h||_0 + s(uh,uh)$', '$|| u - u_h||_{E}$', '|| p - p_h ||_0', 'eta0']
