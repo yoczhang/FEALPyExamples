@@ -80,16 +80,15 @@ for i in range(maxit):
     errorMatrix[0, i] = (nu ** 0.5) * np.sqrt(np.sum(stokes.velocity_L2_error(celltype=True)**2))  # get the velocity L2 error
 
     u_post_energyerr = stokes.space.posterror_enengyerror(nu, pde.grad, uh)
-    # u_post_energyerr = 0
     errorMatrix[1, i] = np.sqrt(np.sum(u_post_energyerr**2))  # get the velocity energy error
     errorMatrix[2, i] = (nu ** 0.5) * stokes.velocity_energy_error()  # get the velocity energy error
     errorMatrix[3, i] = (nu ** (-0.5)) * np.sqrt(np.sum(stokes.pressure_L2_error(celltype=True)**2))  # get the pressure L2 error
 
     # --- adaptive settings --- #
-    eta = stokes.space.residual_estimate0(nu, uh, pde.source, pde.velocity)
+    eta = stokes.space.residual_estimate0(nu, uh, pde.source, pde.velocity)  # (NC,)
     errorMatrix[4, i] = np.sqrt(np.sum(eta**2))
     eff0 = 1./np.sqrt(np.sum(eta**2) / (errorMatrix[1, i]**2 + errorMatrix[3, i]**2))
-    eff1 = 1. / np.sqrt(np.sum(eta ** 2) / (errorMatrix[2, i] ** 2 + errorMatrix[3, i] ** 2))
+    eff1 = 1. / np.sqrt(np.sum(eta**2) / (errorMatrix[2, i] ** 2 + errorMatrix[3, i] ** 2))
     print('Posteriori Info:')
     print('  |___ eff0 = %f, eff1 = %f: ' % (eff0, eff1))
     print('  |___ before refine: number of cells: ', mesh.number_of_cells())
