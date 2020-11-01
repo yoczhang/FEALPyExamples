@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ---
 # @Software: PyCharm
-# @File: loadMatlabFile.py
+# @File: MeshesIO.py
 # @Author: Yongchao Zhang, Northwest University, Xi'an
 # @E-mail: yoczhang@nwu.edu.cn
 # @Site:
@@ -21,8 +21,9 @@ class loadMatlabFile:
         self.filename = filename
         self.mfile = loadmat(self.filename)
 
-    def loadMatlabMesh(self):
-        mfile = self.mfile
+    def loadMatlabMesh(self, filename=None):
+        filename = self.filename if filename is None else filename
+        mfile = self.mfile if filename is None else loadmat(filename)
         pnode = mfile['node']
         pelem = mfile['elem']
         Nelem = pelem.shape[0]
@@ -34,3 +35,7 @@ class loadMatlabFile:
             lNedge = lcell.shape[0]
             pcellLocation[n + 1] = pcellLocation[n] + lNedge
             pcell = np.concatenate([pcell, lcell])
+
+        mesh = PolygonMesh(pnode, pcell, pcellLocation)
+        return mesh
+
