@@ -31,7 +31,7 @@ import datetime
 d = 2  # the dimension
 p = 1  # the polynomial order
 n = 2  # the number of refine mesh
-maxit = 4  # the max iteration of the mesh
+maxit = 5  # the max iteration of the mesh
 
 nu = 1.0e-0
 pde = Stokes2DData_2(nu)  # create pde model
@@ -43,20 +43,23 @@ Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
 
 # --- mesh setting --- #
 # --- mesh1 --- #
-# box = [0, 1, 0, 1]  # [0, 1]^2 domain
-# mf = MeshFactory()
+box = [0, 1, 0, 1]  # [0, 1]^2 domain
+mf = MeshFactory()
 # meshtype = 'quad'
 # mesh = mf.boxmesh2d(box, nx=n, ny=n, meshtype=meshtype)
 
 # --- mesh2 --- #
-matfile = '../Meshfiles/Dmesh_contortedDualTri_[0,1]x[0,1]_4.mat'
-mIO = mesh_IO(matfile)
-mesh = mIO.loadMatlabMesh()
+# matfile = '../Meshfiles/Dmesh_contortedDualTri_[0,1]x[0,1]_4.mat'
+# mIO = mesh_IO(matfile)
+# mesh = mIO.loadMatlabMesh()
+
+# --- mesh3 --- #
+mesh = mf.triangle(box, 1./4)
 
 # --- to halfedgemesh --- #
 mesh = HalfEdgeMesh2d.from_mesh(mesh)
 mesh.init_level_info()
-mesh.uniform_refine(n - 1)  # refine the mesh at beginning
+# mesh.uniform_refine(n - 1)  # refine the mesh at beginning
 
 now_time = datetime.datetime.now()
 outPath = '../Outputs/PostStokes' + now_time.strftime('%y-%m-%d(%H\'%M\'%S)')
@@ -123,6 +126,7 @@ for i in range(maxit):
 stokes.showSolution(sc)
 
 # --- get the convergence rate --- #
+print('# --------------------- table ------------------------- #')
 sc.show_error_table()
 sc.showmultirate(0)
 plt.show()
