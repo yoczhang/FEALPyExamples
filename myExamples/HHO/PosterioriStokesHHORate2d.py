@@ -19,7 +19,7 @@ from ShowCls import ShowCls
 from StokesHHOModel2d import StokesHHOModel2d
 from fealpy.mesh import MeshFactory
 from fealpy.mesh import HalfEdgeMesh2d
-from MeshesIO import loadMatlabFile
+from mesh_IO import mesh_IO
 import matplotlib.pyplot as plt
 import datetime
 
@@ -50,8 +50,8 @@ Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
 
 # --- mesh2 --- #
 matfile = '../Meshfiles/Dmesh_contortedDualTri_[0,1]x[0,1]_4.mat'
-lmf = loadMatlabFile(matfile)
-mesh = lmf.loadMatlabMesh()
+mIO = mesh_IO(matfile)
+mesh = mIO.loadMatlabMesh()
 
 # --- to halfedgemesh --- #
 mesh = HalfEdgeMesh2d.from_mesh(mesh)

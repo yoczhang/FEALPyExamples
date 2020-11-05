@@ -2,13 +2,16 @@
 # -*- coding: utf-8 -*-
 # ---
 # @Software: PyCharm
-# @File: MeshesIO.py
+# @File: mesh_IO.py
 # @Author: Yongchao Zhang, Northwest University, Xi'an
 # @E-mail: yoczhang@nwu.edu.cn
 # @Site:
 # @Time: Nov 01, 2020
 # ---
 
+__doc__ = """
+这是个很粗糙的 IO 类, 主要目的就是方便转换自己 fealpy 和 MATLAB 中网格. 
+"""
 
 from scipy.io import loadmat
 import numpy as np
@@ -16,7 +19,7 @@ from fealpy.mesh.PolygonMesh import PolygonMesh
 from ShowCls import ShowCls
 
 
-class loadMatlabFile:
+class mesh_IO:
     def __init__(self, filename):
         self.filename = filename
         self.mfile = loadmat(self.filename)
@@ -38,4 +41,8 @@ class loadMatlabFile:
 
         mesh = PolygonMesh(pnode, pcell, pcellLocation)
         return mesh
+
+    def save2MatlabMesh(self, filename=None):
+        filename = self.filename if filename is None else filename
+
 
