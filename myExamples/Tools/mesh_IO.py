@@ -13,7 +13,7 @@ __doc__ = """
 这是个很粗糙的 IO 类, 主要目的就是方便转换自己 fealpy 和 MATLAB 中网格. 
 """
 
-from scipy.io import loadmat
+from scipy.io import loadmat, savemat
 import numpy as np
 from fealpy.mesh.PolygonMesh import PolygonMesh
 from ShowCls import ShowCls
@@ -44,5 +44,7 @@ class mesh_IO:
 
     def save2MatlabMesh(self, filename=None):
         filename = self.filename if filename is None else filename
+        # mfile = savemat()
+        pass
 
 
