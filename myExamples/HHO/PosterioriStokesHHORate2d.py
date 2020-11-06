@@ -30,7 +30,7 @@ import datetime
 # --- begin setting --- #
 d = 2  # the dimension
 p = 1  # the polynomial order
-n = 2  # the number of refine mesh
+n = 4  # the number of refine mesh
 maxit = 5  # the max iteration of the mesh
 
 nu = 1.0e-0
@@ -45,8 +45,8 @@ Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
 # --- mesh1 --- #
 box = [0, 1, 0, 1]  # [0, 1]^2 domain
 mf = MeshFactory()
-# meshtype = 'quad'
-# mesh = mf.boxmesh2d(box, nx=n, ny=n, meshtype=meshtype)
+meshtype = 'poly'
+mesh = mf.boxmesh2d(box, nx=n, ny=n, meshtype=meshtype)
 
 # --- mesh2 --- #
 # matfile = '../Meshfiles/Dmesh_contortedDualTri_[0,1]x[0,1]_4.mat'
@@ -54,7 +54,7 @@ mf = MeshFactory()
 # mesh = mIO.loadMatlabMesh()
 
 # --- mesh3 --- #
-mesh = mf.triangle(box, 1./4)
+# mesh = mf.triangle(box, 1./4)
 
 # --- to halfedgemesh --- #
 mesh = HalfEdgeMesh2d.from_mesh(mesh)
@@ -126,6 +126,7 @@ for i in range(maxit):
 stokes.showSolution(sc)
 
 # --- get the convergence rate --- #
+print('\n')
 print('# --------------------- table ------------------------- #')
 sc.show_error_table()
 sc.showmultirate(0)
