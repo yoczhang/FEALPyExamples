@@ -204,9 +204,12 @@ class HHOSolver:
         X[ugNdof:ugNdof+uTgNdof] = X0[uTgNdof:2*uTgNdof]
         X[ugNdof+uTgNdof:2*ugNdof] = Xb[uFgNdof:2*uFgNdof]
 
-        P0 = X0[2*uTgNdof:].reshape(-1, pTlNdof)  # (pTgNdof,pTlNdof)
-        Pb = Xb[2*uFgNdof:-1].reshape(-1, 1)  # (PFgNdof,1)
-        P = np.concatenate([Pb, P0], axis=1)
+        if pTlNdof == 0:
+            P = Xb[2*uFgNdof:-1].reshape(-1, 1)  # (PFgNdof,1)
+        else:
+            P0 = X0[2 * uTgNdof:].reshape(-1, pTlNdof)  # (pTgNdof,pTlNdof)
+            Pb = Xb[2 * uFgNdof:-1].reshape(-1, 1)  # (PFgNdof,1)
+            P = np.concatenate([Pb, P0], axis=1)
 
         X[2*ugNdof:-1] = P.flatten()
         return X
