@@ -23,10 +23,15 @@ x, y, nu, pi = symbols('x y nu pi')
 # u1 = exp(x)*y*sin(y)
 # p = 2*exp(x)*sin(y) - (2*(1-exp(1))*(cos(1)-1))
 
-# --- ex2 --- #
+# # --- ex2 --- #
+# u0 = -0.5*cos(x)**2*cos(y)*sin(y)
+# u1 = 0.5*cos(y)**2*cos(x)*sin(x)
+# p = sin(x) - sin(y)
+
+# --- ex3 --- #
 u0 = -0.5*cos(x)**2*cos(y)*sin(y)
 u1 = 0.5*cos(y)**2*cos(x)*sin(x)
-p = sin(x) - sin(y)
+p = x**6 - y**6
 
 
 u0x = diff(u0, x)

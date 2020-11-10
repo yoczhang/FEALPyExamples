@@ -123,14 +123,14 @@ class ShowCls:
         plt.savefig(out + '_Solution.png') if (isinstance(out, str) & outFlag) else None
         plt.close()
 
-    def show_error_table(self, out=None, f='e', pre=4, sep=' & ', end='\n', outFlag=True):
+    def show_error_table(self, out=None, DofName='Dof', f='e', pre=4, sep=' & ', end='\n', outFlag=True):
         GD = self.mesh.geo_dimension()
         meshtype = self.mesh.meshtype
         Ndof = self.Ndof
         errorType = self.errorType
         errorMatrix = self.errorMatrix
         out = self.out if out is None else out
-        hh = np.power(1. / Ndof, 1. / GD)
+        hh = Ndof**(-1./GD)
 
         flag = False
         outPather = None
@@ -151,7 +151,7 @@ class ShowCls:
         print(s, file=outPather, end=end)
         print('\\\\\\hline', file=outPather)
 
-        s = 'Dof' + sep + np.array2string(Ndof, separator=sep, )
+        s = DofName + sep + np.array2string(Ndof, separator=sep, )
         s = s.replace('\n', '')
         s = s.replace('[', '')
         s = s.replace(']', '')
@@ -175,7 +175,8 @@ class ShowCls:
             if meshtype == 'tri':
                 order = np.log(line[0:-1] / line[1:]) / np.log(2)
             else:
-                order = np.log(line[0:-1] / line[1:]) / np.log(hh[0:-1] / hh[1:])
+                # order = np.log(line[0:-1] / line[1:]) / np.log(hh[0:-1] / hh[1:])
+                order = np.log(line[0:-1] / line[1:]) / np.log(Ndof[1:] / Ndof[0:-1])
             s = 'Order' + sep + '--' + sep + np.array2string(order, separator=sep, precision=2)
             s = s.replace('\n', '')
             s = s.replace('[', '')

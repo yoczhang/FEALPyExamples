@@ -13,7 +13,7 @@ __doc__ = """
 The fealpy program for posteriori Stokes problem. 
 """
 
-from Stokes2DData import Stokes2DData_0, Stokes2DData_1, Stokes2DData_2
+from Stokes2DData import Stokes2DData_0, Stokes2DData_1, Stokes2DData_2, Stokes2DData_3
 import numpy as np
 from ShowCls import ShowCls
 from StokesHHOModel2d import StokesHHOModel2d
@@ -29,12 +29,12 @@ import datetime
 
 # --- begin setting --- #
 d = 2  # the dimension
-p = 0  # the polynomial order
+p = 2  # the polynomial order
 n = 4  # the number of refine mesh
 maxit = 5  # the max iteration of the mesh
 
 nu = 1.0e-0
-pde = Stokes2DData_2(nu)  # create pde model
+pde = Stokes2DData_3(nu)  # create pde model
 
 # --- error settings --- #
 errorType = ['$|| u - u_h||_0$', '$||\\nabla u - \\nabla u_h||_0 + s(uh,uh)$', '$|| u - u_h||_{E}$', '|| p - p_h ||_0', 'eta0']
@@ -45,7 +45,7 @@ Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
 # --- mesh1 --- #
 box = [0, 1, 0, 1]  # [0, 1]^2 domain
 mf = MeshFactory()
-meshtype = 'poly'
+meshtype = 'quad'
 mesh = mf.boxmesh2d(box, nx=n, ny=n, meshtype=meshtype)
 
 # --- mesh2 --- #
@@ -88,7 +88,7 @@ for i in range(maxit):
     stokes = StokesHHOModel2d(pde, mesh, p)
     sol = stokes.solve()
     uh = sol['uh']
-    Ndof[i] = stokes.space.number_of_global_dofs()  # get the number of dofs
+    Ndof[i] = stokes.space.number_of_velocity_dofs()  # get the number of dofs
     errorMatrix[0, i] = (nu ** 0.5) * np.sqrt(np.sum(stokes.velocity_L2_error(celltype=True)**2))  # get the velocity L2 error
 
     u_post_energyerr = stokes.space.posterror_enengyerror(nu, pde.grad, uh)
@@ -103,7 +103,8 @@ for i in range(maxit):
     eff1 = 1. / np.sqrt(np.sum(eta**2) / (errorMatrix[2, i] ** 2 + errorMatrix[3, i] ** 2))
     print('Posteriori Info:')
     print('  |___ eff0 = %f, eff1 = %f: ' % (eff0, eff1))
-    print('  |___ before refine: number of cells: ', mesh.number_of_cells())
+    print('  |___ before refine: number of cells: %d, pressure dofs: %d ' % (
+        mesh.number_of_cells(), stokes.space.number_of_pressure_dofs()))
     # sc.showMesh(markCell=False, markEdge=False, markNode=False)
     # fig1 = plt.figure()
     # axes = fig1.gca()
@@ -128,7 +129,7 @@ stokes.showSolution(sc)
 # --- get the convergence rate --- #
 print('\n')
 print('# --------------------- table ------------------------- #')
-sc.show_error_table()
+sc.show_error_table(DofName='Velocity-Dof')
 sc.showmultirate(0)
 plt.show()
 
