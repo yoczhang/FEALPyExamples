@@ -29,11 +29,11 @@ import datetime
 
 # --- begin setting --- #
 d = 2  # the dimension
-p = 2  # the polynomial order
+p = 3  # the polynomial order
 n = 4  # the number of refine mesh
 maxit = 5  # the max iteration of the mesh
 
-nu = 1.0e-0
+nu = 1.0e-10
 pde = Stokes2DData_3(nu)  # create pde model
 
 # --- error settings --- #
@@ -83,7 +83,8 @@ sc = ShowCls(p, mesh, errorType=errorType, Ndof=Ndof, errorMatrix=errorMatrix, o
 # --- start for-loop --- #
 stokes = None
 sol = None
-for i in range(maxit):
+print('nu = %e' % nu)
+for i in range(maxit):  # range(maxit), [maxit-1]
     print('\n# --------------------- i = %d ------------------------- #' % i)
     stokes = StokesHHOModel2d(pde, mesh, p)
     sol = stokes.solve()
