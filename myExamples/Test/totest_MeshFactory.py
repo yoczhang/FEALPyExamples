@@ -24,14 +24,16 @@ box = [0, 1, 0, 1]  # [0, 1]^2 domain
 mf = MeshFactory()
 meshtype = 'poly'
 # mesh = mf.boxmesh2d(box, nx=n, ny=n, meshtype=meshtype)
-mesh = mf.triangle(box, 1./8)
+# mesh = mf.triangle(box, 1./8)
 # mesh = mf.special_boxmesh2d(box)
+mesh = mf.lshape_mesh(n=4)
 # mesh = HalfEdgeMesh2d.from_mesh(mesh)
 # mesh.init_level_info()
 
 # ---
-savemat('./testmat.mat', {'node': mesh.node, 'elem': mesh.ds.cell})
+# savemat('./testmat.mat', {'node': mesh.node, 'elem': mesh.ds.cell})
 
 sc = ShowCls(p, mesh)
-sc.showMesh()
+sc.showMesh(markNode=False, markEdge=False, markCell=False)
 
+print('--- end the file ---')
