@@ -13,7 +13,7 @@ __doc__ = """
 The fealpy program for posteriori Stokes problem. 
 """
 
-from Stokes2DData import Stokes2DData_0, Stokes2DData_1, Stokes2DData_2, Stokes2DData_3
+from Stokes2DData import Stokes2DData_0, Stokes2DData_1, Stokes2DData_2, Stokes2DData_3, StokesLshapeData
 import numpy as np
 from ShowCls import ShowCls
 from StokesHHOModel2d import StokesHHOModel2d
@@ -29,12 +29,12 @@ import datetime
 
 # --- begin setting --- #
 d = 2  # the dimension
-p = 3  # the polynomial order
+p = 1  # the polynomial order
 n = 4  # the number of refine mesh
 maxit = 5  # the max iteration of the mesh
 
 nu = 1.0e-0
-pde = Stokes2DData_3(nu)  # create pde model
+pde = StokesLshapeData(nu)  # create pde model
 
 # --- error settings --- #
 errorType = ['$|| u - u_h||_0$', '$||\\nabla u - \\nabla u_h||_0 + s(uh,uh)$', '$|| u - u_h||_{E}$', '|| p - p_h ||_0', 'eta0']
@@ -43,10 +43,10 @@ Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
 
 # --- mesh setting --- #
 # --- mesh1 --- #
-box = [0, 1, 0, 1]  # [0, 1]^2 domain
-mf = MeshFactory()
-meshtype = 'quad'
-mesh = mf.boxmesh2d(box, nx=n, ny=n, meshtype=meshtype)
+# box = [0, 1, 0, 1]  # [0, 1]^2 domain
+# mf = MeshFactory()
+# meshtype = 'quad'
+# mesh = mf.boxmesh2d(box, nx=n, ny=n, meshtype=meshtype)
 
 # --- mesh2 --- #
 # matfile = '../Meshfiles/Dmesh_contortedDualTri_[0,1]x[0,1]_4.mat'
@@ -55,6 +55,11 @@ mesh = mf.boxmesh2d(box, nx=n, ny=n, meshtype=meshtype)
 
 # --- mesh3 --- #
 # mesh = mf.triangle(box, 1./4)
+
+# --- mesh4: L-shape --- #
+matfile = '../Meshfiles/Lshape3_poly_64.mat'
+mIO = mesh_IO(matfile)
+mesh = mIO.loadMatlabMesh()
 
 # --- to halfedgemesh --- #
 mesh = HalfEdgeMesh2d.from_mesh(mesh)
