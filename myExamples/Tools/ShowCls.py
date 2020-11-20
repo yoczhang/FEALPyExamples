@@ -123,7 +123,7 @@ class ShowCls:
         plt.savefig(out + '_Solution.png') if (isinstance(out, str) & outFlag) else None
         plt.close()
 
-    def show_error_table(self, out=None, DofName='Dof', f='e', pre=4, sep=' & ', end='\n', outFlag=True):
+    def show_error_table(self, out=None, DofName='Dof', tableType='h-type', f='e', pre=4, sep=' & ', end='\n', outFlag=True):
         GD = self.mesh.geo_dimension()
         meshtype = self.mesh.meshtype
         Ndof = self.Ndof
@@ -141,8 +141,10 @@ class ShowCls:
             outPather = open(outPath, 'a+')
 
         n = errorMatrix.shape[1] + 1
+        print('# --------------------- show table ------------------------- #')
+        print('############# table type (h-type or dof-type): %s #############' % tableType)
         print('\\begin{table}[!htdp]', file=outPather, end='\n')
-        print('\\begin{tabular}[c]{|' + n * 'c|' + '}\hline', file=outPather, end='\n')
+        print('\\begin{tabular}[c]{|' + n * 'c|' + '}\\hline', file=outPather, end='\n')
 
         s = 'h' + sep + np.array2string(hh, separator=sep, )
         s = s.replace('\n', '')
@@ -172,10 +174,10 @@ class ShowCls:
             print(s, file=outPather, end=end)
             print('\\\\\\hline', file=outPather)
 
-            if meshtype == 'tri':
-                order = np.log(line[0:-1] / line[1:]) / np.log(2)
-            else:
-                # order = np.log(line[0:-1] / line[1:]) / np.log(hh[0:-1] / hh[1:])
+            order = None
+            if tableType in {'h-type', 'h-Type', 'htype', 'hType', 'h type'}:
+                order = np.log(line[0:-1] / line[1:]) / np.log(hh[0:-1] / hh[1:])
+            elif tableType in {'dof-type', 'dof type', 'DofType', 'Dof-type'}:
                 order = np.log(line[0:-1] / line[1:]) / np.log(Ndof[1:] / Ndof[0:-1])
             s = 'Order' + sep + '--' + sep + np.array2string(order, separator=sep, precision=2)
             s = s.replace('\n', '')

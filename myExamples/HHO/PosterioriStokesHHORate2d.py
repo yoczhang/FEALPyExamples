@@ -138,7 +138,7 @@ stokes.showSolution(sc)
 # --- get the convergence rate --- #
 print('\n')
 print('# --------------------- table ------------------------- #')
-sc.show_error_table(DofName='Velocity-Dof')
+sc.show_error_table(DofName='Velocity-Dof', tableType='dof-type')
 sc.showmultirate(0)
 plt.show()
 
