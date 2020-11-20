@@ -35,22 +35,22 @@ gPsi = diff(Psi, theta)
 ggPsi = diff(gPsi, theta)
 gggPsi = diff(ggPsi, theta)
 
-u1 = r ** lam * ((1 + lam) * sin(theta) * Psi + cos(theta) * gPsi)
-u2 = r ** lam * (sin(theta) * gPsi - (1 + lam) * cos(theta) * Psi)
+u0 = r ** lam * ((1 + lam) * sin(theta) * Psi + cos(theta) * gPsi)
+u1 = r ** lam * (sin(theta) * gPsi - (1 + lam) * cos(theta) * Psi)
 
+u0_x = diff(u0, r)*r_x + diff(u0, theta)*theta_x
+u0_y = diff(u0, r)*r_y + diff(u0, theta)*theta_y
 u1_x = diff(u1, r)*r_x + diff(u1, theta)*theta_x
 u1_y = diff(u1, r)*r_y + diff(u1, theta)*theta_y
-u2_x = diff(u2, r)*r_x + diff(u2, theta)*theta_x
-u2_y = diff(u2, r)*r_y + diff(u2, theta)*theta_y
 
 
 print('gPsi = ', gPsi)
 print('ggPsi = ', ggPsi)
 print('gggPsi = ', gggPsi)
-print('u1_x = ', u1_x)
-print('u1_y = ', u1_y)
-print('u2_x = ', u2_x)
-print('u2_y = ', u2_y)
+print('u1_x = ', u0_x)
+print('u1_y = ', u0_y)
+print('u2_x = ', u1_x)
+print('u2_y = ', u1_y)
 
 
 

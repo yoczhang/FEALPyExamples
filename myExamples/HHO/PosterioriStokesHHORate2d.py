@@ -31,7 +31,7 @@ import datetime
 d = 2  # the dimension
 p = 1  # the polynomial order
 n = 4  # the number of refine mesh
-maxit = 5  # the max iteration of the mesh
+maxit = 30  # the max iteration of the mesh
 
 nu = 1.0e-0
 pde = StokesLshapeData(nu)  # create pde model
@@ -88,6 +88,7 @@ sc = ShowCls(p, mesh, errorType=errorType, Ndof=Ndof, errorMatrix=errorMatrix, o
 # --- start for-loop --- #
 stokes = None
 sol = None
+tol = 1.0e-2
 print('nu = %e' % nu)
 for i in range(maxit):  # range(maxit), [maxit-1]
     print('\n# --------------------- i = %d ------------------------- #' % i)
@@ -111,22 +112,24 @@ for i in range(maxit):  # range(maxit), [maxit-1]
     print('  |___ eff0 = %f, eff1 = %f: ' % (eff0, eff1))
     print('  |___ before refine: number of cells: %d, pressure dofs: %d ' % (
         mesh.number_of_cells(), stokes.space.number_of_pressure_dofs()))
-    # sc.showMesh(markCell=False, markEdge=False, markNode=False)
-    # fig1 = plt.figure()
-    # axes = fig1.gca()
-    # mesh.add_plot(axes)
-    # outPath_1 = outPath + str(i) + '-mesh.png'
-    # plt.savefig(outPath_1)
-    # plt.close()
 
-    # --- refine the mesh --- #
-    # aopts = mesh.adaptive_options(method='max', theta=0.3, maxcoarsen=0.1, HB=True)
-    # mesh.adaptive(eta, aopts) if i < maxit - 1 else None
+    sc.showMesh(markCell=False, markEdge=False, markNode=False)
+    fig1 = plt.figure()
+    axes = fig1.gca()
+    mesh.add_plot(axes)
+    outPath_1 = outPath + str(i) + '-mesh.png'
+    plt.savefig(outPath_1)
+    plt.close()
 
-    # isMarkedCell = stokes.space.post_estimator_markcell(eta, theta=0.5)
-    # mesh.refine_poly(isMarkedCell) if i < maxit - 1 else None
+    # --- adaptive refine the mesh --- #
+    aopts = mesh.adaptive_options(method='max', theta=0.3, maxcoarsen=0.1, HB=True)
+    mesh.adaptive(eta, aopts) if i < maxit - 1 else None
 
-    mesh.uniform_refine() if i < maxit - 1 else None
+    isMarkedCell = stokes.space.post_estimator_markcell(eta, theta=0.3)
+    mesh.refine_poly(isMarkedCell) if i < maxit - 1 else None
+
+    # --- uniform refine the mesh --- #
+    # mesh.uniform_refine() if i < maxit - 1 else None
     print('  |___ after refine: number of cells: ', mesh.number_of_cells())
 
 # --- plot solution --- #
