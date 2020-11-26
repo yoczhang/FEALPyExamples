@@ -123,12 +123,14 @@ class ShowCls:
         plt.savefig(out + '_Solution.png') if (isinstance(out, str) & outFlag) else None
         plt.close()
 
-    def show_error_table(self, out=None, DofName='Dof', tableType='h-type', f='e', pre=4, sep=' & ', end='\n', outFlag=True):
+    def show_error_table(self, out=None, ndarrayEnd=0, DofName='Dof', tableType='h-type', f='e', pre=4, sep=' & ', end='\n', outFlag=True):
         GD = self.mesh.geo_dimension()
         meshtype = self.mesh.meshtype
-        Ndof = self.Ndof
+
+        ndarrayEnd = len(self.Ndof) if ndarrayEnd == 0 else ndarrayEnd
+        Ndof = self.Ndof[:ndarrayEnd]
         errorType = self.errorType
-        errorMatrix = self.errorMatrix
+        errorMatrix = self.errorMatrix[:, :ndarrayEnd]
         out = self.out if out is None else out
         hh = Ndof**(-1./GD)
 
@@ -193,9 +195,10 @@ class ShowCls:
         if flag:
             outPather.close()
 
-    def showmultirate(self, k_slope, optionlist=None, lw=1, ms=4, propsize=10, outFlag=True):
-        Ndof = self.Ndof
-        errorMatrix = self.errorMatrix
+    def showmultirate(self, k_slope, ndarrayEnd=0, optionlist=None, lw=1, ms=4, propsize=10, outFlag=True):
+        ndarrayEnd = len(self.Ndof) if ndarrayEnd == 0 else ndarrayEnd
+        Ndof = self.Ndof[:ndarrayEnd]
+        errorMatrix = self.errorMatrix[:, :ndarrayEnd]
         errorType = self.errorType
         out = self.out
 
