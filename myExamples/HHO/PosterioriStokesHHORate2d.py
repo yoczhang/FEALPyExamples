@@ -100,8 +100,6 @@ while ETA > tol:
     uh = sol['uh']
 
     # --- expand Ndof and errorMatrix --- #
-
-
     Ndof[i] = stokes.space.number_of_velocity_dofs()  # get the number of dofs
     errorMatrix[0, i] = (nu ** 0.5) * np.sqrt(np.sum(stokes.velocity_L2_error(celltype=True)**2))  # get the velocity L2 error
 
@@ -130,16 +128,25 @@ while ETA > tol:
     # plt.close()
 
     # --- adaptive refine the mesh --- #
-    # aopts = mesh.adaptive_options(method='max', theta=0.3, maxcoarsen=0.1, HB=True)
-    # mesh.adaptive(eta, aopts) if i < maxit - 1 else None
+    if (i < maxit - 1) & (ETA > tol):
+        # --- one way to refine
+        # aopts = mesh.adaptive_options(method='max', theta=0.3, maxcoarsen=0.1, HB=True)
+        # mesh.adaptive(eta, aopts)
 
-    isMarkedCell = stokes.space.post_estimator_markcell(eta, theta=0.4)
-    mesh.refine_poly(isMarkedCell) if (i < maxit - 1) & (ETA > tol) else None
+        # --- another way to refine
+        isMarkedCell = stokes.space.post_estimator_markcell(eta, theta=0.4)
+        mesh.refine_poly(isMarkedCell)
+
+        i += 1
+    else:
+        pass
 
     # --- uniform refine the mesh --- #
     # mesh.uniform_refine() if i < maxit - 1 else None
     print('  |___ after refine: number of cells: ', mesh.number_of_cells())
-    i += 1
+
+# --- post-treat some ndarray --- #
+np.delete(errorMatrix, )
 
 # --- plot solution --- #
 stokes.showSolution(sc)
