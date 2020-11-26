@@ -158,5 +158,5 @@ uh.add_plot(plt, cmap='rainbow')
 showmultirate(plt, 0, NDof, errorMatrix, errorType, propsize=10)
 
 # 输出误差的 latex 表格
-show_error_table(NDof, errorType, errorMatrix)
+# show_error_table(NDof, errorType, errorMatrix)
 plt.show()

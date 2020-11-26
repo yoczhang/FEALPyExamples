@@ -123,14 +123,26 @@ class ShowCls:
         plt.savefig(out + '_Solution.png') if (isinstance(out, str) & outFlag) else None
         plt.close()
 
-    def show_error_table(self, out=None, ndarrayEnd=0, DofName='Dof', tableType='h-type', f='e', pre=4, sep=' & ', end='\n', outFlag=True):
+    def show_error_table(self, out=None, Ridx=np.s_[:], Cidx=np.s_[:], DofName='Dof', tableType='h-type', f='e', pre=4, sep=' & ', end='\n', outFlag=True):
+        """
+        :param out: 应该输入路径, 来保存结果
+        :param Ridx: 主要是为了对 errorMatrix 中某几行和某几列进行展示
+        :param Cidx: 主要是为了对 errorMatrix 中某几行和某几列进行展示
+        :param DofName:
+        :param tableType: 在 Table 表头中, 'h' 类型, 或 'Ndof' 类型
+        :param f: Table 中误差的表示类型, 'e' 表示为科学计算型展示
+        :param pre:
+        :param sep:
+        :param end:
+        :param outFlag: 是否保存结果
+        :return:
+        """
         GD = self.mesh.geo_dimension()
         meshtype = self.mesh.meshtype
-
-        ndarrayEnd = len(self.Ndof) if ndarrayEnd == 0 else ndarrayEnd
-        Ndof = self.Ndof[:ndarrayEnd]
-        errorType = self.errorType
-        errorMatrix = self.errorMatrix[:, :ndarrayEnd]
+        Ndof = self.Ndof[Cidx]
+        errorType = np.array(self.errorType)[Ridx]
+        errorMatrix = self.errorMatrix[:, Cidx]
+        errorMatrix = errorMatrix[Ridx, :]
         out = self.out if out is None else out
         hh = Ndof**(-1./GD)
 
@@ -195,11 +207,22 @@ class ShowCls:
         if flag:
             outPather.close()
 
-    def showmultirate(self, k_slope, ndarrayEnd=0, optionlist=None, lw=1, ms=4, propsize=10, outFlag=True):
-        ndarrayEnd = len(self.Ndof) if ndarrayEnd == 0 else ndarrayEnd
-        Ndof = self.Ndof[:ndarrayEnd]
-        errorMatrix = self.errorMatrix[:, :ndarrayEnd]
-        errorType = self.errorType
+    def showmultirate(self, k_slope, Ridx=np.s_[:], Cidx=np.s_[:], optionlist=None, lw=1, ms=4, propsize=10, outFlag=True):
+        """
+        :param k_slope: 从 '哪个点' 开始来画理论上的斜率
+        :param Ridx: 主要是为了对 errorMatrix 中某几行和某几列进行展示
+        :param Cidx: 主要是为了对 errorMatrix 中某几行和某几列进行展示
+        :param optionlist:
+        :param lw:
+        :param ms:
+        :param propsize:
+        :param outFlag:
+        :return:
+        """
+        Ndof = self.Ndof[Cidx]
+        errorMatrix = self.errorMatrix[:, Cidx]
+        errorMatrix = errorMatrix[Ridx, :]
+        errorType = np.array(self.errorType)[Ridx]
         out = self.out
 
         fig = plt.figure()
@@ -220,7 +243,7 @@ class ShowCls:
 
         plt.plot
         plt.savefig(out + '_rate.png') if (isinstance(out, str) & outFlag) else None
-        # plt.show()
+        plt.show()
         plt.close()
         return axes
 

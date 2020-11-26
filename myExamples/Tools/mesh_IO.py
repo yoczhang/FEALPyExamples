@@ -42,8 +42,17 @@ class mesh_IO:
         mesh = PolygonMesh(pnode, pcell, pcellLocation)
         return mesh
 
-    def save2MatlabMesh(self, filename=None):
+    def save2MatlabMesh(self, mesh, filename=None):
         filename = self.filename if filename is None else filename
+
+        node = mesh.node
+        c2n = mesh.ds.cell_to_node()
+        # nvc = mesh.number_of_vertices_of_cells()
+        cell_idx = c2n[0]
+        cell_location = c2n[1]
+        cell = np.split(cell_idx, cell_location[1:-1])
+
+
         # mfile = savemat()
         pass
 

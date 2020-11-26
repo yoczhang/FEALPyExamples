@@ -43,10 +43,10 @@ Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
 
 # --- mesh setting --- #
 # --- mesh1 --- #
-# box = [0, 1, 0, 1]  # [0, 1]^2 domain
-# mf = MeshFactory()
-# meshtype = 'quad'
-# mesh = mf.boxmesh2d(box, nx=n, ny=n, meshtype=meshtype)
+box = [0, 1, 0, 1]  # [0, 1]^2 domain
+mf = MeshFactory()
+meshtype = 'quad'
+mesh = mf.boxmesh2d(box, nx=n, ny=n, meshtype=meshtype)
 
 # --- mesh2 --- #
 # matfile = '../Meshfiles/Dmesh_contortedDualTri_[0,1]x[0,1]_4.mat'
@@ -57,9 +57,9 @@ Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
 # mesh = mf.triangle(box, 1./4)
 
 # --- mesh4: L-shape --- #
-matfile = '../Meshfiles/Lshape3_poly_64.mat'
-mIO = mesh_IO(matfile)
-mesh = mIO.loadMatlabMesh()
+# matfile = '../Meshfiles/Lshape3_poly_64.mat'
+# mIO = mesh_IO(matfile)
+# mesh = mIO.loadMatlabMesh()
 
 # --- to halfedgemesh --- #
 mesh = HalfEdgeMesh2d.from_mesh(mesh)
@@ -88,7 +88,7 @@ sc = ShowCls(p, mesh, errorType=errorType, Ndof=Ndof, errorMatrix=errorMatrix, o
 # --- start for-loop --- #
 stokes = None
 sol = None
-tol = 5.0e-1
+tol = 1.0e-2
 print('nu = %e' % nu)
 i = 0
 ETA = 1.0
@@ -119,13 +119,13 @@ while ETA > tol:
     print('  |___ before refine: number of cells: %d, pressure dofs: %d ' % (
         mesh.number_of_cells(), stokes.space.number_of_pressure_dofs()))
 
-    sc.showMesh(markCell=False, markEdge=False, markNode=False)
-    fig1 = plt.figure()
-    axes = fig1.gca()
-    mesh.add_plot(axes)
-    outPath_1 = outPath + str(i) + '-mesh.png'
-    plt.savefig(outPath_1)
-    plt.close()
+    # sc.showMesh(markCell=False, markEdge=False, markNode=False)
+    # fig1 = plt.figure()
+    # axes = fig1.gca()
+    # mesh.add_plot(axes)
+    # outPath_1 = outPath + str(i) + '-mesh.png'
+    # plt.savefig(outPath_1)
+    # plt.close()
 
     # --- adaptive refine the mesh --- #
     if (i < maxit - 1) & (ETA > tol):
@@ -137,27 +137,23 @@ while ETA > tol:
         isMarkedCell = stokes.space.post_estimator_markcell(eta, theta=0.4)
         mesh.refine_poly(isMarkedCell)
 
+        # --- uniform refine the mesh --- #
+        # mesh.uniform_refine()
+
         i += 1
     else:
         pass
-
-    # --- uniform refine the mesh --- #
-    # mesh.uniform_refine() if i < maxit - 1 else None
     print('  |___ after refine: number of cells: ', mesh.number_of_cells())
 
-# --- post-treat some ndarray --- #
-# np.delete(errorMatrix, range(i+1, maxit), axis=1)
-# np.delete(Ndof, range(i+1, maxit))
-
 # --- plot solution --- #
-stokes.showSolution(sc)
+# stokes.showSolution(sc)
 
 # --- get the convergence rate --- #
 print('\n')
 print('# --------------------- table ------------------------- #')
-# sc.show_error_table(ndarrayEnd=i+1, DofName='Velocity-Dof', tableType='dof-type')
-sc.showmultirate(0, ndarrayEnd=i+1)
-# plt.show()
+sc.show_error_table(out=outPath, Cidx=range(i+1), DofName='Velocity-Dof', tableType='dof-type')
+sc.showmultirate(i-7, Ridx=[1, 4], Cidx=range(i+1))
+plt.show()
 
 # ---
 print('end of the program')
