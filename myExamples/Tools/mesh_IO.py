@@ -16,17 +16,20 @@ __doc__ = """
 from scipy.io import loadmat, savemat
 import numpy as np
 from fealpy.mesh.PolygonMesh import PolygonMesh
+import scipy.io as io
 from ShowCls import ShowCls
 
 
 class mesh_IO:
-    def __init__(self, filename):
-        self.filename = filename
-        self.mfile = loadmat(self.filename)
+    def __init__(self):
+        # self.filename = filename
+        # self.mfile = loadmat(self.filename)
+        pass
 
     def loadMatlabMesh(self, filename=None):
-        filename = self.filename if filename is None else filename
-        mfile = self.mfile if filename is None else loadmat(filename)
+        # filename = self.filename if filename is None else filename
+        # mfile = self.mfile if filename is None else loadmat(filename)
+        mfile = loadmat(filename)
         pnode = mfile['node']
         pelem = mfile['elem']
         Nelem = pelem.shape[0]
@@ -43,17 +46,14 @@ class mesh_IO:
         return mesh
 
     def save2MatlabMesh(self, mesh, filename=None):
-        filename = self.filename if filename is None else filename
-
-        node = mesh.node
+        node = np.array(mesh.node)
         c2n = mesh.ds.cell_to_node()
         # nvc = mesh.number_of_vertices_of_cells()
-        cell_idx = c2n[0]
+        cell_all = c2n[0] + 1  # 转换为 MATLAB 数据时, 编号从 1 开始.
         cell_location = c2n[1]
-        cell = np.split(cell_idx, cell_location[1:-1])
+        cell = np.split(cell_all, cell_location[1:-1])
 
+        io.savemat(filename, {'node': node, 'elem': cell})
 
-        # mfile = savemat()
-        pass
 
 

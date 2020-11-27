@@ -29,7 +29,7 @@ import datetime
 
 # --- begin setting --- #
 d = 2  # the dimension
-p = 1  # the polynomial order
+p = 3  # the polynomial order
 n = 4  # the number of refine mesh
 maxit = 30  # the max iteration of the mesh
 
@@ -42,24 +42,24 @@ errorMatrix = np.zeros((len(errorType), maxit), dtype=np.float)
 Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
 
 # --- mesh setting --- #
+mIO = mesh_IO()
+
 # --- mesh1 --- #
-box = [0, 1, 0, 1]  # [0, 1]^2 domain
-mf = MeshFactory()
-meshtype = 'quad'
-mesh = mf.boxmesh2d(box, nx=n, ny=n, meshtype=meshtype)
+# box = [0, 1, 0, 1]  # [0, 1]^2 domain
+# mf = MeshFactory()
+# meshtype = 'quad'
+# mesh = mf.boxmesh2d(box, nx=n, ny=n, meshtype=meshtype)
 
 # --- mesh2 --- #
 # matfile = '../Meshfiles/Dmesh_contortedDualTri_[0,1]x[0,1]_4.mat'
-# mIO = mesh_IO(matfile)
-# mesh = mIO.loadMatlabMesh()
+# mesh = mIO.loadMatlabMesh(filename=matfile)
 
 # --- mesh3 --- #
 # mesh = mf.triangle(box, 1./4)
 
 # --- mesh4: L-shape --- #
-# matfile = '../Meshfiles/Lshape3_poly_64.mat'
-# mIO = mesh_IO(matfile)
-# mesh = mIO.loadMatlabMesh()
+matfile = '../Meshfiles/Lshape3_poly_64.mat'
+mesh = mIO.loadMatlabMesh(filename=matfile)
 
 # --- to halfedgemesh --- #
 mesh = HalfEdgeMesh2d.from_mesh(mesh)
@@ -119,14 +119,6 @@ while ETA > tol:
     print('  |___ before refine: number of cells: %d, pressure dofs: %d ' % (
         mesh.number_of_cells(), stokes.space.number_of_pressure_dofs()))
 
-    # sc.showMesh(markCell=False, markEdge=False, markNode=False)
-    # fig1 = plt.figure()
-    # axes = fig1.gca()
-    # mesh.add_plot(axes)
-    # outPath_1 = outPath + str(i) + '-mesh.png'
-    # plt.savefig(outPath_1)
-    # plt.close()
-
     # --- adaptive refine the mesh --- #
     if (i < maxit - 1) & (ETA > tol):
         # --- one way to refine
@@ -143,10 +135,22 @@ while ETA > tol:
         i += 1
     else:
         pass
+
+    # sc.showMesh(markCell=False, markEdge=False, markNode=False)
+    fig1 = plt.figure()
+    axes = fig1.gca()
+    mesh.add_plot(axes)
+    outPath_1 = outPath + str(i) + '-mesh.png'
+    plt.savefig(outPath_1)
+    plt.close()
     print('  |___ after refine: number of cells: ', mesh.number_of_cells())
 
 # --- plot solution --- #
 # stokes.showSolution(sc)
+
+# --- save mesh --- #
+saveMeshName = outPath + '_p=' + str(p) + '_final.mat'
+mIO.save2MatlabMesh(mesh, filename=saveMeshName)
 
 # --- get the convergence rate --- #
 print('\n')
