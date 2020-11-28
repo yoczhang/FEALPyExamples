@@ -29,9 +29,9 @@ import datetime
 
 # --- begin setting --- #
 d = 2  # the dimension
-p = 3  # the polynomial order
+p = 4  # the polynomial order
 n = 4  # the number of refine mesh
-maxit = 30  # the max iteration of the mesh
+maxit = 45  # the max iteration of the mesh
 
 nu = 1.0e-0
 pde = StokesLshapeData(nu)  # create pde model
@@ -126,7 +126,7 @@ while ETA > tol:
         # mesh.adaptive(eta, aopts)
 
         # --- another way to refine
-        isMarkedCell = stokes.space.post_estimator_markcell(eta, theta=0.4)
+        isMarkedCell = stokes.space.post_estimator_markcell(eta, theta=0.3)
         mesh.refine_poly(isMarkedCell)
 
         # --- uniform refine the mesh --- #

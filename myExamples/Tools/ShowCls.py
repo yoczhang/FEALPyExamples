@@ -228,6 +228,9 @@ class ShowCls:
         fig = plt.figure()
         fig.set_facecolor('white')
         axes = fig.gca()
+        axes.set_xlabel('Number of unknowns')
+        axes.set_ylabel('Errors')
+        plt.grid()
 
         if optionlist is None:
             optionlist = ['k-*', 'r-o', 'b-D', 'g-->', 'k--8', 'm--x', 'r-.x', 'b-.+', 'b-.h', 'm:s', 'm:p', 'm:h']
@@ -241,10 +244,10 @@ class ShowCls:
                 self.showrate(axes, k_slope, Ndof[i], errorMatrix[i], optionlist[i], label=errorType[i], lw=lw, ms=ms)
         axes.legend(loc=3, framealpha=0.2, fancybox=True, prop={'size': propsize})
 
-        plt.plot
+        # plt.plot
         plt.savefig(out + '_rate.png') if (isinstance(out, str) & outFlag) else None
         plt.show()
-        plt.close()
+        # plt.close()
         return axes
 
     def showrate(self, axes, k, N, error, option, label=None, lw=1, ms=4):
