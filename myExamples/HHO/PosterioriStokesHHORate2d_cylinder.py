@@ -14,6 +14,7 @@ The fealpy program for posteriori Stokes problem.
 """
 
 from Stokes2DData import Stokes2DData_0, Stokes2DData_1, Stokes2DData_2, Stokes2DData_3, StokesLshapeData
+from Stokes2DData import StokesAroundCylinderData
 import numpy as np
 from ShowCls import ShowCls
 from StokesHHOModel2d import StokesHHOModel2d
@@ -29,15 +30,15 @@ import datetime
 
 # --- begin setting --- #
 d = 2  # the dimension
-p = 4  # the polynomial order
+p = 1  # the polynomial order
 n = 4  # the number of refine mesh
 maxit = 45  # the max iteration of the mesh
 
 nu = 1.0e-0
-pde = StokesLshapeData(nu)  # create pde model
+pde = StokesAroundCylinderData(nu)  # create pde model
 
 # --- error settings --- #
-errorType = ['$|| u - u_h||_0$', '$||\\nabla u - \\nabla u_h||_0 + s(uh,uh)$', '$|| u - u_h||_{E}$', '|| p - p_h ||_0', 'eta0']
+errorType = ['ETA']
 errorMatrix = np.zeros((len(errorType), maxit), dtype=np.float)
 Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
 
@@ -50,15 +51,8 @@ mIO = mesh_IO()
 # meshtype = 'quad'
 # mesh = mf.boxmesh2d(box, nx=n, ny=n, meshtype=meshtype)
 
-# --- mesh2 --- #
-# matfile = '../Meshfiles/Dmesh_contortedDualTri_[0,1]x[0,1]_4.mat'
-# mesh = mIO.loadMatlabMesh(filename=matfile)
-
-# --- mesh3 --- #
-# mesh = mf.triangle(box, 1./4)
-
-# --- mesh4: L-shape --- #
-matfile = '../Meshfiles/Lshape3_poly_64.mat'
+# --- mesh2: L-shape --- #
+matfile = '../Meshfiles/aroundcylinder.mat'
 mesh = mIO.loadMatlabMesh(filename=matfile)
 
 # --- to halfedgemesh --- #
@@ -77,9 +71,11 @@ outPath = '../Outputs/PostStokes' + now_time.strftime('%y-%m-%d(%H\'%M\'%S)')
 # find_entity(axes, mesh, entity='edge', showindex=True, color='r', markersize=10, fontsize=8)
 # find_entity(axes, mesh, entity='node', showindex=True, color='y', markersize=10, fontsize=8)
 # plt.show()
+
+# --- another way plot the mesh --- #
 sc = ShowCls(p, mesh, errorType=errorType, Ndof=Ndof, errorMatrix=errorMatrix, out=None)
 # sc.showMeshInfo()
-# sc.showMesh()
+# sc.showMesh(markCell=False, markEdge=False, markNode=False)
 
 # mesh.uniform_refine(1)
 # print("------------------")
@@ -101,21 +97,13 @@ while ETA > tol:
 
     # --- expand Ndof and errorMatrix --- #
     Ndof[i] = stokes.space.number_of_velocity_dofs()  # get the number of dofs
-    errorMatrix[0, i] = (nu ** 0.5) * np.sqrt(np.sum(stokes.velocity_L2_error(celltype=True)**2))  # get the velocity L2 error
-
-    u_post_energyerr = stokes.space.posterror_enengyerror(nu, pde.grad, uh)
-    errorMatrix[1, i] = np.sqrt(np.sum(u_post_energyerr**2))  # get the velocity energy error
-    errorMatrix[2, i] = (nu ** 0.5) * stokes.velocity_energy_error()  # get the velocity energy error
-    errorMatrix[3, i] = (nu ** (-0.5)) * np.sqrt(np.sum(stokes.pressure_L2_error(celltype=True)**2))  # get the pressure L2 error
 
     # --- adaptive settings --- #
-    eta = stokes.space.residual_estimate0(nu, uh, pde.source, pde.velocity)  # (NC,)
+    eta = stokes.space.residual_estimate0(nu, uh, pde.source, pde.dirichlet)  # (NC,)
     ETA = np.sqrt(np.sum(eta ** 2))
-    errorMatrix[4, i] = ETA
-    eff0 = 1./np.sqrt(ETA / (errorMatrix[1, i]**2 + errorMatrix[3, i]**2))
-    eff1 = 1. / np.sqrt(ETA / (errorMatrix[2, i] ** 2 + errorMatrix[3, i] ** 2))
+    errorMatrix[0, i] = ETA
     print('Posteriori Info:')
-    print('  |___ ETA = %e, eff0 = %f, eff1 = %f: ' % (ETA, eff0, eff1))
+    print('  |___ ETA = %e: ' % ETA)
     print('  |___ before refine: number of cells: %d, pressure dofs: %d ' % (
         mesh.number_of_cells(), stokes.space.number_of_pressure_dofs()))
 
