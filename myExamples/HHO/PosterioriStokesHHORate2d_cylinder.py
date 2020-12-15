@@ -52,7 +52,8 @@ mIO = mesh_IO()
 # mesh = mf.boxmesh2d(box, nx=n, ny=n, meshtype=meshtype)
 
 # --- mesh2: L-shape --- #
-matfile = '../Meshfiles/aroundcylinder.mat'
+# matfile = '../Meshfiles/aroundcylinder.mat'
+matfile = '../Meshfiles/aroundcylinder_poly_final.mat'
 mesh = mIO.loadMatlabMesh(filename=matfile)
 
 # --- to halfedgemesh --- #
@@ -143,9 +144,9 @@ mIO.save2MatlabMesh(mesh, filename=saveMeshName)
 # --- get the convergence rate --- #
 print('\n')
 print('# --------------------- table ------------------------- #')
-sc.show_error_table(out=outPath, Cidx=range(i+1), DofName='Velocity-Dof', tableType='dof-type')
-sc.showmultirate(i-7, Ridx=[1, 4], Cidx=range(i+1))
-plt.show()
+# sc.show_error_table(out=outPath, Cidx=range(i+1), DofName='Velocity-Dof', tableType='dof-type')
+# sc.showmultirate(i-7, Ridx=[1, 4], Cidx=range(i+1))
+# plt.show()
 
 # ---
 print('end of the program')
