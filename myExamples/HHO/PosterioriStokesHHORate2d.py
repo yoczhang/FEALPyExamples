@@ -92,6 +92,7 @@ tol = 1.0e-2
 print('nu = %e' % nu)
 i = 0
 ETA = 1.0
+uh = None
 # for i in range(maxit):  # range(maxit), [maxit-1]
 while ETA > tol:
     print('\n# --------------------- i = %d ------------------------- #' % i)
@@ -151,6 +152,10 @@ while ETA > tol:
 # --- save mesh --- #
 saveMeshName = outPath + '_p=' + str(p) + '_final.mat'
 mIO.save2MatlabMesh(mesh, filename=saveMeshName)
+
+# --- save uh --- #
+saveUhName = outPath + '_p=' + str(p) + '_uh_final.mat'
+mIO.save2MatlabUh(uh, filename=saveUhName)
 
 # --- get the convergence rate --- #
 print('\n')

@@ -55,5 +55,9 @@ class mesh_IO:
 
         io.savemat(filename, {'node': node, 'elem': cell})
 
+    def save2MatlabUh(self, Uh, filename=None):
+        io.savemat(filename, {'Uh': Uh})
+
+
 
 
