@@ -14,7 +14,7 @@ The fealpy program for posteriori Stokes problem.
 """
 
 from Stokes2DData import Stokes2DData_0, Stokes2DData_1, Stokes2DData_2, Stokes2DData_3, StokesLshapeData
-from Stokes2DData import StokesAroundCylinderData
+from Stokes2DData import StokesAroundCylinderData, StokesCubeFlowData
 import numpy as np
 from ShowCls import ShowCls
 from StokesHHOModel2d import StokesHHOModel2d
@@ -30,12 +30,13 @@ import datetime
 
 # --- begin setting --- #
 d = 2  # the dimension
-p = 3  # the polynomial order
+p = 1  # the polynomial order
 n = 4  # the number of refine mesh
 maxit = 45  # the max iteration of the mesh
 
 nu = 1.0e-0
-pde = StokesAroundCylinderData(nu)  # create pde model
+# pde = StokesAroundCylinderData(nu)  # create pde model
+pde = StokesCubeFlowData(nu)  # create pde model
 
 # --- error settings --- #
 errorType = ['ETA']
@@ -53,13 +54,15 @@ mIO = mesh_IO()
 
 # --- mesh2: L-shape --- #
 # matfile = '../Meshfiles/aroundcylinder.mat'
-matfile = '../Meshfiles/aroundcylinder_poly_final.mat'
+# matfile = '../Meshfiles/aroundcylinder_poly_final.mat'
+matfile = '../Meshfiles/cube_flow_mesh_quad.mat'
 mesh = mIO.loadMatlabMesh(filename=matfile)
 
 # --- to halfedgemesh --- #
 mesh = HalfEdgeMesh2d.from_mesh(mesh)
 mesh.init_level_info()
 # mesh.uniform_refine(n - 1)  # refine the mesh at beginning
+# mesh.uniform_refine()
 
 now_time = datetime.datetime.now()
 outPath = '../Outputs/PostStokes' + now_time.strftime('%y-%m-%d(%H\'%M\'%S)')
@@ -77,6 +80,7 @@ outPath = '../Outputs/PostStokes' + now_time.strftime('%y-%m-%d(%H\'%M\'%S)')
 sc = ShowCls(p, mesh, errorType=errorType, Ndof=Ndof, errorMatrix=errorMatrix, out=None)
 # sc.showMeshInfo()
 # sc.showMesh(markCell=False, markEdge=False, markNode=False)
+# sc.showMesh()
 
 # mesh.uniform_refine(1)
 # print("------------------")
@@ -85,7 +89,7 @@ sc = ShowCls(p, mesh, errorType=errorType, Ndof=Ndof, errorMatrix=errorMatrix, o
 # --- start for-loop --- #
 stokes = None
 sol = None
-tol = 1.0e-2
+tol = 5.0e-2
 print('nu = %e' % nu)
 i = 0
 ETA = 1.0
