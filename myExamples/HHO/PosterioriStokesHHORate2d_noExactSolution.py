@@ -32,7 +32,7 @@ import datetime
 d = 2  # the dimension
 p = 1  # the polynomial order
 n = 4  # the number of refine mesh
-maxit = 45  # the max iteration of the mesh
+maxit = 16  # the max iteration of the mesh
 
 nu = 1.0e-0
 # pde = StokesAroundCylinderData(nu)  # create pde model
@@ -55,14 +55,15 @@ mIO = mesh_IO()
 # --- mesh2: L-shape --- #
 # matfile = '../Meshfiles/aroundcylinder.mat'
 # matfile = '../Meshfiles/aroundcylinder_poly_final.mat'
-matfile = '../Meshfiles/cube_flow_mesh_quad.mat'
+# matfile = '../Meshfiles/cube_flow_mesh_quad.mat'
+matfile = '../Meshfiles/cube_flow_mesh_poly.mat'
 mesh = mIO.loadMatlabMesh(filename=matfile)
 
 # --- to halfedgemesh --- #
 mesh = HalfEdgeMesh2d.from_mesh(mesh)
 mesh.init_level_info()
 # mesh.uniform_refine(n - 1)  # refine the mesh at beginning
-# mesh.uniform_refine()
+# mesh.uniform_refine(2)
 
 now_time = datetime.datetime.now()
 outPath = '../Outputs/PostStokes' + now_time.strftime('%y-%m-%d(%H\'%M\'%S)')
@@ -94,8 +95,8 @@ print('nu = %e' % nu)
 i = 0
 ETA = 1.0
 uh = None
-# for i in range(maxit):  # range(maxit), [maxit-1]
-while ETA > tol:
+for i in range(maxit):  # range(maxit), [maxit-1]
+# while ETA > tol:
     print('\n# --------------------- i = %d ------------------------- #' % i)
     stokes = StokesHHOModel2d(pde, mesh, p)
     sol = stokes.solve()
@@ -105,13 +106,20 @@ while ETA > tol:
     Ndof[i] = stokes.space.number_of_velocity_dofs()  # get the number of dofs
 
     # --- adaptive settings --- #
-    eta = stokes.space.residual_estimate0(nu, uh, pde.source, pde.dirichlet)  # (NC,)
+    eta = stokes.space.residual_estimate0(nu, uh, pde.source, pde.dirichlet, stokes.setDirichletEdges())  # (NC,)
     ETA = np.sqrt(np.sum(eta ** 2))
     errorMatrix[0, i] = ETA
     print('Posteriori Info:')
     print('  |___ ETA = %e: ' % ETA)
     print('  |___ before refine: number of cells: %d, pressure dofs: %d ' % (
         mesh.number_of_cells(), stokes.space.number_of_pressure_dofs()))
+
+    # --- to debug --- #
+    eta_l = eta[:32]
+    lidx_max2min = np.argsort(eta_l)[::-1]  # 降序排序后返回索引值
+    eta_r = eta[32:]
+    ridx_max2min = np.argsort(eta_r)[::-1]  # 降序排序后返回索引值
+    # ---------------- #
 
     # --- adaptive refine the mesh --- #
     if (i < maxit - 1) & (ETA > tol):
@@ -120,8 +128,10 @@ while ETA > tol:
         # mesh.adaptive(eta, aopts)
 
         # --- another way to refine
-        isMarkedCell = stokes.space.post_estimator_markcell(eta, theta=0.3)
+        isMarkedCell = stokes.space.post_estimator_markcell(eta, theta=0.5)
+        markedIdx = np.nonzero(isMarkedCell)
         mesh.refine_poly(isMarkedCell)
+        print('  |___ after refine: number of cells: ', mesh.number_of_cells())
 
         # --- uniform refine the mesh --- #
         # mesh.uniform_refine()
@@ -137,13 +147,13 @@ while ETA > tol:
     outPath_1 = outPath + str(i) + '-mesh.png'
     plt.savefig(outPath_1)
     plt.close()
-    print('  |___ after refine: number of cells: ', mesh.number_of_cells())
+    print('  |___ end the circle')
 
 # --- plot solution --- #
 # stokes.showSolution(sc)
 
 # --- save mesh --- #
-saveMeshName = outPath + '_p=' + str(p) + '_final.mat'
+saveMeshName = outPath + '_p=' + str(p) + '_mesh_final.mat'
 mIO.save2MatlabMesh(mesh, filename=saveMeshName)
 
 # --- save uh --- #
