@@ -30,9 +30,9 @@ import datetime
 
 # --- begin setting --- #
 d = 2  # the dimension
-p = 1  # the polynomial order
+p = 2  # the polynomial order
 n = 4  # the number of refine mesh
-maxit = 16  # the max iteration of the mesh
+maxit = 15  # the max iteration of the mesh
 
 nu = 1.0e-0
 # pde = StokesAroundCylinderData(nu)  # create pde model
@@ -52,11 +52,15 @@ mIO = mesh_IO()
 # meshtype = 'quad'
 # mesh = mf.boxmesh2d(box, nx=n, ny=n, meshtype=meshtype)
 
-# --- mesh2: L-shape --- #
+# --- mesh2: around cylinder --- #
 # matfile = '../Meshfiles/aroundcylinder.mat'
 # matfile = '../Meshfiles/aroundcylinder_poly_final.mat'
-# matfile = '../Meshfiles/cube_flow_mesh_quad.mat'
-matfile = '../Meshfiles/cube_flow_mesh_poly.mat'
+
+# --- mesh3: cube flow --- #
+matfile = '../Meshfiles/cube_flow_mesh_quad.mat'
+# matfile = '../Meshfiles/cube_flow_mesh_poly.mat'
+
+# --- get mesh info --- #
 mesh = mIO.loadMatlabMesh(filename=matfile)
 
 # --- to halfedgemesh --- #
@@ -90,7 +94,7 @@ sc = ShowCls(p, mesh, errorType=errorType, Ndof=Ndof, errorMatrix=errorMatrix, o
 # --- start for-loop --- #
 stokes = None
 sol = None
-tol = 5.0e-2
+tol = 1.5e-1
 print('nu = %e' % nu)
 i = 0
 ETA = 1.0
@@ -137,6 +141,11 @@ for i in range(maxit):  # range(maxit), [maxit-1]
         # mesh.uniform_refine()
 
         i += 1
+
+        # --- save the specfied mesh --- #
+        if i in {1, 4, 7, 10, 13, 15}:
+            saveMeshName = outPath + '_p=' + str(p) + '_mesh_' + str(i) + '_.mat'
+            mIO.save2MatlabMesh(mesh, filename=saveMeshName)
     else:
         pass
 
