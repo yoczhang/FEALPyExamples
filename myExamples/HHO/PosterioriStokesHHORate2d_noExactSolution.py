@@ -30,7 +30,7 @@ import datetime
 
 # --- begin setting --- #
 d = 2  # the dimension
-p = 2  # the polynomial order
+p = 1  # the polynomial order
 n = 4  # the number of refine mesh
 maxit = 15  # the max iteration of the mesh
 
@@ -143,9 +143,9 @@ for i in range(maxit):  # range(maxit), [maxit-1]
         i += 1
 
         # --- save the specfied mesh --- #
-        if i in {1, 4, 7, 10, 13, 15}:
-            saveMeshName = outPath + '_p=' + str(p) + '_mesh_' + str(i) + '_.mat'
-            mIO.save2MatlabMesh(mesh, filename=saveMeshName)
+        # if i in {1, 4, 7, 10, 13, 15}:
+        #     saveMeshName = outPath + '_p=' + str(p) + '_mesh_' + str(i) + '_.mat'
+        #     mIO.save2MatlabMesh(mesh, filename=saveMeshName)
     else:
         pass
 
