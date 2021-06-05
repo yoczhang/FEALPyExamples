@@ -14,3 +14,17 @@ The fealpy-FEM program for Navier-Stokes problem.
 """
 
 import numpy as np
+import matplotlib.pyplot as plt
+
+from fealpy.mesh import MeshFactory as MF
+
+box = [0, 1, 0, 1]
+
+mesh = MF.boxmesh2d(box, nx=10, ny=10, meshtype='tri')
+mesh = MF.boxmesh2d(box, nx=10, ny=10, meshtype='quad')
+mesh = MF.boxmesh2d(box, nx=10, ny=10, meshtype='poly')
+
+fig = plt.figure()
+axes = fig.gca()
+mesh.add_plot(axes)
+plt.show()
