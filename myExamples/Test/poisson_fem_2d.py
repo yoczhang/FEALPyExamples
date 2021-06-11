@@ -14,6 +14,7 @@ from fealpy.boundarycondition import DirichletBC
 
 from fealpy.tools.show import showmultirate, show_error_table
 
+
 p = 1  # 有限元空间次数, 可以增大 p， 看输出结果的变化
 n = 4  # 初始网格加密次数
 maxit = 4  # 最大迭代次数
