@@ -13,3 +13,8 @@ __doc__ = """
 The Fourier spectral methods for Cahn-Hilliard equation by SAV.
 The refer paper: 2019 (SIAM ShenJie) A New Class of Efficient and Robust Energy Stable Schemes for Gradient Flows
 """
+
+import numpy as np
+from fealpy.functionspace.FourierSpace import FourierSpace
+
+
