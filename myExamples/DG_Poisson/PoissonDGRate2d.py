@@ -17,7 +17,7 @@ from fealpy.pde.poisson_2d import CosCosData as PDE
 import numpy as np
 from ShowCls import ShowCls
 from PoissonDGModel2d import PoissonDGModel2d
-from fealpy.mesh import MeshFactory
+from fealpy.mesh import MeshFactory as mf
 from fealpy.mesh import HalfEdgeMesh2d
 # from fealpy.mesh.mesh_tools import find_entity
 # import matplotlib.pyplot as plt
@@ -46,7 +46,7 @@ Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
 
 # --- mesh setting --- #
 box = [0, 1, 0, 1]  # [0, 1]^2 domain
-mf = MeshFactory()
+# mf = MeshFactory()
 meshtype = 'quad'
 mesh = mf.boxmesh2d(box, nx=n, ny=n, meshtype=meshtype)
 mesh = HalfEdgeMesh2d.from_mesh(mesh)

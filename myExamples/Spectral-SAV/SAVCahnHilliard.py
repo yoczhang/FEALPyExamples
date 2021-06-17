@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ---
 # @Software: PyCharm
-# @File: CahnHilliard_SAV.py
+# @File: SAVCahnHilliard.py
 # @Author: Yongchao Zhang, Northwest University, Xi'an
 # @E-mail: yoczhang@nwu.edu.cn
 # @Site:
@@ -15,6 +15,25 @@ The refer paper: 2019 (SIAM ShenJie) A New Class of Efficient and Robust Energy 
 """
 
 import numpy as np
-from fealpy.functionspace.FourierSpace import FourierSpace
+from FourierSpace_test import FourierSpace
+
+
+# # Initial parameters settings
+pi = np.pi
+N = 2**7
+h = 2*pi/N  # domain:[0,2*pi]^2
+dt = 0.01
+T = 1
+
+epsilon, gamma, beta, alpha = 0.1, 0.01, 0.1, 1  # value of parameters
+c = 3
+
+# # Initial value u0 (t = 0)
+uin = 0.05*(2*np.random.rand(N, N) - 1)
+uaver = np.sum(uin)/N**2
+u0 = uin - uaver
+
+# # Solve the problem by SAV
+ch = SAVCHModel()
 
 
