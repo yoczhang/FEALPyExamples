@@ -11,17 +11,17 @@
 
 __doc__ = """
 The Fourier spectral methods for Cahn-Hilliard equation by SAV.
-The refer paper: 2019 (SIAM ShenJie) A New Class of Efficient and Robust Energy Stable Schemes for Gradient Flows
+The reference paper: 2019 (SIAM ShenJie) A New Class of Efficient and Robust Energy Stable Schemes for Gradient Flows
 """
 
 import numpy as np
 from FourierSpace_test import FourierSpace
 
 
+
 # # Initial parameters settings
-pi = np.pi
 N = 2**7
-h = 2*pi/N  # domain:[0,2*pi]^2
+h = 2*np.pi/N  # domain:[0,2*pi]^2
 dt = 0.01
 T = 1
 
