@@ -17,9 +17,17 @@ The PDE datas for Fourier spectral methods.
 from functools import wraps
 import numpy as np
 
-def attachAttribute(func):
-    @wraps(func)
-    def wrapThefunc():
+
+# def attachAttributes(func):
+#     @wraps(func)
+#     def wrapThefunc(*args, **kwargs):
+#         pars = args[1]
+#         if pars is None:
+#             return func(*args, **kwargs)
+#         for k, v in pars.items():
+#             setattr(func, k, v)
+#         return func(*args, **kwargs)
+#     return wrapThefunc
         
 
 class FourierPDE:
@@ -29,6 +37,11 @@ class FourierPDE:
         self.dt = dt
         self.T = T
 
-    def pdeParameters(self, epsilon, gamma, beta, alpha):
-        self.epsilon = epsilon
+    def setPDEParameters(self, parameters):
+        for k, v in parameters.items():
+            self.__dict__[k] = v
+
+
+
+
 
