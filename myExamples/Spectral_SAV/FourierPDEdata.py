@@ -40,6 +40,7 @@ class FourierPDE:
     def setPDEParameters(self, parameters):
         for k, v in parameters.items():
             self.__dict__[k] = v
+        return None
 
 
 
