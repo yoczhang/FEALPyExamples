@@ -15,8 +15,13 @@ from FourierSpace_test import FourierSpace
 
 
 class SAVCHModel:
-    def __init__(self, PDE):
+    def __init__(self, PDE, box):
+        self.FSpace = FourierSpace(box, PDE.N)
         self.PDE = PDE
+        self.N = PDE.N
+        self.h = PDE.h
+        self.T = PDE.T
+        self.dt = PDE.dt
 
     def solve(self):
         PDE = self.PDE
@@ -38,10 +43,20 @@ class SAVCHModel:
 
         # # setting the initial something
         TN = int(T/dt)
-        U0 = 1. / epsilon ** 2 * u0 * (u0 ** 2 - 1 - beta)
-        E0 = 1. / (4 * epsilon ** 2) * h ** 2 * np.sum((u0 ** 2 - 1 - beta) ** 2)
+        U = 1. / epsilon ** 2 * u0 * (u0 ** 2 - 1 - beta)
+        E = 1. / (4 * epsilon ** 2) * h ** 2 * np.sum((u0 ** 2 - 1 - beta) ** 2)
+
+        # # the temporary variable
+        rn = np.sqrt(E)
+        bn = U/rn
 
 
 
+        timeCount = np.zeros((TN,))
+        storeEnergy = np.zeros((TN,))
+
+
+    def dftLaplace(self):
+        N = self.N
 
 
