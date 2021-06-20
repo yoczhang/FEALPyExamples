@@ -31,9 +31,8 @@ import numpy as np
         
 
 class FourierPDE:
-    def __init__(self, N, dt, T, L=2*np.pi):
+    def __init__(self, N, dt, T):
         self.N = N
-        self.h = L/N
         self.dt = dt
         self.T = T
 

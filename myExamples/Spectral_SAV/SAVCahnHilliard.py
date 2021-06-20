@@ -24,7 +24,7 @@ h = 2*np.pi/N  # domain:[0,2*pi]^2
 dt = 0.01
 T = 1
 
-box = np.array([0, 1, 0, 1])  # [0, 1]^2 domain
+box = np.array([[0, 1], [0, 1]])  # [0, 1]^2 domain
 pde = FourierPDE(N, dt, T)
 
 pdePars = {'epsilon': 0.1, 'gamma': 0.01, 'beta': 0.1, 'alpha': 1}  # value of parameters
