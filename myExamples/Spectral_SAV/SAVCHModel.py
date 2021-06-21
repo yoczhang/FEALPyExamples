@@ -63,10 +63,12 @@ class SAVCHModel:
         GD = space.GD
         L = np.zeros((GD,))  # 用来存储 x (y, z) 方向上的区间长度
         h = np.zeros((GD,))  # 用来存储 x (y, z) 方向上的网格尺寸
+        partialDiff = np.zeros((GD, N))  # 用来存储求一次偏导后的系数
 
         for i in range(GD):
-            L[i] = box[i][1] - box[i][0]
+            L[i] = box[i, 1] - box[i, 0]
             h[i] = L[i]/N
+            partialDiff[i, :] = 1j*np.concatenate(())
 
 
 
