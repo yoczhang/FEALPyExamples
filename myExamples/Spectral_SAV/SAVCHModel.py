@@ -12,6 +12,7 @@
 
 import numpy as np
 from FourierSpace_test import FourierSpace
+import pyfftw as pw
 
 
 class SAVCHModel:
@@ -57,18 +58,26 @@ class SAVCHModel:
 
 
     def dftLaplace(self):
-        N = self.N
+        N = self.N  # TODO: 这里规定 N 为一维数为 GD 的数组, 在每个方向为 N
         space = self.space
-        box = space.box
+        box = space.box  # box.shape: (GD, 2),
         GD = space.GD
-        L = np.zeros((GD,))  # 用来存储 x (y, z) 方向上的区间长度
-        h = np.zeros((GD,))  # 用来存储 x (y, z) 方向上的网格尺寸
+        L = np.abs(box[:, 1] - box[:, 0])  # L.shape: (GD,), 用来存储 x, y, z 方向上的区间长度
+        h = L / N  # 用来存储 x, y, z 方向上的网格尺寸
+
+        normalization = 2*np.pi / L  # normalization.shape: (GD,), 在 x, y, z 方向上, 将 [a, b] 映射到 [0, 2*pi]
         partialDiff = np.zeros((GD, N))  # 用来存储求一次偏导后的系数
+
+        basicK = 1j*np.concatenate([np.arange(0, N/2+1), np.arange(-N/2+1, 0)])
 
         for i in range(GD):
             L[i] = box[i, 1] - box[i, 0]
+            normalization[i] = 2*np.pi / L[i]
             h[i] = L[i]/N
             partialDiff[i, :] = 1j*np.concatenate(())
+
+    def DFTLaplace(self, phi):
+
 
 
 
