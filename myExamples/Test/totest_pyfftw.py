@@ -37,5 +37,14 @@ fh_hat = pw.empty_aligned(N, dtype='complex128', n=16)
 fh_hat[:] = pw.interfaces.numpy_fft.fft(fh)
 ifh_hat = pw.interfaces.numpy_fft.ifftn(fh_hat)
 
+dfh = np.cos(x)
+K = 1j*np.concatenate([np.arange(0, N/2+1), np.arange(-N/2+1, 0)])
+dfh_hat = K*fh_hat
+
+inv_dfh_hat = np.real(pw.interfaces.numpy_fft.ifftn(dfh_hat))
+
+rrdfh = np.allclose(dfh, inv_dfh_hat)
+print('rrdfh = ', rrdfh)
+
 # --- test ending --- #
 print('end of the test')
