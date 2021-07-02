@@ -51,32 +51,39 @@ class SAVCHModel:
         rn = np.sqrt(E)
         bn = U/rn
 
-
-
         timeCount = np.zeros((TN,))
         storeEnergy = np.zeros((TN,))
 
-
-    def dftLaplace(self):
+    def fourierDiffCoeff(self, m):
         N = self.N  # TODO: 这里规定 N 为一维数为 GD 的数组, 在每个方向为 N
         space = self.space
         box = space.box  # box.shape: (GD, 2),
         GD = space.GD
+        multipleN = np.ones((GD,)) * N  # 分别在 x, y, z 方向上给出采样点个数 Nx, Ny, Nz
         L = np.abs(box[:, 1] - box[:, 0])  # L.shape: (GD,), 用来存储 x, y, z 方向上的区间长度
-        h = L / N  # 用来存储 x, y, z 方向上的网格尺寸
-
+        h = L / multipleN  # 用来存储 x, y, z 方向上的网格尺寸
         normalization = 2*np.pi / L  # normalization.shape: (GD,), 在 x, y, z 方向上, 将 [a, b] 映射到 [0, 2*pi]
-        partialDiff = np.zeros((GD, N))  # 用来存储求一次偏导后的系数
 
-        basicK = 1j*np.concatenate([np.arange(0, N/2+1), np.arange(-N/2+1, 0)])
-
+        normalK = []
         for i in range(GD):
-            L[i] = box[i, 1] - box[i, 0]
-            normalization[i] = 2*np.pi / L[i]
-            h[i] = L[i]/N
-            partialDiff[i, :] = 1j*np.concatenate(())
+            basicK = 1j*np.concatenate([np.arange(0, multipleN[i]/2+1), np.arange(-multipleN[i]/2+1, 0)])
+            normalK.append(basicK * normalization[i])
+
+        # if GD == 2:
+        #     Kx, Ky = np.meshgrid(normalK[0]**m, normalK[1]**m)
+        #     print(np.allclose(rr, [Kx, Ky]))
+        #     return Kx, Ky
+        # elif GD == 3:
+        #     Kx, Ky, Kz = np.meshgrid(normalK[0]**m, normalK[1]**m, normalK[2]**m)
+        #     return Kx, Ky, Kz
+        # else:
+        #     raise ValueError("The dimension of space is false")
+
+        meshgridK = np.meshgrid(*normalK)
+        return list(map(lambda x: x**m, meshgridK))
 
     def DFTLaplace(self, phi):
+        pass
 
 
 
