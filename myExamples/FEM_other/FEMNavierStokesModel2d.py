@@ -16,6 +16,7 @@ The FEM Navier-Stokes model in 2D.
 
 import numpy as np
 from fealpy.functionspace import LagrangeFiniteElementSpace
+from fealpy.quadrature import FEMeshIntegralAlg
 
 
 class FEMNavierStokesModel2d:
@@ -27,8 +28,10 @@ class FEMNavierStokesModel2d:
         self.itype = self.mesh.itype
         self.ftype = self.mesh.ftype
         self.pde = pde
-        self.vspace = LagrangeFiniteElementSpace(mesh, p)
-        self.pspace = LagrangeFiniteElementSpace(mesh, p-1)
+        self.vspace = LagrangeFiniteElementSpace(mesh, p+1)
+        self.pspace = LagrangeFiniteElementSpace(mesh, p)
+        self.cellmeasure = mesh.entity_measure('cell')
+        self.integralalg = FEMeshIntegralAlg(self.mesh, p+4, cellmeasure=self.cellmeasure)
         self.uh0 = self.vspace.function()
         self.uh1 = self.vspace.function()
         self.ph = self.pspace.function()
@@ -44,6 +47,12 @@ class FEMNavierStokesModel2d:
         # ---------------------------------------
         # get Stokes-system matrix
         # ---------------------------------------
+
+    def NSNolinearTerm(self, uh0, uh1, bc):
+        vspace = self.vspace
+
+
+
 
 
 
