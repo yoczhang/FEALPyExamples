@@ -30,13 +30,18 @@ class FEMNavierStokesModel2d:
         self.pde = pde
         self.vspace = LagrangeFiniteElementSpace(mesh, p+1)
         self.pspace = LagrangeFiniteElementSpace(mesh, p)
+        self.vdof = self.vspace.dof
+        self.pdof = self.pspace.dof
         self.cellmeasure = mesh.entity_measure('cell')
         self.integralalg = FEMeshIntegralAlg(self.mesh, p+4, cellmeasure=self.cellmeasure)
         self.uh0 = self.vspace.function()
         self.uh1 = self.vspace.function()
         self.ph = self.pspace.function()
 
-    def solve_by_VCmethod(self):
+    def NS_VC_Solver(self):
+        """
+        The Navier-Stokes Velocity-Correction scheme solver.
+        """
         pde = self.pde
         dt = self.dt
         uh0 = self.uh0
@@ -44,16 +49,23 @@ class FEMNavierStokesModel2d:
         ph = self.ph
         vspace = self.vspace
         pspace = self.pspace
-
-        vgdof = self.vspace.number_of_global_dofs()
-        pgdof = self.pspace.number_of_global_dofs()
+        vdof = self.vdof
+        pdof = self.pdof
+        pface2dof = pdof.dof.face_to_dof()
+        pcell2dof = pdof.dof.cell_to_dof()
 
         idxDirEdge = self.set_Dirichlet_edge()
 
+        pDirDof = pface2dof[idxDirEdge]
+        nDir = self.mesh.face_unit_normal(index=idxDirEdge)
+
+        # vgdof = self.vspace.number_of_global_dofs()
+        # pgdof = self.pspace.number_of_global_dofs()
         # init_uh0
 
         for nt in range(int(self.T/dt)):
-            currt = nt * dt
+            curr_t = nt * dt
+            next_t = curr_t + dt
 
             # ---------------------------------------
             # 1st-step: get the p^{n+1}
@@ -62,6 +74,8 @@ class FEMNavierStokesModel2d:
             plm = self.pspace.stiff_matrix()
 
             # # Pressure-Right-Matrix
+            # 1
+
 
 
 

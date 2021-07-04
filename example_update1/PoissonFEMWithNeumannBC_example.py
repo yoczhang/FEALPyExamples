@@ -14,10 +14,15 @@ from fealpy.boundarycondition import NeumannBC
 
 from fealpy.tools.show import showmultirate
 
-p = int(sys.argv[1])
-n = int(sys.argv[2])
-maxit = int(sys.argv[3])
-d = int(sys.argv[4])
+# p = int(sys.argv[1])
+# n = int(sys.argv[2])
+# maxit = int(sys.argv[3])
+# d = int(sys.argv[4])
+
+p = 2
+n = 2
+maxit = 4
+d = 2
 
 if d == 2:
     from fealpy.pde.poisson_2d import CosCosData as PDE

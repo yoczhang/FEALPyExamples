@@ -16,7 +16,7 @@ The fealpy-FEM program for Navier-Stokes problem by using the Velocity-Correctio
 
 import numpy as np
 import matplotlib.pyplot as plt
-from NavierStokes2DData import NavierStokes2DData_0
+from NavierStokes2DData import NavierStokes2DData_time
 from fealpy.tools.show import showmultirate, show_error_table
 from FEMNavierStokesModel2d import FEMNavierStokesModel2d
 from fealpy.mesh import MeshFactory as MF
@@ -34,7 +34,7 @@ box = [0, 1, 0, 1]
 mesh = MF.boxmesh2d(box, nx=10, ny=10, meshtype='tri')
 
 nu = 1.0e-3
-pde = NavierStokes2DData_0(nu)  # create pde model
+pde = NavierStokes2DData_time(nu)  # create pde model
 
 # # error settings
 errorType = ['$|| u - u_h||_0$', '$||\\nabla u - \\nabla u_h||_0$', '|| p - p_h ||_0']
@@ -45,6 +45,7 @@ Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
 # --- start for-loop --- #
 for i in range(maxit):
     ns = FEMNavierStokesModel2d(pde, mesh, p, dt, T)
+    ns.NS_VC_Solver()
     # sol = ns.solve_by_Newton_iteration()
     # Ndof[i] = ns.space.number_of_global_dofs()  # get the number of dofs
     # errorMatrix[0, i] = ns.velocity_L2_error()  # get the velocity L2 error
