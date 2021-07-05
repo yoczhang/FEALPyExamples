@@ -19,7 +19,7 @@ from fealpy.tools.show import showmultirate
 # maxit = int(sys.argv[3])
 # d = int(sys.argv[4])
 
-p = 2
+p = 1
 n = 2
 maxit = 4
 d = 2

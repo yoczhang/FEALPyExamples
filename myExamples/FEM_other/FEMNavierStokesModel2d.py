@@ -51,8 +51,8 @@ class FEMNavierStokesModel2d:
         pspace = self.pspace
         vdof = self.vdof
         pdof = self.pdof
-        pface2dof = pdof.dof.face_to_dof()
-        pcell2dof = pdof.dof.cell_to_dof()
+        pface2dof = pdof.face_to_dof()
+        pcell2dof = pdof.cell_to_dof()
 
         idxDirEdge = self.set_Dirichlet_edge()
 
@@ -62,6 +62,16 @@ class FEMNavierStokesModel2d:
         # vgdof = self.vspace.number_of_global_dofs()
         # pgdof = self.pspace.number_of_global_dofs()
         # init_uh0
+
+        f_q = self.integralalg.faceintegrator
+        f_bcs, f_ws = f_q.get_quadrature_points_and_weights()  # f_bcs.shape: (NQ,(GD-1)+1)
+        f_pp = self.mesh.bc_to_point(f_bcs, index=idxDirEdge)  # f_pp.shape: (NQ,nDir,GD) the physical Gauss points
+        c_q = self.integralalg.cellintegrator
+        c_bcs, c_ws = c_q.get_quadrature_points_and_weights()  # c_bcs.shape: (NQ,GD+1)
+        c_pp = self.mesh.bc_to_point(c_bcs)  # c_pp.shape: (NQ_cell,NC,GD) the physical Gauss points
+
+        last_uh0 = vspace.function()
+        last_uh1 = vspace.function()
 
         for nt in range(int(self.T/dt)):
             curr_t = nt * dt
@@ -74,22 +84,40 @@ class FEMNavierStokesModel2d:
             plm = self.pspace.stiff_matrix()
 
             # # Pressure-Right-Matrix
-            # 1
+            # compute cell integration
+            # 1. (uh^n/dt, \nabla q)
+            if curr_t == 0.:
+                last_u_val = self.pde.velocityInitialValue(c_pp)  # (NQ,NC,GD)
+                last_u_val0 = last_u_val[..., 0]  # (NQ,NC)
+                last_u_val1 = last_u_val[..., 1]  # (NQ,NC)
+
+                last_nolinear_val0 = self.pde.NS_nolinearTerm_0(c_pp, 0)  # (NQ,NC)
+                last_nolinear_val1 = self.pde.NS_nolinearTerm_1(c_pp, 0)  # (NQ,NC)
+            else:
+                last_u_val0 = vspace.value(last_uh0, c_bcs)
+                last_u_val1 = vspace.value(last_uh0, c_bcs)
+
+                last_nolinear_val = self.NSNolinearTerm(last_uh0, last_uh1, c_bcs)  # last_nolinear_val.shape: (NQ,NC,GD)
+                last_nolinear_val0 = last_nolinear_val[..., 0]  # (NQ,NC)
+                last_nolinear_val1 = last_nolinear_val[..., 1]  # (NQ,NC)
 
 
 
 
-    def NSNolinearTerm(self, uh0, uh1, bc):
+
+
+
+    def NSNolinearTerm(self, uh0, uh1, bcs):
         vspace = self.vspace
-        val0 = vspace.value(uh0)  # val0.shape: (NQ,)
-        val1 = vspace.value(uh1)
-        gval0 = vspace.grad_value(uh0, bc)  # guh0.shape: (NQ,2)
-        gval1 = vspace.grad_value(uh1, bc)
+        val0 = vspace.value(uh0, bcs)  # val0.shape: (NQ,NC)
+        val1 = vspace.value(uh1, bcs)  # val1.shape: (NQ,NC)
+        gval0 = vspace.grad_value(uh0, bcs)  # guh0.shape: (NQ,NC,2)
+        gval1 = vspace.grad_value(uh1, bcs)
 
-        NSNolinear = np.empty(gval0.shape, dtype=self.ftype)  # NSNolinear.shape: (NQ,2)
+        NSNolinear = np.empty(gval0.shape, dtype=self.ftype)  # NSNolinear.shape: (NQ,NC,2)
 
-        NSNolinear[:, 0] = val0 * gval0[:, 0] + val1 * gval0[:, 1]
-        NSNolinear[:, 1] = val0 * gval1[:, 0] + val1 * gval1[:, 1]
+        NSNolinear[..., 0] = val0 * gval0[..., 0] + val1 * gval0[..., 1]
+        NSNolinear[..., 1] = val0 * gval1[..., 0] + val1 * gval1[..., 1]
 
         return NSNolinear
 
