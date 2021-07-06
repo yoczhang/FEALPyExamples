@@ -53,11 +53,14 @@ class FEMNavierStokesModel2d:
         pdof = self.pdof
         pface2dof = pdof.face_to_dof()
         pcell2dof = pdof.cell_to_dof()
+        # n = self.mesh.face_unit_normal()
 
         idxDirEdge = self.set_Dirichlet_edge()
 
         pDirDof = pface2dof[idxDirEdge]
-        nDir = self.mesh.face_unit_normal(index=idxDirEdge)
+        n_Dir = self.mesh.face_unit_normal(index=idxDirEdge)  # (NDir,2)
+        Dir_measure = self.mesh.entity_measure('face', index=idxDirEdge)  # (NDir,2)
+
 
         # vgdof = self.vspace.number_of_global_dofs()
         # pgdof = self.pspace.number_of_global_dofs()
@@ -65,7 +68,7 @@ class FEMNavierStokesModel2d:
 
         f_q = self.integralalg.faceintegrator
         f_bcs, f_ws = f_q.get_quadrature_points_and_weights()  # f_bcs.shape: (NQ,(GD-1)+1)
-        f_pp = self.mesh.bc_to_point(f_bcs, index=idxDirEdge)  # f_pp.shape: (NQ,nDir,GD) the physical Gauss points
+        f_pp = self.mesh.bc_to_point(f_bcs, index=idxDirEdge)  # f_pp.shape: (NQ,NDir,GD) the physical Gauss points
         c_q = self.integralalg.cellintegrator
         c_bcs, c_ws = c_q.get_quadrature_points_and_weights()  # c_bcs.shape: (NQ,GD+1)
         c_pp = self.mesh.bc_to_point(c_bcs)  # c_pp.shape: (NQ_cell,NC,GD) the physical Gauss points
@@ -79,6 +82,7 @@ class FEMNavierStokesModel2d:
         # # t^{n+1}: Velocity-Left-MassMatrix and -StiffMatrix
         ulmm = self.vspace.mass_matrix()
         ulsm = self.vspace.stiff_matrix()
+
         for nt in range(int(self.T/dt)):
             curr_t = nt * dt
             next_t = curr_t + dt
@@ -91,7 +95,8 @@ class FEMNavierStokesModel2d:
             # 1. (uh^n/dt, \nabla q)
             if curr_t == 0.:
                 # for Dirichlet-face-integration
-
+                last_gu_val0 = self.pde.grad_velocity0(f_pp, 0)  # grad_u0: (NQ,NDir,GD)
+                last_gu_val1 = self.pde.grad_velocity1(f_pp, 0)  # grad_u1: (NQ,NDir,GD)
 
                 # for cell-integration
                 last_u_val = self.pde.velocityInitialValue(c_pp)  # (NQ,NC,GD)
@@ -101,6 +106,11 @@ class FEMNavierStokesModel2d:
                 last_nolinear_val0 = self.pde.NS_nolinearTerm_0(c_pp, 0)  # (NQ,NC)
                 last_nolinear_val1 = self.pde.NS_nolinearTerm_1(c_pp, 0)  # (NQ,NC)
             else:
+                # for Dirichlet-face-integration
+                last_gu_val0 = vspace.grad_value(last_uh0, f_bcs)  # grad_u0: (NQ,NDir,GD)
+                last_gu_val1 = vspace.grad_value(last_uh1, f_bcs)  # grad_u1: (NQ,NDir,GD)
+
+                # for cell-integration
                 last_u_val0 = vspace.value(last_uh0, c_bcs)
                 last_u_val1 = vspace.value(last_uh0, c_bcs)
 
@@ -108,7 +118,16 @@ class FEMNavierStokesModel2d:
                 last_nolinear_val0 = last_nolinear_val[..., 0]  # (NQ,NC)
                 last_nolinear_val1 = last_nolinear_val[..., 1]  # (NQ,NC)
 
+            uDir_val = self.pde.dirichlet(f_pp, next_t)  # (NQ,NDir,GD)
             f_val = self.pde.source(c_pp, next_t)  # (NQ,NC,GD)
+
+            p_phi = pspace.face_basis(f_bcs)  # (NQ,1,ldof). 实际上这里可以直接用 pspace.basis(f_bcs), 两个函数的代码是相同的
+            p_gphi_f = pspace.grad_basis(f_bcs)  # (NQ_face,NDir,lodf,GD)
+            p_gphi_c = pspace.grad_basis(c_bcs)  # (NQ_cell,NC,ldof,GD)
+
+            # for Dirichlet faces integration
+            dir_int0 = -1/dt * np.einsum('ijk, jk, imn, j->jn', uDir_val, n_Dir, p_phi, Dir_measure)  # (NDir,ldof)
+            dir_int1 = - self.pde.nu * np.einsum('j, ijk, ', n_Dir[:, 1], last_gu_val1[..., 0]-last_gu_val0[..., 1], p_gphi_f[..., 0], Dir_measure)
 
 
 
