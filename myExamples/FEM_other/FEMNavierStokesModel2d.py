@@ -91,7 +91,7 @@ class FEMNavierStokesModel2d:
             # 1. (uh^n/dt, \nabla q)
             if curr_t == 0.:
                 # for Dirichlet-face-integration
-                
+
 
                 # for cell-integration
                 last_u_val = self.pde.velocityInitialValue(c_pp)  # (NQ,NC,GD)
