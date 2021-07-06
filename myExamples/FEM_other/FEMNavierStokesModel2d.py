@@ -73,6 +73,12 @@ class FEMNavierStokesModel2d:
         last_uh0 = vspace.function()
         last_uh1 = vspace.function()
 
+        # # t^{n+1}: Pressure-Left-StiffMatrix
+        plsm = self.pspace.stiff_matrix()
+
+        # # t^{n+1}: Velocity-Left-MassMatrix and -StiffMatrix
+        ulmm = self.vspace.mass_matrix()
+        ulsm = self.vspace.stiff_matrix()
         for nt in range(int(self.T/dt)):
             curr_t = nt * dt
             next_t = curr_t + dt
@@ -80,13 +86,14 @@ class FEMNavierStokesModel2d:
             # ---------------------------------------
             # 1st-step: get the p^{n+1}
             # ---------------------------------------
-            # # t^{n+1}: Pressure-Left-stiffMatrix
-            plm = self.pspace.stiff_matrix()
-
             # # Pressure-Right-Matrix
             # compute cell integration
             # 1. (uh^n/dt, \nabla q)
             if curr_t == 0.:
+                # for Dirichlet-face-integration
+                
+
+                # for cell-integration
                 last_u_val = self.pde.velocityInitialValue(c_pp)  # (NQ,NC,GD)
                 last_u_val0 = last_u_val[..., 0]  # (NQ,NC)
                 last_u_val1 = last_u_val[..., 1]  # (NQ,NC)
@@ -100,6 +107,8 @@ class FEMNavierStokesModel2d:
                 last_nolinear_val = self.NSNolinearTerm(last_uh0, last_uh1, c_bcs)  # last_nolinear_val.shape: (NQ,NC,GD)
                 last_nolinear_val0 = last_nolinear_val[..., 0]  # (NQ,NC)
                 last_nolinear_val1 = last_nolinear_val[..., 1]  # (NQ,NC)
+
+            f_val = self.pde.source(c_pp, next_t)  # (NQ,NC,GD)
 
 
 
