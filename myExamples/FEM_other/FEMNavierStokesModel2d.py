@@ -15,8 +15,9 @@ The FEM Navier-Stokes model in 2D.
 """
 
 import numpy as np
-from fealpy.functionspace import LagrangeFiniteElementSpace
+# from fealpy.functionspace import LagrangeFiniteElementSpace
 from fealpy.quadrature import FEMeshIntegralAlg
+from LagrangeFiniteElemenSpace_mine import LagrangeFiniteElementSpace
 
 
 class FEMNavierStokesModel2d:
