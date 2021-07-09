@@ -15,8 +15,9 @@ The FEM Navier-Stokes model in 2D.
 """
 
 import numpy as np
-from fealpy.functionspace import LagrangeFiniteElementSpace
 from fealpy.quadrature import FEMeshIntegralAlg
+from scipy.sparse.linalg import spsolve
+from fealpy.functionspace import LagrangeFiniteElementSpace
 # from LagrangeFiniteElemenSpace_mine import LagrangeFiniteElementSpace
 
 
@@ -63,8 +64,7 @@ class FEMNavierStokesModel2d:
         pDirDof = pface2dof[idxDirEdge]
         n_Dir = self.mesh.face_unit_normal(index=idxDirEdge)  # (NDir,2)
         dir_face_measure = self.mesh.entity_measure('face', index=idxDirEdge)  # (NDir,2)
-        dir_cell_measure = self.mesh.cell_a
-
+        dir_cell_measure = self.mesh.cell_area()
 
         # vgdof = self.vspace.number_of_global_dofs()
         # pgdof = self.pspace.number_of_global_dofs()
@@ -82,6 +82,7 @@ class FEMNavierStokesModel2d:
 
         # # t^{n+1}: Pressure-Left-StiffMatrix
         plsm = self.pspace.stiff_matrix()
+        basis_int = pspace.integral_basis()  
 
         # # t^{n+1}: Velocity-Left-MassMatrix and -StiffMatrix
         ulmm = self.vspace.mass_matrix()
@@ -140,7 +141,16 @@ class FEMNavierStokesModel2d:
                                         + np.einsum('j, ij, jim, j->jm', n_Dir[:, 0], last_gu_val1[..., 0]-last_gu_val0[..., 1],
                                                     p_gphi_f[..., 1], dir_face_measure))  # (NDir,cldof)
             # for cell integration
-            cell_int0 = 1/dt * np.einsum('ijk, ijk, j->jk', last_u_val0, p_gphi_c[..., 0], dir_cell_measure)
+            cell_int0 = 1/dt * (np.einsum('ij, ijk, j->jk', last_u_val0, p_gphi_c[..., 0], dir_cell_measure)
+                                + np.einsum('ij, ijk, j->jk', last_u_val1, p_gphi_c[..., 1], dir_cell_measure))  # (NC,cldof)
+            cell_int1 = -(np.einsum('ij, ijk, j->jk', last_nolinear_val0, p_gphi_c[..., 0], dir_cell_measure)
+                          + np.einsum('ij, ijk, j->jk', last_nolinear_val1, p_gphi_c[..., 1], dir_cell_measure))  # (NC,cldof)
+            cell_int2 = (np.einsum('ij, ijk, j->jk', f_val[..., 0], p_gphi_c[..., 0], dir_cell_measure)
+                         + np.einsum('ij, ijk, j->jk', f_val[..., 1], p_gphi_c[..., 1], dir_cell_measure))  # (NC,cldof)
+
+            np.add(prv, pface2dof, dir_int0 + dir_int1)
+            np.add(prv, pcell2dof, cell_int0 + cell_int1 + cell_int2)
+
 
             # dim = 1 if len(F.shape) == 1 else F.shape[1]
             # if dim == 1:
