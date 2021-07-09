@@ -62,7 +62,8 @@ class FEMNavierStokesModel2d:
 
         pDirDof = pface2dof[idxDirEdge]
         n_Dir = self.mesh.face_unit_normal(index=idxDirEdge)  # (NDir,2)
-        Dir_measure = self.mesh.entity_measure('face', index=idxDirEdge)  # (NDir,2)
+        dir_face_measure = self.mesh.entity_measure('face', index=idxDirEdge)  # (NDir,2)
+        dir_cell_measure = self.mesh.cell_a
 
 
         # vgdof = self.vspace.number_of_global_dofs()
@@ -129,16 +130,23 @@ class FEMNavierStokesModel2d:
             p_gphi_c = pspace.grad_basis(c_bcs)  # (NQ_cell,NC,ldof,GD)
 
             # # to get the right-hand vector
-            prv = np.zeros((pdof.number_of_global_dofs(),), dtype=self.ftype)
-            Dir_faceDof2globalDof =
+            prv = np.zeros((pdof.number_of_global_dofs(),), dtype=self.ftype)  # (Npdof,)
+            Dir_face2dof = pspace.face_to_dof()[idxDirEdge]  # (NDir,flodf)
+            Dir_cell2dof = pspace.cell_to_dof(cellidxDir)  # (NDir,cldof)
             # for Dirichlet faces integration
-            dir_int0 = -1/dt * np.einsum('ijk, jk, imn, j->jn', uDir_val, n_Dir, p_phi, Dir_measure)  # (NDir,fldof)
+            dir_int0 = -1/dt * np.einsum('ijk, jk, imn, j->jn', uDir_val, n_Dir, p_phi, dir_face_measure)  # (NDir,fldof)
             dir_int1 = - self.pde.nu * (np.einsum('j, ij, jim, j->jm', -n_Dir[:, 1], last_gu_val1[..., 0]-last_gu_val0[..., 1],
-                                                  p_gphi_f[..., 0], Dir_measure)
+                                                  p_gphi_f[..., 0], dir_face_measure)
                                         + np.einsum('j, ij, jim, j->jm', n_Dir[:, 0], last_gu_val1[..., 0]-last_gu_val0[..., 1],
-                                                    p_gphi_f[..., 1], Dir_measure))  # (NDir,cldof)
+                                                    p_gphi_f[..., 1], dir_face_measure))  # (NDir,cldof)
             # for cell integration
-            cell_int0 = 1/dt
+            cell_int0 = 1/dt * np.einsum('ijk, ijk, j->jk', last_u_val0, p_gphi_c[..., 0], dir_cell_measure)
+
+            # dim = 1 if len(F.shape) == 1 else F.shape[1]
+            # if dim == 1:
+            #     np.add.at(F, face2dof, bb)
+            # else:
+            #     np.add.at(F, (face2dof, np.s_[:]), bb)
 
 
 
