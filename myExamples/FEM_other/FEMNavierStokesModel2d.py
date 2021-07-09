@@ -57,6 +57,8 @@ class FEMNavierStokesModel2d:
         # n = self.mesh.face_unit_normal()
 
         idxDirEdge = self.set_Dirichlet_edge()
+        localidxDir = self.mesh.ds.edge2cell[idxDirEdge, 2]
+        cellidxDir = self.mesh.ds.edge2cell[idxDirEdge, 0]
 
         pDirDof = pface2dof[idxDirEdge]
         n_Dir = self.mesh.face_unit_normal(index=idxDirEdge)  # (NDir,2)
@@ -123,12 +125,20 @@ class FEMNavierStokesModel2d:
             f_val = self.pde.source(c_pp, next_t)  # (NQ,NC,GD)
 
             p_phi = pspace.face_basis(f_bcs)  # (NQ,1,ldof). 实际上这里可以直接用 pspace.basis(f_bcs), 两个函数的代码是相同的
-            p_gphi_f = pspace.grad_basis(f_bcs)  # (NQ_face,NDir,lodf,GD)
+            p_gphi_f = pspace.edge_grad_basis(f_bcs, cellidxDir, localidxDir)  # (NE,NQ,cellldof,GD)
             p_gphi_c = pspace.grad_basis(c_bcs)  # (NQ_cell,NC,ldof,GD)
 
+            # # to get the right-hand vector
+            prv = np.zeros((pdof.number_of_global_dofs(),), dtype=self.ftype)
+            Dir_faceDof2globalDof =
             # for Dirichlet faces integration
-            dir_int0 = -1/dt * np.einsum('ijk, jk, imn, j->jn', uDir_val, n_Dir, p_phi, Dir_measure)  # (NDir,ldof)
-            dir_int1 = - self.pde.nu * np.einsum('j, ijk, ', n_Dir[:, 1], last_gu_val1[..., 0]-last_gu_val0[..., 1], p_gphi_f[..., 0], Dir_measure)
+            dir_int0 = -1/dt * np.einsum('ijk, jk, imn, j->jn', uDir_val, n_Dir, p_phi, Dir_measure)  # (NDir,fldof)
+            dir_int1 = - self.pde.nu * (np.einsum('j, ij, jim, j->jm', -n_Dir[:, 1], last_gu_val1[..., 0]-last_gu_val0[..., 1],
+                                                  p_gphi_f[..., 0], Dir_measure)
+                                        + np.einsum('j, ij, jim, j->jm', n_Dir[:, 0], last_gu_val1[..., 0]-last_gu_val0[..., 1],
+                                                    p_gphi_f[..., 1], Dir_measure))  # (NDir,cldof)
+            # for cell integration
+            cell_int0 = 1/dt
 
 
 
