@@ -15,6 +15,7 @@ The FEM Navier-Stokes model in 2D.
 """
 
 import numpy as np
+from scipy.sparse import csr_matrix, spdiags, eye, bmat
 from fealpy.quadrature import FEMeshIntegralAlg
 from scipy.sparse.linalg import spsolve
 from fealpy.functionspace import LagrangeFiniteElementSpace
@@ -53,36 +54,39 @@ class FEMNavierStokesModel2d:
         pspace = self.pspace
         vdof = self.vdof
         pdof = self.pdof
-        pface2dof = pdof.face_to_dof()
-        pcell2dof = pdof.cell_to_dof()
+        pface2dof = pdof.face_to_dof()  # (NE,fldof)
+        pcell2dof = pdof.cell_to_dof()  # (NC,cldof)
         # n = self.mesh.face_unit_normal()
 
         idxDirEdge = self.set_Dirichlet_edge()
-        localidxDir = self.mesh.ds.edge2cell[idxDirEdge, 2]
         cellidxDir = self.mesh.ds.edge2cell[idxDirEdge, 0]
+        localidxDir = self.mesh.ds.edge2cell[idxDirEdge, 2]
 
-        pDirDof = pface2dof[idxDirEdge]
+        Dir_face2dof = pface2dof[idxDirEdge, :]  # (NDir,flodf)
+        Dir_cell2dof = pcell2dof[cellidxDir, :]  # (NDir,cldof)
         n_Dir = self.mesh.face_unit_normal(index=idxDirEdge)  # (NDir,2)
         dir_face_measure = self.mesh.entity_measure('face', index=idxDirEdge)  # (NDir,2)
-        dir_cell_measure = self.mesh.cell_area()
-
-        # vgdof = self.vspace.number_of_global_dofs()
-        # pgdof = self.pspace.number_of_global_dofs()
-        # init_uh0
+        cell_measure = self.mesh.cell_area()
+        dir_cell_measure = self.mesh.cell_area(cellidxDir)
 
         f_q = self.integralalg.faceintegrator
         f_bcs, f_ws = f_q.get_quadrature_points_and_weights()  # f_bcs.shape: (NQ,(GD-1)+1)
         f_pp = self.mesh.bc_to_point(f_bcs, index=idxDirEdge)  # f_pp.shape: (NQ,NDir,GD) the physical Gauss points
+
         c_q = self.integralalg.cellintegrator
         c_bcs, c_ws = c_q.get_quadrature_points_and_weights()  # c_bcs.shape: (NQ,GD+1)
         c_pp = self.mesh.bc_to_point(c_bcs)  # c_pp.shape: (NQ_cell,NC,GD) the physical Gauss points
 
         last_uh0 = vspace.function()
         last_uh1 = vspace.function()
+        next_ph = pspace.function()
 
         # # t^{n+1}: Pressure-Left-StiffMatrix
         plsm = self.pspace.stiff_matrix()
-        basis_int = pspace.integral_basis()  
+        basis_int = pspace.integral_basis()
+        p_phi = pspace.face_basis(f_bcs)  # (NQ,1,ldof). 实际上这里可以直接用 pspace.basis(f_bcs), 两个函数的代码是相同的
+        p_gphi_f = pspace.edge_grad_basis(f_bcs, cellidxDir, localidxDir)  # (NDir,NQ,cldof,GD)
+        p_gphi_c = pspace.grad_basis(c_bcs)  # (NQ_cell,NC,ldof,GD)
 
         # # t^{n+1}: Velocity-Left-MassMatrix and -StiffMatrix
         ulmm = self.vspace.mass_matrix()
@@ -96,20 +100,18 @@ class FEMNavierStokesModel2d:
             # 1st-step: get the p^{n+1}
             # ---------------------------------------
             # # Pressure-Right-Matrix
-            # compute cell integration
-            # 1. (uh^n/dt, \nabla q)
             if curr_t == 0.:
                 # for Dirichlet-face-integration
-                last_gu_val0 = self.pde.grad_velocity0(f_pp, 0)  # grad_u0: (NQ,NDir,GD)
-                last_gu_val1 = self.pde.grad_velocity1(f_pp, 0)  # grad_u1: (NQ,NDir,GD)
+                last_gu_val0 = pde.grad_velocity0(f_pp, 0)  # grad_u0: (NQ,NDir,GD)
+                last_gu_val1 = pde.grad_velocity1(f_pp, 0)  # grad_u1: (NQ,NDir,GD)
 
                 # for cell-integration
-                last_u_val = self.pde.velocityInitialValue(c_pp)  # (NQ,NC,GD)
+                last_u_val = pde.velocityInitialValue(c_pp)  # (NQ,NC,GD)
                 last_u_val0 = last_u_val[..., 0]  # (NQ,NC)
                 last_u_val1 = last_u_val[..., 1]  # (NQ,NC)
 
-                last_nolinear_val0 = self.pde.NS_nolinearTerm_0(c_pp, 0)  # (NQ,NC)
-                last_nolinear_val1 = self.pde.NS_nolinearTerm_1(c_pp, 0)  # (NQ,NC)
+                last_nolinear_val0 = pde.NS_nolinearTerm_0(c_pp, 0)  # (NQ,NC)
+                last_nolinear_val1 = pde.NS_nolinearTerm_1(c_pp, 0)  # (NQ,NC)
             else:
                 # for Dirichlet-face-integration
                 last_gu_val0 = vspace.grad_value(last_uh0, f_bcs)  # grad_u0: (NQ,NDir,GD)
@@ -117,50 +119,46 @@ class FEMNavierStokesModel2d:
 
                 # for cell-integration
                 last_u_val0 = vspace.value(last_uh0, c_bcs)
-                last_u_val1 = vspace.value(last_uh0, c_bcs)
+                last_u_val1 = vspace.value(last_uh1, c_bcs)
 
                 last_nolinear_val = self.NSNolinearTerm(last_uh0, last_uh1, c_bcs)  # last_nolinear_val.shape: (NQ,NC,GD)
                 last_nolinear_val0 = last_nolinear_val[..., 0]  # (NQ,NC)
                 last_nolinear_val1 = last_nolinear_val[..., 1]  # (NQ,NC)
 
-            uDir_val = self.pde.dirichlet(f_pp, next_t)  # (NQ,NDir,GD)
-            f_val = self.pde.source(c_pp, next_t)  # (NQ,NC,GD)
-
-            p_phi = pspace.face_basis(f_bcs)  # (NQ,1,ldof). 实际上这里可以直接用 pspace.basis(f_bcs), 两个函数的代码是相同的
-            p_gphi_f = pspace.edge_grad_basis(f_bcs, cellidxDir, localidxDir)  # (NE,NQ,cellldof,GD)
-            p_gphi_c = pspace.grad_basis(c_bcs)  # (NQ_cell,NC,ldof,GD)
+            uDir_val = pde.dirichlet(f_pp, next_t)  # (NQ,NDir,GD)
+            f_val = pde.source(c_pp, next_t)  # (NQ,NC,GD)
 
             # # to get the right-hand vector
             prv = np.zeros((pdof.number_of_global_dofs(),), dtype=self.ftype)  # (Npdof,)
-            Dir_face2dof = pspace.face_to_dof()[idxDirEdge]  # (NDir,flodf)
-            Dir_cell2dof = pspace.cell_to_dof(cellidxDir)  # (NDir,cldof)
+
             # for Dirichlet faces integration
-            dir_int0 = -1/dt * np.einsum('ijk, jk, imn, j->jn', uDir_val, n_Dir, p_phi, dir_face_measure)  # (NDir,fldof)
-            dir_int1 = - self.pde.nu * (np.einsum('j, ij, jim, j->jm', -n_Dir[:, 1], last_gu_val1[..., 0]-last_gu_val0[..., 1],
-                                                  p_gphi_f[..., 0], dir_face_measure)
-                                        + np.einsum('j, ij, jim, j->jm', n_Dir[:, 0], last_gu_val1[..., 0]-last_gu_val0[..., 1],
-                                                    p_gphi_f[..., 1], dir_face_measure))  # (NDir,cldof)
+            dir_int0 = -1/dt * np.einsum('i, ijk, jk, ijn, j->jn', f_ws, uDir_val, n_Dir, p_phi, dir_face_measure)  # (NDir,fldof)
+            dir_int1 = - pde.nu * (np.einsum('i, j, ij, jin, j->jn', f_ws, n_Dir[:, 1], last_gu_val1[..., 0]-last_gu_val0[..., 1],
+                                             p_gphi_f[..., 0], dir_face_measure)
+                                   + np.einsum('i, j, ij, jin, j->jn', f_ws, -n_Dir[:, 0], last_gu_val1[..., 0]-last_gu_val0[..., 1],
+                                               p_gphi_f[..., 1], dir_face_measure))  # (NDir,cldof)
             # for cell integration
-            cell_int0 = 1/dt * (np.einsum('ij, ijk, j->jk', last_u_val0, p_gphi_c[..., 0], dir_cell_measure)
-                                + np.einsum('ij, ijk, j->jk', last_u_val1, p_gphi_c[..., 1], dir_cell_measure))  # (NC,cldof)
-            cell_int1 = -(np.einsum('ij, ijk, j->jk', last_nolinear_val0, p_gphi_c[..., 0], dir_cell_measure)
-                          + np.einsum('ij, ijk, j->jk', last_nolinear_val1, p_gphi_c[..., 1], dir_cell_measure))  # (NC,cldof)
-            cell_int2 = (np.einsum('ij, ijk, j->jk', f_val[..., 0], p_gphi_c[..., 0], dir_cell_measure)
-                         + np.einsum('ij, ijk, j->jk', f_val[..., 1], p_gphi_c[..., 1], dir_cell_measure))  # (NC,cldof)
+            cell_int0 = 1/dt * (np.einsum('i, ij, ijk, j->jk', c_ws, last_u_val0, p_gphi_c[..., 0], cell_measure)
+                                + np.einsum('i, ij, ijk, j->jk', c_ws, last_u_val1, p_gphi_c[..., 1], cell_measure))  # (NC,cldof)
+            cell_int1 = -(np.einsum('i, ij, ijk, j->jk', c_ws, last_nolinear_val0, p_gphi_c[..., 0], cell_measure)
+                          + np.einsum('i, ij, ijk, j->jk', c_ws, last_nolinear_val1, p_gphi_c[..., 1], cell_measure))  # (NC,cldof)
+            cell_int2 = (np.einsum('i, ij, ijk, j->jk', c_ws, f_val[..., 0], p_gphi_c[..., 0], cell_measure)
+                         + np.einsum('i, ij, ijk, j->jk', c_ws, f_val[..., 1], p_gphi_c[..., 1], cell_measure))  # (NC,cldof)
 
-            np.add(prv, pface2dof, dir_int0 + dir_int1)
-            np.add(prv, pcell2dof, cell_int0 + cell_int1 + cell_int2)
+            np.add.at(prv, Dir_face2dof, dir_int0)
+            np.add.at(prv, Dir_cell2dof, dir_int1)
+            np.add.at(prv, pcell2dof, cell_int0 + cell_int1 + cell_int2)
 
+            # pressure satisfies \int_\Omega p = 0
+            plsm = bmat([[plsm, basis_int.reshape(-1, 1)], [basis_int, None]], format='csr')
+            prv = np.r_[prv, 0]
+            next_ph[:] = spsolve(plsm, prv)[:-1]  # we have added one addtional dof
 
-            # dim = 1 if len(F.shape) == 1 else F.shape[1]
-            # if dim == 1:
-            #     np.add.at(F, face2dof, bb)
-            # else:
-            #     np.add.at(F, (face2dof, np.s_[:]), bb)
+            pl2err = pspace.integralalg.L2_error(pde.scalar_zero_fun, next_ph)
 
+            print('end of func')
 
-
-
+            # update the
 
 
 
