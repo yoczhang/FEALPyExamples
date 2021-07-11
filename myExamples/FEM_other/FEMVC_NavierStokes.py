@@ -31,9 +31,9 @@ dt = 0.01
 T = 1
 
 box = [0, 1, 0, 1]
-mesh = MF.boxmesh2d(box, nx=4, ny=4, meshtype='tri')
+mesh = MF.boxmesh2d(box, nx=32, ny=32, meshtype='tri')
 
-nu = 1.0e-0
+nu = 1.0e-2
 pde = NavierStokes2DData_time(nu)  # create pde model
 
 # # error settings

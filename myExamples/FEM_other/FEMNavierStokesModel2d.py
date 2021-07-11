@@ -94,9 +94,11 @@ class FEMNavierStokesModel2d:
         ulsm = self.vspace.stiff_matrix()
         u_phi = vspace.basis(c_bcs)  # (NQ,1,cldof)
 
+        next_t = 0
         for nt in range(int(self.T/dt)):
             curr_t = nt * dt
             next_t = curr_t + dt
+            print('current-time = ', curr_t)
 
             # ---------------------------------------
             # 1st-step: get the p^{n+1}
@@ -116,11 +118,13 @@ class FEMNavierStokesModel2d:
                 last_nolinear_val1 = pde.NS_nolinearTerm_1(c_pp, 0)  # (NQ,NC)
             else:
                 # for Dirichlet-face-integration
-                last_gu_val0 = vspace.grad_value(last_uh0, f_bcs)  # grad_u0: (NQ,NDir,GD)
-                last_gu_val1 = vspace.grad_value(last_uh1, f_bcs)  # grad_u1: (NQ,NDir,GD)
+                # last_gu_val0 = vspace.grad_value(last_uh0, f_bcs)  # grad_u0: (NQ,NDir,GD)
+                # last_gu_val1 = vspace.grad_value(last_uh1, f_bcs)  # grad_u1: (NQ,NDir,GD)
+                last_gu_val0 = self.uh_grad_value_at_faces(last_uh0, f_bcs, cellidxDir, localidxDir)  # grad_u0: (NQ,NDir,GD)
+                last_gu_val1 = self.uh_grad_value_at_faces(last_uh1, f_bcs, cellidxDir, localidxDir)  # grad_u0: (NQ,NDir,GD)
 
                 # for cell-integration
-                last_u_val0 = vspace.value(last_uh0, c_bcs)
+                last_u_val0 = vspace.value(last_uh0, c_bcs)  # (NQ,NC)
                 last_u_val1 = vspace.value(last_uh1, c_bcs)
 
                 last_nolinear_val = self.NSNolinearTerm(last_uh0, last_uh1, c_bcs)  # last_nolinear_val.shape: (NQ,NC,GD)
@@ -153,35 +157,88 @@ class FEMNavierStokesModel2d:
             np.add.at(prv, pcell2dof, cell_int0 + cell_int1 + cell_int2)
 
             # # Method I: The following code is right! Pressure satisfies \int_\Omega p = 0
-            plsm = bmat([[plsm, basis_int.reshape(-1, 1)], [basis_int, None]], format='csr')
-            prv = np.r_[prv, 0]
-            next_ph[:] = spsolve(plsm, prv)[:-1]  # we have added one addtional dof
-            pl2err = pspace.integralalg.L2_error(pde.scalar_zero_fun, next_ph)
+            # plsm_temp = bmat([[plsm, basis_int.reshape(-1, 1)], [basis_int, None]], format='csr')
+            # prv = np.r_[prv, 0]
+            # next_ph[:] = spsolve(plsm_temp, prv)[:-1]  # we have added one addtional dof
+            # pl2err = pspace.integralalg.L2_error(pde.scalar_zero_fun, next_ph)
 
             # # Method II: Using the Dirichlet boundary of pressure
-            # bc = DirichletBC(pspace, pde.dir_pressure)
-            # plsm, prv = bc.apply(plsm, prv, next_ph)
-            # next_ph[:] = spsolve(plsm, prv).reshape(-1)
+            def dir_pressure(p):
+                return pde.pressure(p, next_t)
+            bc = DirichletBC(pspace, dir_pressure)
+            plsm_temp, prv = bc.apply(plsm.copy(), prv)
+            next_ph[:] = spsolve(plsm_temp, prv).reshape(-1)
             # pl2err = pspace.integralalg.L2_error(pde.scalar_zero_fun, next_ph)
 
             # # --- to update the velocity value --- # #
             next_gradph = pspace.grad_value(next_ph, c_bcs)  # (NQ,NC,2)
 
             # the velocity u's Left-Matrix
-            ulm = 1/dt * ulmm + pde.nu * ulsm
+            ulm0 = 1 / dt * ulmm + pde.nu * ulsm
+            ulm1 = 1 / dt * ulmm + pde.nu * ulsm
 
             # # to get the u's Right-hand Vector
+            def dir_u0(p):
+                return pde.dirichlet(p, next_t)[..., 0]
+
+            def dir_u1(p):
+                return pde.dirichlet(p, next_t)[..., 1]
+
             # for the first-component of velocity
             urv0 = np.zeros((vdof.number_of_global_dofs(),), dtype=self.ftype)  # (Nvdof,)
-            urv0_temp = np.einsum('i, ij, ijk, j->jk', c_ws, - next_gradph[..., 0] - last_nolinear_val0
+            urv0_temp = np.einsum('i, ij, ijk, j->jk', c_ws, last_u_val0/dt - next_gradph[..., 0] - last_nolinear_val0
                                   + f_val[..., 0], u_phi, cell_measure)  # (NC,clodf)
             np.add.at(urv0, ucell2dof, urv0_temp)
+            u0_bc = DirichletBC(vspace, dir_u0)
+            ulm0, urv0 = u0_bc.apply(ulm0, urv0)
+            last_uh0[:] = spsolve(ulm0, urv0).reshape(-1)
+
+            # for the second-component of velocity
+            urv1 = np.zeros((vdof.number_of_global_dofs(),), dtype=self.ftype)  # (Nvdof,)
+            urv1_temp = np.einsum('i, ij, ijk, j->jk', c_ws, last_u_val1/dt - next_gradph[..., 1] - last_nolinear_val1
+                                  + f_val[..., 1], u_phi, cell_measure)  # (NC,clodf)
+            np.add.at(urv1, ucell2dof, urv1_temp)
+            u1_bc = DirichletBC(vspace, dir_u1)
+            ulm1, urv1 = u1_bc.apply(ulm1, urv1)
+            last_uh1[:] = spsolve(ulm1, urv1).reshape(-1)
+
+            # p_l2err, u0_l2err, u1_l2err = self.currt_error(next_ph, last_uh0, last_uh1, next_t)
+
+            # print('end of current time')
+
+        p_l2err, u0_l2err, u1_l2err = self.currt_error(next_ph, last_uh0, last_uh1, next_t)
+
+    def currt_error(self, ph, uh0, uh1, t):
+        pde = self.pde
+
+        def currt_pressure(p):
+            return pde.pressure(p, t)
+        p_l2err = self.pspace.integralalg.L2_error(currt_pressure, ph)
+        print('p_l2err = %e' % p_l2err)
+
+        def currt_u0(p):
+            return pde.velocity(p, t)[..., 0]
+        u0_l2err = self.vspace.integralalg.L2_error(currt_u0, uh0)
+        print('u0_l2err = %e' % u0_l2err)
+
+        def currt_u1(p):
+            return pde.velocity(p, t)[..., 1]
+        u1_l2err = self.vspace.integralalg.L2_error(currt_u1, uh1)
+        print('u1_l2err = %e' % u1_l2err)
+
+        return p_l2err, u0_l2err, u1_l2err
 
 
 
-            print('end of func')
+    def uh_grad_value_at_faces(self, vh, f_bcs, cellidx, localidx):
+        cell2dof = self.vdof.cell2dof
+        f_gphi = self.vspace.edge_grad_basis(f_bcs, cellidx, localidx)  # (NE,NQ,cldof,GD)
 
-
+        # val.shape: (NQ,NE,GD)
+        # vh.shape: (v_gdof,)
+        # vh[cell2dof[cellidx]].shape: (Ncellidx,cldof)
+        val = np.einsum('ik, ijkm->jim', vh[cell2dof[cellidx]], f_gphi)
+        return val
 
 
 
