@@ -18,6 +18,7 @@ import numpy as np
 from scipy.sparse import csr_matrix, spdiags, eye, bmat
 from fealpy.quadrature import FEMeshIntegralAlg
 from scipy.sparse.linalg import spsolve
+from fealpy.boundarycondition import DirichletBC
 from fealpy.functionspace import LagrangeFiniteElementSpace
 # from LagrangeFiniteElemenSpace_mine import LagrangeFiniteElementSpace
 
@@ -56,7 +57,7 @@ class FEMNavierStokesModel2d:
         pdof = self.pdof
         pface2dof = pdof.face_to_dof()  # (NE,fldof)
         pcell2dof = pdof.cell_to_dof()  # (NC,cldof)
-        # n = self.mesh.face_unit_normal()
+        ucell2dof = vspace.cell_to_dof() # (NC,cldof)
 
         idxDirEdge = self.set_Dirichlet_edge()
         cellidxDir = self.mesh.ds.edge2cell[idxDirEdge, 0]
@@ -84,13 +85,14 @@ class FEMNavierStokesModel2d:
         # # t^{n+1}: Pressure-Left-StiffMatrix
         plsm = self.pspace.stiff_matrix()
         basis_int = pspace.integral_basis()
-        p_phi = pspace.face_basis(f_bcs)  # (NQ,1,ldof). 实际上这里可以直接用 pspace.basis(f_bcs), 两个函数的代码是相同的
+        p_phi = pspace.face_basis(f_bcs)  # (NQ,1,fldof). 实际上这里可以直接用 pspace.basis(f_bcs), 两个函数的代码是相同的
         p_gphi_f = pspace.edge_grad_basis(f_bcs, cellidxDir, localidxDir)  # (NDir,NQ,cldof,GD)
         p_gphi_c = pspace.grad_basis(c_bcs)  # (NQ_cell,NC,ldof,GD)
 
         # # t^{n+1}: Velocity-Left-MassMatrix and -StiffMatrix
         ulmm = self.vspace.mass_matrix()
         ulsm = self.vspace.stiff_matrix()
+        u_phi = vspace.basis(c_bcs)  # (NQ,1,cldof)
 
         for nt in range(int(self.T/dt)):
             curr_t = nt * dt
@@ -128,7 +130,8 @@ class FEMNavierStokesModel2d:
             uDir_val = pde.dirichlet(f_pp, next_t)  # (NQ,NDir,GD)
             f_val = pde.source(c_pp, next_t)  # (NQ,NC,GD)
 
-            # # to get the right-hand vector
+            # # --- to update the pressure value --- # #
+            # # to get the Pressure's Right-hand Vector
             prv = np.zeros((pdof.number_of_global_dofs(),), dtype=self.ftype)  # (Npdof,)
 
             # for Dirichlet faces integration
@@ -149,16 +152,36 @@ class FEMNavierStokesModel2d:
             np.add.at(prv, Dir_cell2dof, dir_int1)
             np.add.at(prv, pcell2dof, cell_int0 + cell_int1 + cell_int2)
 
-            # pressure satisfies \int_\Omega p = 0
+            # # Method I: The following code is right! Pressure satisfies \int_\Omega p = 0
             plsm = bmat([[plsm, basis_int.reshape(-1, 1)], [basis_int, None]], format='csr')
             prv = np.r_[prv, 0]
             next_ph[:] = spsolve(plsm, prv)[:-1]  # we have added one addtional dof
-
             pl2err = pspace.integralalg.L2_error(pde.scalar_zero_fun, next_ph)
+
+            # # Method II: Using the Dirichlet boundary of pressure
+            # bc = DirichletBC(pspace, pde.dir_pressure)
+            # plsm, prv = bc.apply(plsm, prv, next_ph)
+            # next_ph[:] = spsolve(plsm, prv).reshape(-1)
+            # pl2err = pspace.integralalg.L2_error(pde.scalar_zero_fun, next_ph)
+
+            # # --- to update the velocity value --- # #
+            next_gradph = pspace.grad_value(next_ph, c_bcs)  # (NQ,NC,2)
+
+            # the velocity u's Left-Matrix
+            ulm = 1/dt * ulmm + pde.nu * ulsm
+
+            # # to get the u's Right-hand Vector
+            # for the first-component of velocity
+            urv0 = np.zeros((vdof.number_of_global_dofs(),), dtype=self.ftype)  # (Nvdof,)
+            urv0_temp = np.einsum('i, ij, ijk, j->jk', c_ws, - next_gradph[..., 0] - last_nolinear_val0
+                                  + f_val[..., 0], u_phi, cell_measure)  # (NC,clodf)
+            np.add.at(urv0, ucell2dof, urv0_temp)
+
+
 
             print('end of func')
 
-            # update the
+
 
 
 
@@ -166,7 +189,7 @@ class FEMNavierStokesModel2d:
         vspace = self.vspace
         val0 = vspace.value(uh0, bcs)  # val0.shape: (NQ,NC)
         val1 = vspace.value(uh1, bcs)  # val1.shape: (NQ,NC)
-        gval0 = vspace.grad_value(uh0, bcs)  # guh0.shape: (NQ,NC,2)
+        gval0 = vspace.grad_value(uh0, bcs)  # gval0.shape: (NQ,NC,2)
         gval1 = vspace.grad_value(uh1, bcs)
 
         NSNolinear = np.empty(gval0.shape, dtype=self.ftype)  # NSNolinear.shape: (NQ,NC,2)
