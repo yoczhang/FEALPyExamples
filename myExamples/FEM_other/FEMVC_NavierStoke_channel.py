@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ---
 # @Software: PyCharm
-# @File: FEMVC_NavierStokes.py
+# @File: FEMVC_NavierStokes_channel.py
 # @Author: Yongchao Zhang, Northwest University, Xi'an
 # @E-mail: yoczhang@nwu.edu.cn
 # @Site:
@@ -13,10 +13,13 @@
 __doc__ = """
 The fealpy-FEM program for Navier-Stokes problem by using the Velocity-Correction method. 
 """
+import sys
+sys.path.append('/Users/yczhang/Documents/FEALPy/fealpyHHOPersonal/fealpyHHOPersonal')
+sys.path.append('/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Tools')
 
 import numpy as np
 import matplotlib.pyplot as plt
-from NavierStokes2DData import NavierStokes2DData_time
+from NavierStokes2DData_channel import NavierStokes2DData_time
 from fealpy.tools.show import showmultirate, show_error_table
 from FEMNavierStokesModel2d import FEMNavierStokesModel2d
 from fealpy.mesh import MeshFactory as MF
