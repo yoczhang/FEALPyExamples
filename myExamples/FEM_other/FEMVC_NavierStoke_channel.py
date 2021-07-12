@@ -19,14 +19,14 @@ sys.path.append('/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/m
 
 import numpy as np
 import matplotlib.pyplot as plt
-from NavierStokes2DData_channel import NavierStokes2DData_time
+from NavierStokes2DData_channel import NavierStokes2DData_channel
 from fealpy.tools.show import showmultirate, show_error_table
-from FEMNavierStokesModel2d import FEMNavierStokesModel2d
+from FEMNavierStokesModel2d_channel import FEMNavierStokesModel2d
 from fealpy.mesh import MeshFactory as MF
 from PrintLogger import make_print_to_file
 
 # --- logging --- #
-make_print_to_file(filename='FEMVCNS', path="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
+# make_print_to_file(filename='FEMVCNS', path="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
 
 # --- begin setting --- #
 d = 2  # the dimension
@@ -36,13 +36,13 @@ maxit = 1  # the max iteration of the mesh
 
 dt = 1.0e-3
 T = 5
-NN = 100
+NN = 4
 
 box = [0, 1, 0, 1]
 mesh = MF.boxmesh2d(box, nx=NN, ny=NN, meshtype='tri')
 
 nu = 1.0e-2
-pde = NavierStokes2DData_time(nu)  # create pde model
+pde = NavierStokes2DData_channel(nu)  # create pde model
 
 # # print some basic info
 print('dt = %e' % dt)

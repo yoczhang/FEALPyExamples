@@ -163,7 +163,7 @@ class FEMNavierStokesModel2d:
             # # Method II: Using the Dirichlet boundary of pressure
             # def dir_pressure(p):
             #     return pde.pressure(p, next_t)
-            # bc = DirichletBC(pspace, dir_pressure)
+            # bc = DirichletBC(pspace, dir_pressure, threshold=idxDirEdge)
             # plsm_temp, prv = bc.apply(plsm.copy(), prv)
             # next_ph[:] = spsolve(plsm_temp, prv).reshape(-1)
 
@@ -186,7 +186,7 @@ class FEMNavierStokesModel2d:
             urv0_temp = np.einsum('i, ij, ijk, j->jk', c_ws, last_u_val0/dt - next_gradph[..., 0] - last_nolinear_val0
                                   + f_val[..., 0], u_phi, cell_measure)  # (NC,clodf)
             np.add.at(urv0, ucell2dof, urv0_temp)
-            u0_bc = DirichletBC(vspace, dir_u0)
+            u0_bc = DirichletBC(vspace, dir_u0, threshold=idxDirEdge)
             ulm0, urv0 = u0_bc.apply(ulm0, urv0)
             last_uh0[:] = spsolve(ulm0, urv0).reshape(-1)
 
@@ -195,7 +195,7 @@ class FEMNavierStokesModel2d:
             urv1_temp = np.einsum('i, ij, ijk, j->jk', c_ws, last_u_val1/dt - next_gradph[..., 1] - last_nolinear_val1
                                   + f_val[..., 1], u_phi, cell_measure)  # (NC,clodf)
             np.add.at(urv1, ucell2dof, urv1_temp)
-            u1_bc = DirichletBC(vspace, dir_u1)
+            u1_bc = DirichletBC(vspace, dir_u1, threshold=idxDirEdge)
             ulm1, urv1 = u1_bc.apply(ulm1, urv1)
             last_uh1[:] = spsolve(ulm1, urv1).reshape(-1)
 
@@ -271,6 +271,12 @@ class FEMNavierStokesModel2d:
         idxDirEdge, = np.nonzero(isDirEdge)  # (NE_Dir,)
 
         return idxDirEdge
+
+    def set_inflow_edge(self):
+        mesh = self.mesh
+        edge2cell = mesh.ds.edge_to_cell()
+        isBdEdge = (edge2cell[:, 0] == edge2cell[:, 1])  # (NE,), the bool vars, to get the boundary edges
+        
 
     def set_Neumann_edge(self, idxNeuEdge=None):
         if idxNeuEdge is not None:

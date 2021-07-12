@@ -110,7 +110,11 @@ class NavierStokes2DData_channel:
 
     @cartesian
     def dirichlet(self, p, t):
-        return self.velocity(p, t)
+        # p.shape: (NQ,NDir,GD)
+
+        val = np.zeros(p.shape, dtype=np.float) 
+        val = self.velocity(p, t)
+        return val
 
     @cartesian
     def velocityInitialValue(self, p):
