@@ -38,7 +38,7 @@ NN = 100
 box = [0, 1, 0, 1]
 mesh = MF.boxmesh2d(box, nx=NN, ny=NN, meshtype='tri')
 
-nu = 1.0e-2
+nu = 1.0e-3
 pde = NavierStokes2DData_time(nu)  # create pde model
 
 # # print some basic info
