@@ -274,8 +274,10 @@ class FEMNavierStokesModel2d:
 
     def set_inflow_edge(self):
         mesh = self.mesh
+        edge2node = mesh.ds.edge_to_node()
         edge2cell = mesh.ds.edge_to_cell()
         isBdEdge = (edge2cell[:, 0] == edge2cell[:, 1])  # (NE,), the bool vars, to get the boundary edges
+        
         
 
     def set_Neumann_edge(self, idxNeuEdge=None):
