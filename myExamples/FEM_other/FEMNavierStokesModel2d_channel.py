@@ -274,10 +274,14 @@ class FEMNavierStokesModel2d_channel:
 
     def set_inflow_edge(self):
         mesh = self.mesh
-        edge2node = mesh.ds.edge_to_node()
+        node = mesh.node  # (NV,2)
+        edge2node = mesh.ds.edge_to_node()  # (NE,2)
         edge2cell = mesh.ds.edge_to_cell()
         isBdEdge = (edge2cell[:, 0] == edge2cell[:, 1])  # (NE,), the bool vars, to get the boundary edges
-        
+
+        midedge = 
+
+
         
         
 
