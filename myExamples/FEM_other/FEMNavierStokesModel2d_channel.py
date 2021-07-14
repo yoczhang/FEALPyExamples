@@ -279,7 +279,7 @@ class FEMNavierStokesModel2d_channel:
         edge2cell = mesh.ds.edge_to_cell()
         isBdEdge = (edge2cell[:, 0] == edge2cell[:, 1])  # (NE,), the bool vars, to get the boundary edges
 
-        midedge = 
+        midedge =
 
 
         
