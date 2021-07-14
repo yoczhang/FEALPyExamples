@@ -23,7 +23,7 @@ from fealpy.functionspace import LagrangeFiniteElementSpace
 # from LagrangeFiniteElemenSpace_mine import LagrangeFiniteElementSpace
 
 
-class FEMNavierStokesModel2d:
+class FEMNavierStokesModel2d_channel:
     def __init__(self, pde, mesh, p, dt, T):
         self.p = p
         self.mesh = mesh
@@ -277,6 +277,7 @@ class FEMNavierStokesModel2d:
         edge2node = mesh.ds.edge_to_node()
         edge2cell = mesh.ds.edge_to_cell()
         isBdEdge = (edge2cell[:, 0] == edge2cell[:, 1])  # (NE,), the bool vars, to get the boundary edges
+        
         
         
 

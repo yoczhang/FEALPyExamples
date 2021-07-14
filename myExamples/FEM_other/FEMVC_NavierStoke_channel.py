@@ -21,7 +21,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from NavierStokes2DData_channel import NavierStokes2DData_channel
 from fealpy.tools.show import showmultirate, show_error_table
-from FEMNavierStokesModel2d_channel import FEMNavierStokesModel2d
+from FEMNavierStokesModel2d_channel import FEMNavierStokesModel2d_channel
 from fealpy.mesh import MeshFactory as MF
 from PrintLogger import make_print_to_file
 
@@ -58,7 +58,7 @@ Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
 
 # --- start for-loop --- #
 for i in range(maxit):
-    ns = FEMNavierStokesModel2d(pde, mesh, p, dt, T)
+    ns = FEMNavierStokesModel2d_channel(pde, mesh, p, dt, T)
     ns.NS_VC_Solver()
     # sol = ns.solve_by_Newton_iteration()
     # Ndof[i] = ns.space.number_of_global_dofs()  # get the number of dofs
