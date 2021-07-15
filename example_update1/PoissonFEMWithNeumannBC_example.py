@@ -70,7 +70,7 @@ if d == 2:
 elif d == 3:
     print('The 3d function plot is not been implemented!')
 
-showmultirate(plt, 0, NDof, errorMatrix,  errorType, propsize=20)
+# showmultirate(plt, 0, NDof, errorMatrix,  errorType, propsize=20)
 
 plt.show()
 

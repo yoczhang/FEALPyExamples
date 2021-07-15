@@ -34,9 +34,9 @@ p = 1  # the polynomial order
 n = 2  # the number of refine mesh
 maxit = 1  # the max iteration of the mesh
 
-dt = 1.0e-3
-T = 5
-NN = 4
+dt = 2.0e-2
+T = 3
+NN = 32
 
 box = [0, 1, 0, 1]
 mesh = MF.boxmesh2d(box, nx=NN, ny=NN, meshtype='tri')
@@ -56,10 +56,14 @@ errorMatrix = np.zeros((len(errorType), maxit), dtype=np.float)
 
 Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
 
+
 # --- start for-loop --- #
 for i in range(maxit):
     ns = FEMNavierStokesModel2d_channel(pde, mesh, p, dt, T)
-    ns.NS_VC_Solver()
+    # ns.set_inflow_edge()
+    uh0, uh1, ph = ns.NS_VC_Solver()
+
+
     # sol = ns.solve_by_Newton_iteration()
     # Ndof[i] = ns.space.number_of_global_dofs()  # get the number of dofs
     # errorMatrix[0, i] = ns.velocity_L2_error()  # get the velocity L2 error
@@ -71,6 +75,22 @@ for i in range(maxit):
     #     n += 1
     #     mesh = pde.init_mesh(n, meshtype=mesh.meshtype)
 
+uh_ = ns.vspace.function()
+uh_[:] = np.sqrt(uh0 ** 2 + uh1 ** 2)
+ph_ = ns.pspace.function()
+ph_[:] = ph
+
+
+
+fig = plt.figure()
+axes = fig.gca(projection='3d')
+uh_.add_plot(axes, cmap='rainbow')
+
+fig1 = plt.figure()
+axes1 = fig1.gca(projection='3d')
+ph_.add_plot(axes1, cmap='rainbow')
+
+plt.show()
 
 # --- get the convergence rate --- #
 # # show the error table

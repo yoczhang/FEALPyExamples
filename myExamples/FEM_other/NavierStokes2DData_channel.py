@@ -109,11 +109,32 @@ class NavierStokes2DData_channel:
         return val
 
     @cartesian
-    def dirichlet(self, p, t):
+    def dirichlet(self, p, t, bd_threshold=None):
         # p.shape: (NQ,NDir,GD)
+        x = p[..., 0]
+        y = p[..., 1]
 
-        val = np.zeros(p.shape, dtype=np.float) 
+        # val = np.zeros(p.shape, dtype=np.float)
         val = self.velocity(p, t)
+
+        if bd_threshold is not None:
+            val[..., bd_threshold, 0] = 4*y[..., bd_threshold]*(1 - y[..., bd_threshold])
+
+        # # Define boundaries
+        # inflow = 'near(x[0], 0)'
+        # outflow = 'near(x[0], 1)'
+        # walls = 'near(x[1], 0) || near(x[1], 1)'
+        #
+        # # p_in = Expression("sin(3.0*t)", t=0.0, degree=2)
+        # U_in = Expression(('4*x[1]*(1 - x[1])', '0'), degree=3, t=0)
+        # ##  Define boundary conditions
+        # bcu_noslip = DirichletBC(V, Constant((0, 0)), walls)
+        # # bcp_inflow  = DirichletBC(Q, Constant(8), inflow)
+        # bcu_inflow = DirichletBC(V, U_in, inflow)
+        # bcp_outflow = DirichletBC(Q, Constant(0), outflow)
+        # bcu = [bcu_inflow, bcu_noslip]
+        # bcp = [bcp_outflow]
+
         return val
 
     @cartesian

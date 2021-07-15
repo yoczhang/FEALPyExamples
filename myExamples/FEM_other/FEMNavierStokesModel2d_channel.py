@@ -19,6 +19,7 @@ from scipy.sparse import csr_matrix, spdiags, eye, bmat
 from fealpy.quadrature import FEMeshIntegralAlg
 from scipy.sparse.linalg import spsolve
 from fealpy.boundarycondition import DirichletBC
+from fealpy.decorator import timer
 from fealpy.functionspace import LagrangeFiniteElementSpace
 # from LagrangeFiniteElemenSpace_mine import LagrangeFiniteElementSpace
 
@@ -42,6 +43,7 @@ class FEMNavierStokesModel2d_channel:
         self.uh1 = self.vspace.function()
         self.ph = self.pspace.function()
 
+    @timer
     def NS_VC_Solver(self):
         """
         The Navier-Stokes Velocity-Correction scheme solver.
@@ -95,6 +97,7 @@ class FEMNavierStokesModel2d_channel:
         u_phi = vspace.basis(c_bcs)  # (NQ,1,cldof)
 
         next_t = 0
+        localIdxInflow = self.set_inflow_edge()
         for nt in range(int(self.T/dt)):
             curr_t = nt * dt
             next_t = curr_t + dt
@@ -130,7 +133,7 @@ class FEMNavierStokesModel2d_channel:
                 last_nolinear_val0 = last_nolinear_val[..., 0]  # (NQ,NC)
                 last_nolinear_val1 = last_nolinear_val[..., 1]  # (NQ,NC)
 
-            uDir_val = pde.dirichlet(f_pp, next_t)  # (NQ,NDir,GD)
+            uDir_val = pde.dirichlet(f_pp, next_t, bd_threshold=localIdxInflow)  # (NQ,NDir,GD)
             f_val = pde.source(c_pp, next_t)  # (NQ,NC,GD)
 
             # # --- to update the pressure value --- # #
@@ -176,10 +179,10 @@ class FEMNavierStokesModel2d_channel:
 
             # # to get the u's Right-hand Vector
             def dir_u0(p):
-                return pde.dirichlet(p, next_t)[..., 0]
+                return pde.dirichlet(p, next_t, bd_threshold=localIdxInflow)[..., 0]
 
             def dir_u1(p):
-                return pde.dirichlet(p, next_t)[..., 1]
+                return pde.dirichlet(p, next_t, bd_threshold=localIdxInflow)[..., 1]
 
             # for the first-component of velocity
             urv0 = np.zeros((vdof.number_of_global_dofs(),), dtype=self.ftype)  # (Nvdof,)
@@ -211,9 +214,11 @@ class FEMNavierStokesModel2d_channel:
 
             # print('end of current time')
 
-        print('# ------------ the end error ------------ #')
-        p_l2err, u0_l2err, u1_l2err = self.currt_error(next_ph, last_uh0, last_uh1, next_t)
-        print('p_l2err = %e,  u0_l2err = %e,  u1_l2err = %e' % (p_l2err, u0_l2err, u1_l2err))
+        # print('# ------------ the end error ------------ #')
+        # p_l2err, u0_l2err, u1_l2err = self.currt_error(next_ph, last_uh0, last_uh1, next_t)
+        # print('p_l2err = %e,  u0_l2err = %e,  u1_l2err = %e' % (p_l2err, u0_l2err, u1_l2err))
+
+        return last_uh0, last_uh1, next_ph
 
     def currt_error(self, ph, uh0, uh1, t):
         pde = self.pde
@@ -264,10 +269,17 @@ class FEMNavierStokesModel2d_channel:
             return idxDirEdge
 
         mesh = self.mesh
+        node = mesh.node  # (NV,2)
         edge2cell = mesh.ds.edge_to_cell()
         isBdEdge = (edge2cell[:, 0] == edge2cell[:, 1])  # (NE,), the bool vars, to get the boundary edges
 
-        isDirEdge = isBdEdge  # here, we set all the boundary edges are Dir edges
+        edge2node = mesh.ds.edge_to_node()  # (NE,2)
+        mid_coor = (node[edge2node[:, 0], :] + node[edge2node[:, 1], :]) / 2  # (NE,2)
+        bd_mid = mid_coor[isBdEdge, :]
+
+        isOutflow = np.abs(bd_mid[:, 0] - 1.0) < 1e-6
+
+        isDirEdge = ~isOutflow  # here, we set all the boundary but the right edges are Dir edges
         idxDirEdge, = np.nonzero(isDirEdge)  # (NE_Dir,)
 
         return idxDirEdge
@@ -276,14 +288,17 @@ class FEMNavierStokesModel2d_channel:
         mesh = self.mesh
         node = mesh.node  # (NV,2)
         edge2node = mesh.ds.edge_to_node()  # (NE,2)
-        edge2cell = mesh.ds.edge_to_cell()
-        isBdEdge = (edge2cell[:, 0] == edge2cell[:, 1])  # (NE,), the bool vars, to get the boundary edges
 
-        midedge =
+        idxDirEdge = self.set_Dirichlet_edge()
 
+        mid_coor = (node[edge2node[:, 0], :] + node[edge2node[:, 1], :]) / 2  # (NE,2)
+        bd_mid = mid_coor[idxDirEdge, :]
 
-        
-        
+        # --- set inflow edges
+        inflow_x = 0.0
+        isInflow = np.abs(bd_mid[:, 0] - inflow_x) < 1e-6
+        localIdxInflow, = np.nonzero(isInflow)
+        return localIdxInflow
 
     def set_Neumann_edge(self, idxNeuEdge=None):
         if idxNeuEdge is not None:
