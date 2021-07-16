@@ -97,7 +97,8 @@ class FEMNavierStokesModel2d_channel:
         u_phi = vspace.basis(c_bcs)  # (NQ,1,cldof)
 
         next_t = 0
-        localIdxInflow = self.set_inflow_edge()
+        dofLocalIdxInflow, localIdxInflow = self.set_velocity_inflow_dof()
+        idxOutFlowEdge = self.set_outflow_edge()
         for nt in range(int(self.T/dt)):
             curr_t = nt * dt
             next_t = curr_t + dt
@@ -159,16 +160,16 @@ class FEMNavierStokesModel2d_channel:
             np.add.at(prv, pcell2dof, cell_int0 + cell_int1 + cell_int2)
 
             # # Method I: The following code is right! Pressure satisfies \int_\Omega p = 0
-            plsm_temp = bmat([[plsm, basis_int.reshape(-1, 1)], [basis_int, None]], format='csr')
-            prv = np.r_[prv, 0]
-            next_ph[:] = spsolve(plsm_temp, prv)[:-1]  # we have added one addtional dof
+            # plsm_temp = bmat([[plsm, basis_int.reshape(-1, 1)], [basis_int, None]], format='csr')
+            # prv = np.r_[prv, 0]
+            # next_ph[:] = spsolve(plsm_temp, prv)[:-1]  # we have added one addtional dof
 
             # # Method II: Using the Dirichlet boundary of pressure
-            # def dir_pressure(p):
-            #     return pde.pressure(p, next_t)
-            # bc = DirichletBC(pspace, dir_pressure, threshold=idxDirEdge)
-            # plsm_temp, prv = bc.apply(plsm.copy(), prv)
-            # next_ph[:] = spsolve(plsm_temp, prv).reshape(-1)
+            def dir_pressure(p):
+                return pde.pressure_dirichlet(p, next_t)
+            bc = DirichletBC(pspace, dir_pressure, threshold=idxOutFlowEdge)
+            plsm_temp, prv = bc.apply(plsm.copy(), prv)
+            next_ph[:] = spsolve(plsm_temp, prv).reshape(-1)
 
             # # --- to update the velocity value --- # #
             next_gradph = pspace.grad_value(next_ph, c_bcs)  # (NQ,NC,2)
@@ -179,10 +180,10 @@ class FEMNavierStokesModel2d_channel:
 
             # # to get the u's Right-hand Vector
             def dir_u0(p):
-                return pde.dirichlet(p, next_t, bd_threshold=localIdxInflow)[..., 0]
+                return pde.dirichlet(p, next_t, bd_threshold=dofLocalIdxInflow)[..., 0]
 
             def dir_u1(p):
-                return pde.dirichlet(p, next_t, bd_threshold=localIdxInflow)[..., 1]
+                return pde.dirichlet(p, next_t, bd_threshold=dofLocalIdxInflow)[..., 1]
 
             # for the first-component of velocity
             urv0 = np.zeros((vdof.number_of_global_dofs(),), dtype=self.ftype)  # (Nvdof,)
@@ -272,6 +273,7 @@ class FEMNavierStokesModel2d_channel:
         node = mesh.node  # (NV,2)
         edge2cell = mesh.ds.edge_to_cell()
         isBdEdge = (edge2cell[:, 0] == edge2cell[:, 1])  # (NE,), the bool vars, to get the boundary edges
+        idxBdEdge, = np.nonzero(isBdEdge)
 
         edge2node = mesh.ds.edge_to_node()  # (NE,2)
         mid_coor = (node[edge2node[:, 0], :] + node[edge2node[:, 1], :]) / 2  # (NE,2)
@@ -280,25 +282,54 @@ class FEMNavierStokesModel2d_channel:
         isOutflow = np.abs(bd_mid[:, 0] - 1.0) < 1e-6
 
         isDirEdge = ~isOutflow  # here, we set all the boundary but the right edges are Dir edges
-        idxDirEdge, = np.nonzero(isDirEdge)  # (NE_Dir,)
+        idxDirEdge = idxBdEdge[isDirEdge]  # (NE_Dir,)
 
         return idxDirEdge
 
-    def set_inflow_edge(self):
+    def set_outflow_edge(self, idxOutEdge=None):
+        if idxOutEdge is not None:
+            return idxOutEdge
+
+        mesh = self.mesh
+        node = mesh.node  # (NV,2)
+        edge2cell = mesh.ds.edge_to_cell()
+        isBdEdge = (edge2cell[:, 0] == edge2cell[:, 1])  # (NE,), the bool vars, to get the boundary edges
+        idxBdEdge, = np.nonzero(isBdEdge)
+
+        edge2node = mesh.ds.edge_to_node()  # (NE,2)
+        mid_coor = (node[edge2node[:, 0], :] + node[edge2node[:, 1], :]) / 2  # (NE,2)
+        bd_mid = mid_coor[isBdEdge, :]
+
+        isOutflow = np.abs(bd_mid[:, 0] - 1.0) < 1e-6
+        idxOutEdge = idxBdEdge[isOutflow]  # (NE_Dir,)
+
+        return idxOutEdge
+
+    def set_velocity_inflow_dof(self):
         mesh = self.mesh
         node = mesh.node  # (NV,2)
         edge2node = mesh.ds.edge_to_node()  # (NE,2)
 
         idxDirEdge = self.set_Dirichlet_edge()
+        dirIndicator = np.full(idxDirEdge.shape, False)
+
 
         mid_coor = (node[edge2node[:, 0], :] + node[edge2node[:, 1], :]) / 2  # (NE,2)
         bd_mid = mid_coor[idxDirEdge, :]
 
-        # --- set inflow edges
+        # --- set inflow edges --- #
         inflow_x = 0.0
         isInflow = np.abs(bd_mid[:, 0] - inflow_x) < 1e-6
-        localIdxInflow, = np.nonzero(isInflow)
-        return localIdxInflow
+        localIdxInflow = np.nonzero(isInflow)
+        idxInflow = idxDirEdge[isInflow]
+
+        # --- set inflow dof --- #
+        edge2dof = self.vdof.edge_to_dof()
+        dir_dof = np.unique(edge2dof[idxDirEdge].flatten())
+        inflow_dof = np.unique(edge2dof[idxInflow].flatten())
+
+        dofLocalIdxInflow = np.searchsorted(dir_dof, inflow_dof)
+        return dofLocalIdxInflow, localIdxInflow
 
     def set_Neumann_edge(self, idxNeuEdge=None):
         if idxNeuEdge is not None:

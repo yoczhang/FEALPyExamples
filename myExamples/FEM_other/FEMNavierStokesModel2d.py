@@ -186,7 +186,7 @@ class FEMNavierStokesModel2d:
             urv0_temp = np.einsum('i, ij, ijk, j->jk', c_ws, last_u_val0/dt - next_gradph[..., 0] - last_nolinear_val0
                                   + f_val[..., 0], u_phi, cell_measure)  # (NC,clodf)
             np.add.at(urv0, ucell2dof, urv0_temp)
-            u0_bc = DirichletBC(vspace, dir_u0)
+            u0_bc = DirichletBC(vspace, dir_u0, threshold=idxDirEdge)
             ulm0, urv0 = u0_bc.apply(ulm0, urv0)
             last_uh0[:] = spsolve(ulm0, urv0).reshape(-1)
 
@@ -195,7 +195,7 @@ class FEMNavierStokesModel2d:
             urv1_temp = np.einsum('i, ij, ijk, j->jk', c_ws, last_u_val1/dt - next_gradph[..., 1] - last_nolinear_val1
                                   + f_val[..., 1], u_phi, cell_measure)  # (NC,clodf)
             np.add.at(urv1, ucell2dof, urv1_temp)
-            u1_bc = DirichletBC(vspace, dir_u1)
+            u1_bc = DirichletBC(vspace, dir_u1, threshold=idxDirEdge)
             ulm1, urv1 = u1_bc.apply(ulm1, urv1)
             last_uh1[:] = spsolve(ulm1, urv1).reshape(-1)
 

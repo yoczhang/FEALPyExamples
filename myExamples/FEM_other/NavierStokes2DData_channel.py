@@ -138,6 +138,12 @@ class NavierStokes2DData_channel:
         return val
 
     @cartesian
+    def pressure_dirichlet(self, p, t):
+        x = p[..., 0]
+        val = 0*x
+        return val
+
+    @cartesian
     def velocityInitialValue(self, p):
         return self.velocity(p, 0)
 

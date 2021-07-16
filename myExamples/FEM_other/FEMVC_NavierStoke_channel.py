@@ -23,6 +23,7 @@ from NavierStokes2DData_channel import NavierStokes2DData_channel
 from fealpy.tools.show import showmultirate, show_error_table
 from FEMNavierStokesModel2d_channel import FEMNavierStokesModel2d_channel
 from fealpy.mesh import MeshFactory as MF
+from ShowCls import ShowCls
 from PrintLogger import make_print_to_file
 
 # --- logging --- #
@@ -56,11 +57,15 @@ errorMatrix = np.zeros((len(errorType), maxit), dtype=np.float)
 
 Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
 
+# sc = ShowCls(p, mesh)
+# sc.showMesh(markNode=True, markEdge=True, markCell=True)
 
 # --- start for-loop --- #
 for i in range(maxit):
     ns = FEMNavierStokesModel2d_channel(pde, mesh, p, dt, T)
-    # ns.set_inflow_edge()
+    # ns.set_outflow_edge()
+    # ns.set_Dirichlet_edge()
+    # ns.set_velocity_inflow_dof()
     uh0, uh1, ph = ns.NS_VC_Solver()
 
 
