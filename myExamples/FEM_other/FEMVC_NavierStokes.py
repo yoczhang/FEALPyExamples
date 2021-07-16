@@ -27,18 +27,18 @@ make_print_to_file(filename='FEMVCNS', path="/Users/yczhang/Documents/FEALPy/FEA
 
 # --- begin setting --- #
 d = 2  # the dimension
-p = 1  # the polynomial order
+p = 2  # the polynomial order
 n = 2  # the number of refine mesh
 maxit = 1  # the max iteration of the mesh
 
-dt = 1.0e-3
+dt = 1.0e-4
 T = 5
-NN = 100
+NN = 64
 
 box = [0, 1, 0, 1]
 mesh = MF.boxmesh2d(box, nx=NN, ny=NN, meshtype='tri')
 
-nu = 1.0e-3
+nu = 1.0e-2
 pde = NavierStokes2DData_time(nu)  # create pde model
 
 # # print some basic info

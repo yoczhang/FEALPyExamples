@@ -160,16 +160,16 @@ class FEMNavierStokesModel2d_channel:
             np.add.at(prv, pcell2dof, cell_int0 + cell_int1 + cell_int2)
 
             # # Method I: The following code is right! Pressure satisfies \int_\Omega p = 0
-            # plsm_temp = bmat([[plsm, basis_int.reshape(-1, 1)], [basis_int, None]], format='csr')
-            # prv = np.r_[prv, 0]
-            # next_ph[:] = spsolve(plsm_temp, prv)[:-1]  # we have added one addtional dof
+            plsm_temp = bmat([[plsm, basis_int.reshape(-1, 1)], [basis_int, None]], format='csr')
+            prv = np.r_[prv, 0]
+            next_ph[:] = spsolve(plsm_temp, prv)[:-1]  # we have added one addtional dof
 
             # # Method II: Using the Dirichlet boundary of pressure
-            def dir_pressure(p):
-                return pde.pressure_dirichlet(p, next_t)
-            bc = DirichletBC(pspace, dir_pressure, threshold=idxOutFlowEdge)
-            plsm_temp, prv = bc.apply(plsm.copy(), prv)
-            next_ph[:] = spsolve(plsm_temp, prv).reshape(-1)
+            # def dir_pressure(p):
+            #     return pde.pressure_dirichlet(p, next_t)
+            # bc = DirichletBC(pspace, dir_pressure, threshold=idxOutFlowEdge)
+            # plsm_temp, prv = bc.apply(plsm.copy(), prv)
+            # next_ph[:] = spsolve(plsm_temp, prv).reshape(-1)
 
             # # --- to update the velocity value --- # #
             next_gradph = pspace.grad_value(next_ph, c_bcs)  # (NQ,NC,2)

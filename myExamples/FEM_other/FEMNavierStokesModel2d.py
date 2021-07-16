@@ -19,6 +19,7 @@ from scipy.sparse import csr_matrix, spdiags, eye, bmat
 from fealpy.quadrature import FEMeshIntegralAlg
 from scipy.sparse.linalg import spsolve
 from fealpy.boundarycondition import DirichletBC
+from fealpy.decorator import timer
 from fealpy.functionspace import LagrangeFiniteElementSpace
 # from LagrangeFiniteElemenSpace_mine import LagrangeFiniteElementSpace
 
@@ -42,6 +43,7 @@ class FEMNavierStokesModel2d:
         self.uh1 = self.vspace.function()
         self.ph = self.pspace.function()
 
+    @timer
     def NS_VC_Solver(self):
         """
         The Navier-Stokes Velocity-Correction scheme solver.
@@ -199,7 +201,7 @@ class FEMNavierStokesModel2d:
             ulm1, urv1 = u1_bc.apply(ulm1, urv1)
             last_uh1[:] = spsolve(ulm1, urv1).reshape(-1)
 
-            if nt % 100 == 0:
+            if nt % 500 == 0:
                 print('# ------------ logging the circle info ------------ #')
                 print('current t = ', curr_t)
                 p_l2err, u0_l2err, u1_l2err = self.currt_error(next_ph, last_uh0, last_uh1, next_t)
