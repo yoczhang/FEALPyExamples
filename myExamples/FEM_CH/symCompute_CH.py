@@ -15,13 +15,14 @@ import numpy as np
 
 t, x, y, nu, pi = symbols('t x y nu pi')
 # --- ex0 --- #
-u = exp(-2 * t) * sin(pi * x) ** 2 * sin(pi * y) ** 2
+u = cos(pi*x)*cos(pi*y)*sin(t)
 
-
+ut = diff(u, t)
 ux = diff(u, x)
 uy = diff(u, y)
 uxx = diff(ux, x)
 uyy = diff(uy, y)
+print('ut = ', ut)
 print('ux = ', ux)
 print('uxx = ', uxx)
 print('uy = ', uy)
