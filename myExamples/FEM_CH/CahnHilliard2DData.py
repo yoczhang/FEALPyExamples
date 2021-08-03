@@ -12,13 +12,18 @@
 import numpy as np
 from fealpy.decorator import cartesian
 from fealpy.mesh.TriangleMesh import TriangleMesh
+from numpy import pi, sin, cos, exp
 
 
 class CahnHilliardData0:
-    def __init__(self, t0, t1):
+    def __init__(self, t0, T):
         self.t0 = t0
-        self.t1 = t1
-        self.epsilon = 0.01
+        self.T = T
+
+    def setPDEParameters(self, parameters):
+        for k, v in parameters.items():
+            self.__dict__[k] = v
+        return None
 
     def space_mesh(self, n=4):
         point = np.array([
@@ -38,50 +43,90 @@ class CahnHilliardData0:
         mesh.uniform_refine(n)
         return mesh
 
-    def time_mesh(self, tau):
-        n = int(np.ceil((self.t1 - self.t0) / tau))
-        tau = (self.t1 - self.t0) / n
-        return np.linspace(self.t0, self.t1, num=n + 1), tau
+    def time_mesh(self, dt):
+        n = int(np.ceil((self.T - self.t0) / dt))
+        dt = (self.T - self.t0) / n
+        return np.linspace(self.t0, self.T, num=n + 1), dt
 
-    def initdata(self, p):
-        x = p[..., 0]
-        y = p[..., 1]
-        u0 = np.sin(np.pi * x) ** 2 * np.sin(np.pi * y) ** 2
-        return u0
-
+    @cartesian
     def solution(self, p, t):
         x = p[..., 0]
         y = p[..., 1]
-        u = np.exp(-2 * t) * np.sin(np.pi * x) ** 2 * np.sin(np.pi * y) ** 2
+        u = sin(t)*cos(pi*x)*cos(pi*y)
         return u
 
+    @cartesian
+    def initdata(self, p):
+        return self.solution(p, 0)
+
+    @cartesian
     def gradient(self, p, t):
         """ The gradient of the exact solution
         """
         x = p[..., 0]
         y = p[..., 1]
-        pi = np.pi
         val = np.zeros(p.shape, dtype=np.float64)
-        val[..., 0] = -pi * np.sin(pi * x) * np.cos(pi * y)
-        val[..., 1] = -pi * np.cos(pi * x) * np.sin(pi * y)
+        val[..., 0] = -pi*sin(t)*sin(pi*x)*cos(pi*y)
+        val[..., 1] = -pi*sin(t)*sin(pi*y)*cos(pi*x)
         return val  # val.shape == p.shape
 
+    @cartesian
     def laplace(self, p, t):
-        pass
-
-    def neumann(self, p):
-        """
-        Neumann boundary condition
-        """
-        return 0
-
-    def source(self, p, t):
-        epsilon = self.epsilon
         x = p[..., 0]
         y = p[..., 1]
-        rhs = (-2) * np.exp(-2 * t) * np.sin(np.pi * x) ** 2 * np.sin(np.pi * y) ** 2 \
-              + epsilon * 2 * np.pi ** 2 * np.exp(-2 * t) * (
-                      4 * np.pi ** 2 * np.cos(2 * np.pi * x) * np.cos(2 * np.pi * y) - 4 * np.pi ** 2 * np.cos(
-                  2 * np.pi * y) * np.sin(
-                  np.pi * x) ** 2 - 4 * np.pi ** 2 * np.cos(2 * np.pi * x) * np.sin(np.pi * y) ** 2)
-        return rhs
+        val = -2*pi**2*sin(t)*cos(pi*x)*cos(pi*y)
+        return val
+
+    @cartesian
+    def neumann(self, p, t, n):
+        """
+        Neumann boundary condition
+
+        Parameters
+        ----------
+
+        p: (NQ, NE, 2)
+        t: the time
+        n: (NE, 2)
+
+        grad*n : (NQ, NE)
+        """
+
+        grad = self.gradient(p, t)  # (NQ, NE, 2)
+        val = np.sum(grad * n, axis=-1)  # (NQ, NE)
+        return val
+
+    @cartesian
+    def laplace_neumann(self, p, t, n):
+        """
+        Laplace Neumann boundary condition
+
+        Parameters
+        ----------
+
+        p: (NQ, NE, 2)
+        t: the time
+        n: (NE, 2)
+
+        grad(laplace u)*n : (NQ, NE)
+        """
+        x = p[..., 0]
+        y = p[..., 1]
+
+        grad_laplace = np.zeros(p.shape, dtype=np.float64)  # (NQ, NE, 2)
+        grad_laplace[:, 0] = 2 * pi ** 3 * sin(t) * sin(pi * x) * cos(pi * y)  # (NQ, NE, 2)
+        grad_laplace[:, 1] = 2 * pi ** 3 * sin(t) * sin(pi * y) * cos(pi * x)  # (NQ, NE, 2)
+        val = np.sum(grad_laplace * n, axis=-1)  # (NQ, NE)
+        return val
+
+    @cartesian
+    def source(self, p, t):
+        pass
+
+
+
+
+
+
+
+

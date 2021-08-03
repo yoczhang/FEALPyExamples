@@ -22,9 +22,18 @@ ux = diff(u, x)
 uy = diff(u, y)
 uxx = diff(ux, x)
 uyy = diff(uy, y)
+
+laplace = uxx + uyy
+laplace_x = diff(laplace, x)
+laplace_y = diff(laplace, y)
+
+print('u = ', u)
 print('ut = ', ut)
 print('ux = ', ux)
 print('uxx = ', uxx)
 print('uy = ', uy)
 print('uyy = ', uyy)
+print('laplace = ', laplace)
+print('laplace_x = ', laplace_x)
+print('laplace_y = ', laplace_y)
 

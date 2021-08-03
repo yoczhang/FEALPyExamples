@@ -119,8 +119,6 @@ class FEMNavierStokesModel2d:
                 last_nolinear_val1 = pde.NS_nolinearTerm_1(c_pp, 0)  # (NQ,NC)
             else:
                 # for Dirichlet-face-integration
-                # last_gu_val0 = vspace.grad_value(last_uh0, f_bcs)  # grad_u0: (NQ,NDir,GD)
-                # last_gu_val1 = vspace.grad_value(last_uh1, f_bcs)  # grad_u1: (NQ,NDir,GD)
                 last_gu_val0 = self.uh_grad_value_at_faces(last_uh0, f_bcs, cellidxDir, localidxDir)  # grad_u0: (NQ,NDir,GD)
                 last_gu_val1 = self.uh_grad_value_at_faces(last_uh1, f_bcs, cellidxDir, localidxDir)  # grad_u0: (NQ,NDir,GD)
 
