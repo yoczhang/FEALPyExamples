@@ -23,7 +23,7 @@ from fealpy.mesh import MeshFactory as MF
 from PrintLogger import make_print_to_file
 
 # --- logging --- #
-make_print_to_file(filename='FEMVCNS', path="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
+# make_print_to_file(filename='FEMVCNS', path="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
 
 # --- begin setting --- #
 d = 2  # the dimension

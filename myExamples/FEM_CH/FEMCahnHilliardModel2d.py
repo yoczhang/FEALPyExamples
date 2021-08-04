@@ -62,10 +62,63 @@ class FEMCahnHilliardModel2d:
         val = np.einsum('ik, ijkm->jim', vh[cell2dof[cellidx]], f_gphi)  # (NQ,NE,GD)
         return val
 
-    def grad_free_energy_cell(self, uh, c_bcs):
+    def grad_free_energy_at_faces(self, uh, f_bcs, cellidx, localidx):
+        """
+        1. Compute the grad of free energy at FACE Gauss-integration points (barycentric coordinates).
+        2. In this function, the free energy has NO coefficients.
+        -------
+        :param uh:
+        :param f_bcs: f_bcs.shape: (NQ,(GD-1)+1)
+        :return:
+        """
+
         space = self.space
-        uh_val = space.value(uh, c_bcs)
-        guh_val = space.grad_value(uh, c_bcs)
+        uh_val = space.value(uh, f_bcs)  # (NQ,NE)
+        guh_val = self.uh_grad_value_at_faces(uh, f_bcs, cellidx, localidx)  # (NQ,NE,GD)
+
+        guh_val[..., 0] = 3 * uh_val ** 2 * guh_val[..., 0] - guh_val[..., 0]
+        guh_val[..., 1] = 3 * uh_val ** 2 * guh_val[..., 1] - guh_val[..., 1]
+        return guh_val  # (NQ,NE,2)
+
+    def grad_free_energy_at_cells(self, uh, c_bcs):
+        """
+        1. Compute the grad of free energy at CELL Gauss-integration points (barycentric coordinates).
+        2. In this function, the free energy has NO coefficients.
+        -------
+        :param uh:
+        :param c_bcs: c_bcs.shape: (NQ,GD+1)
+        :return:
+        """
+        space = self.space
+        uh_val = space.value(uh, c_bcs)  # (NQ,NC)
+        guh_val = space.grad_value(uh, c_bcs)  # (NQ,NC,2)
+
+        guh_val[..., 0] = 3 * uh_val ** 2 * guh_val[..., 0] - guh_val[..., 0]
+        guh_val[..., 1] = 3 * uh_val ** 2 * guh_val[..., 1] - guh_val[..., 1]
+        return guh_val  # (NQ,NC,2)
+
+    def get_auxiliary_equation_rhs(self, currt_uh, next_t, idxBdEdge):
+        s, alpha = self.setCoefficient()
+        epslion = self.pde.epslion
+        dt = self.dt
+        space = self.space
+        nBd = self.mesh.face_unit_normal(index=idxBdEdge)  # (NBE,2)
+
+        f_q = self.integralalg.faceintegrator
+        f_bcs, f_ws = f_q.get_quadrature_points_and_weights()  # f_bcs.shape: (NQ,(GD-1)+1)
+        c_q = self.integralalg.cellintegrator
+        c_bcs, c_ws = c_q.get_quadrature_points_and_weights()  # c_bcs.shape: (NQ,GD+1)
+
+        phi_f = space.face_basis(f_bcs)  # (NQ,1,fldof). 实际上这里可以直接用 pspace.basis(f_bcs), 两个函数的代码是相同的
+        phi_c = space.basis(c_bcs)  # (NQ,NC,clodf)
+        gphi_c = space.grad_basis(c_bcs)  # (NQ,NC,cldof,GD)
+
+        # ---
+        
+
+
+
+
 
 
     @timer
