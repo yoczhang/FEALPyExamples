@@ -114,8 +114,8 @@ class CahnHilliardData0:
         y = p[..., 1]
 
         grad_laplace = np.zeros(p.shape, dtype=np.float64)  # (NQ, NE, 2)
-        grad_laplace[:, 0] = 2 * pi ** 3 * sin(t) * sin(pi * x) * cos(pi * y)  # (NQ, NE, 2)
-        grad_laplace[:, 1] = 2 * pi ** 3 * sin(t) * sin(pi * y) * cos(pi * x)  # (NQ, NE, 2)
+        grad_laplace[..., 0] = 2 * pi ** 3 * sin(t) * sin(pi * x) * cos(pi * y)  # (NQ, NE, 2)
+        grad_laplace[..., 1] = 2 * pi ** 3 * sin(t) * sin(pi * y) * cos(pi * x)  # (NQ, NE, 2)
         val = np.sum(grad_laplace * n, axis=-1)  # (NQ, NE)
         return val
 
