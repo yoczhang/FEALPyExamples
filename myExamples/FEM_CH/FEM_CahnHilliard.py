@@ -30,11 +30,11 @@ from PrintLogger import make_print_to_file
 d = 2  # the dimension
 p = 1  # the polynomial order
 n = 2  # the number of refine mesh
-maxit = 4  # the max iteration of the mesh
+maxit = 5  # the max iteration of the mesh
 
 t0 = 0.
-T = 1.
-dt = 1.0e-4
+T = 0.05
+dt = 1.0e-6
 NN = 4
 
 box = [0, 1, 0, 1]

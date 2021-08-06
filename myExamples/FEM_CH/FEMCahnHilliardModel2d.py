@@ -43,7 +43,7 @@ class FEMCahnHilliardModel2d:
 
     def setCoefficient(self, dt_minimum=None):
         pde = self.pde
-        dt_min = self.dt / 100 if dt_minimum is None else dt_minimum
+        dt_min = self.dt if dt_minimum is None else dt_minimum
         m = pde.m
         epsilon = pde.epsilon
 
@@ -53,7 +53,7 @@ class FEMCahnHilliardModel2d:
             return s, alpha
 
         s = np.sqrt(4 * epsilon / (m * dt_min))
-        alpha = 1. / (2 * epsilon) * (-s + np.sqrt(s ** 2 - np.sqrt(4 * epsilon / (m * self.dt))))
+        alpha = 1. / (2 * epsilon) * (-s + np.sqrt(s ** 2 - 4 * epsilon / (m * self.dt)))
         return s, alpha
 
     def uh_grad_value_at_faces(self, vh, f_bcs, cellidx, localidx):
@@ -111,7 +111,7 @@ class FEMCahnHilliardModel2d:
         face2dof = dof.face_to_dof()  # (NE,fldof)
         cell2dof = dof.cell_to_dof()  # (NC,cldof)
 
-        s, alpha = self.setCoefficient()
+        s, alpha = self.setCoefficient(dt_minimum=self.dt)
         m = pde.m
         epsilon = pde.epsilon
         eta = pde.eta
@@ -138,7 +138,9 @@ class FEMCahnHilliardModel2d:
         for nt in range(NT-1):
             currt_t = timemesh[nt]
             next_t = currt_t + dt
-            print('currt_t = ', currt_t)
+
+            if nt % 100 == 0:
+                print('currt_t = %3e' % currt_t)
 
             if currt_t == pde.t0:
                 # the initial value setting
@@ -172,12 +174,15 @@ class FEMCahnHilliardModel2d:
 
             Neumann = pde.neumann(f_pp, next_t, nBd)  # (NQ,NE)
             LaplaceNeumann = pde.laplace_neumann(f_pp, next_t, nBd)  # (NQ,NE)
+            f_val = pde.source(c_pp, next_t, m, epsilon, eta)  # (NQ,NC)
 
             # # get the auxiliary equation Right-hand-side-Vector
             aux_rv = np.zeros((dof.number_of_global_dofs(),), dtype=self.ftype)  # (Ndof,)
+            aux_rv_temp = np.zeros((dof.number_of_global_dofs(),), dtype=self.ftype)
 
             # # aux_rhs_c_0:  -1. / (epsilon * m * dt) * (uh^n,phi)_\Omega
-            aux_rhs_c_0 = -1. / (epsilon * m * dt) * np.einsum('i, ij, ijk, j->jk', c_ws, uh_val, phi_c, cell_measure)  # (NC,cldof)
+            aux_rhs_c_0 = -1. / (epsilon * m) * (1/dt * np.einsum('i, ij, ijk, j->jk', c_ws, uh_val, phi_c, cell_measure) +
+                                                 np.einsum('i, ij, ijk, j->jk', c_ws, f_val, phi_c, cell_measure))  # (NC,cldof)
             # # aux_rhs_c_1: -s / epsilon * (\nabla uh^n, \nabla phi)_\Omega
             aux_rhs_c_1 = -s / epsilon * (
                     np.einsum('i, ij, ijk, j->jk', c_ws, guh_val_c[..., 0], gphi_c[..., 0], cell_measure)
@@ -197,6 +202,7 @@ class FEMCahnHilliardModel2d:
             aux_rhs_f_2 = -1. / epsilon * np.einsum('i, ijk, jk, ijn, j->jn', f_ws, grad_free_energy_f, nBd, phi_f,
                                                     neu_face_measure)  # (Nneu,fldof)
 
+            np.add.at(aux_rv_temp, cell2dof, aux_rhs_c_0)
             np.add.at(aux_rv, cell2dof, aux_rhs_c_0 + aux_rhs_c_1 + aux_rhs_c_2)
             np.add.at(aux_rv, face2dof[idxNeuEdge, :], aux_rhs_f_0 + aux_rhs_f_1 + aux_rhs_f_2)
 
@@ -211,10 +217,10 @@ class FEMCahnHilliardModel2d:
             np.add.at(orig_rv, cell2dof, orig_rhs_c)
             np.add.at(orig_rv, face2dof[idxNeuEdge, :], orig_rhs_f)
             uh[:] = spsolve(sm - alpha * mm, orig_rv)
-            currt_l2err = self.currt_error(uh, next_t)
-            print('max(uh) = ', max(uh))
-            if max(uh[:]) > 1e5:
-                break
+            # currt_l2err = self.currt_error(uh, next_t)
+            # print('max(uh) = ', max(uh))
+            # if max(uh[:]) > 1e5:
+            #     break
 
         l2err = self.currt_error(uh, timemesh[-1])
         return l2err

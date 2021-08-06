@@ -120,8 +120,17 @@ class CahnHilliardData0:
         return val
 
     @cartesian
-    def source(self, p, t):
-        pass
+    def source(self, p, t, m, epsilon, eta):
+        x = p[..., 0]
+        y = p[..., 1]
+
+        val = -m * (-4 * epsilon * pi ** 4 * sin(t) * cos(pi * x) * cos(pi * y) - 2 * epsilon * pi ** 2 * (
+                    sin(t) ** 2 * cos(pi * x) ** 2 * cos(pi * y) ** 2 - 1) * sin(t) * cos(pi * x) * cos(
+            pi * y) / eta ** 2 + 6 * epsilon * pi ** 2 * sin(t) ** 3 * sin(pi * x) ** 2 * cos(pi * x) * cos(
+            pi * y) ** 3 / eta ** 2 + 6 * epsilon * pi ** 2 * sin(t) ** 3 * sin(pi * y) ** 2 * cos(pi * x) ** 3 * cos(
+            pi * y) / eta ** 2 - 4 * epsilon * pi ** 2 * sin(t) ** 3 * cos(pi * x) ** 3 * cos(pi * y) ** 3 / eta ** 2) + cos(
+            t) * cos(pi * x) * cos(pi * y)
+        return val
 
 
 
