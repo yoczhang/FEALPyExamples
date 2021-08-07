@@ -24,7 +24,7 @@ from fealpy.mesh import MeshFactory as MF
 from PrintLogger import make_print_to_file
 
 # --- logging --- #
-# make_print_to_file(filename='FEMVCNS', path="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
+# make_print_to_file(filename='FEM_CH', path="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
 
 # --- begin setting --- #
 d = 2  # the dimension
@@ -33,7 +33,7 @@ n = 2  # the number of refine mesh
 maxit = 5  # the max iteration of the mesh
 
 t0 = 0.
-T = 0.05
+T = 0.01
 dt = 1.0e-6
 NN = 4
 
@@ -53,7 +53,7 @@ print('mesh subdivision = ', NN)
 
 # # error settings
 # errorType = ['$|| u - u_h||_0$', '$||\\nabla u - \\nabla u_h||_0$', '|| p - p_h ||_0']
-errorType = ['$|| u - u_h||_0$']
+errorType = ['$|| u - u_h||_0$', '$||\\nabla u - \\nabla u_h||_0$']
 errorMatrix = np.zeros((len(errorType), maxit), dtype=np.float)
 
 Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs

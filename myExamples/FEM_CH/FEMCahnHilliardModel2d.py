@@ -53,7 +53,7 @@ class FEMCahnHilliardModel2d:
             return s, alpha
 
         s = np.sqrt(4 * epsilon / (m * dt_min))
-        alpha = 1. / (2 * epsilon) * (-s + np.sqrt(s ** 2 - 4 * epsilon / (m * self.dt)))
+        alpha = 1. / (2 * epsilon) * (-s + np.sqrt(abs(s ** 2 - 4 * epsilon / (m * self.dt))))
         return s, alpha
 
     def uh_grad_value_at_faces(self, vh, f_bcs, cellidx, localidx):
@@ -139,7 +139,7 @@ class FEMCahnHilliardModel2d:
             currt_t = timemesh[nt]
             next_t = currt_t + dt
 
-            if nt % 100 == 0:
+            if nt % 500 == 0:
                 print('currt_t = %3e' % currt_t)
 
             if currt_t == pde.t0:
@@ -222,18 +222,22 @@ class FEMCahnHilliardModel2d:
             # if max(uh[:]) > 1e5:
             #     break
 
-        l2err = self.currt_error(uh, timemesh[-1])
-        return l2err
+        l2err, h1err = self.currt_error(uh, timemesh[-1])
+        print('l2err = %3e, h1err = %3e' % (l2err, h1err))
+        return l2err, h1err
 
     def currt_error(self, uh, t):
         pde = self.pde
 
         def currt_solution(p):
             return pde.solution(p, t)
-
         l2err = self.space.integralalg.L2_error(currt_solution, uh)
 
-        return l2err
+        def currt_grad_solution(p):
+            return pde.gradient(p, t)
+        h1err = self.space.integralalg.L2_error(currt_grad_solution, uh.grad_value)
+
+        return l2err, h1err
 
     def set_Dirichlet_edge(self, idxDirEdge=None):
         if idxDirEdge is not None:
