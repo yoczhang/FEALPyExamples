@@ -116,6 +116,11 @@ class FEMCahnHilliardModel2d:
         epsilon = pde.epsilon
         eta = pde.eta
 
+        print('    # ------------ parameters ------------ #')
+        print('    s = %.4e,  alpha = %.4e,  m = %.4e,  epsilon = %.4e,  eta = %.4e' % (s, alpha, m, epsilon, eta))
+        print('    t0 = %.4e,  T = %.4e, dt = %.4e' % (timemesh[0], timemesh[-1], dt))
+        print(' ')
+
         idxNeuEdge = self.set_Neumann_edge()
         nBd = self.mesh.face_unit_normal(index=idxNeuEdge)  # (NBE,2)
         NeuCellIdx = self.mesh.ds.edge2cell[idxNeuEdge, 0]
@@ -135,12 +140,13 @@ class FEMCahnHilliardModel2d:
         gphi_c = space.grad_basis(c_bcs)  # (NQ,NC,cldof,GD)
 
         # # time-looping
+        print('    # ------------ begin the time-looping ------------ #')
         for nt in range(NT-1):
             currt_t = timemesh[nt]
             next_t = currt_t + dt
 
             if nt % 500 == 0:
-                print('currt_t = %3e' % currt_t)
+                print('    currt_t = %.4e' % currt_t)
 
             if currt_t == pde.t0:
                 # the initial value setting
@@ -221,9 +227,11 @@ class FEMCahnHilliardModel2d:
             # print('max(uh) = ', max(uh))
             # if max(uh[:]) > 1e5:
             #     break
+        print('    # ------------ end the time-looping ------------ #\n')
 
         l2err, h1err = self.currt_error(uh, timemesh[-1])
-        print('l2err = %3e, h1err = %3e' % (l2err, h1err))
+        print('    # ------------ the last errors ------------ #')
+        print('    l2err = %.4e, h1err = %.4e' % (l2err, h1err))
         return l2err, h1err
 
     def currt_error(self, uh, t):

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ---
 # @Software: PyCharm
-# @File: FEM_CahnHilliard.py
+# @File: FEM_CahnHilliard_h.py
 # @Author: Yongchao Zhang, Northwest University, Xi'an
 # @E-mail: yoczhang@nwu.edu.cn
 # @Site:
@@ -18,17 +18,18 @@ The ref: 2019 (JCP YangZhiguo) An unconditionally energy-stable scheme based on 
 import numpy as np
 import matplotlib.pyplot as plt
 from CahnHilliard2DData import CahnHilliardData0
-from fealpy.tools.show import showmultirate, show_error_table
 from FEMCahnHilliardModel2d import FEMCahnHilliardModel2d
 from fealpy.mesh import MeshFactory as MF
 from PrintLogger import make_print_to_file
+# from fealpy.tools.show import showmultirate, show_error_table
+from to_show import show_error_table
 
 # --- logging --- #
-# make_print_to_file(filename='FEM_CH', path="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
+make_print_to_file(filename='FEM_CH', setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
 
 # --- begin setting --- #
 d = 2  # the dimension
-p = 1  # the polynomial order
+p = 2  # the polynomial order
 n = 2  # the number of refine mesh
 maxit = 5  # the max iteration of the mesh
 
@@ -46,10 +47,12 @@ pdePars = {'m': 1e-3, 's': 1, 'alpha': 1, 'epsilon': 1e-3, 'eta': 1e-1, 'Constan
 pde.setPDEParameters(pdePars)
 
 # # print some basic info
-print('t0 = %e' % t0)
-print('dt = %e' % dt)
+print('# ------------ the initial parameters ------------ #')
+print('t0 = %.4e' % t0)
+print('dt = %.4e' % dt)
 print('domain box = ', box)
-print('mesh subdivision = ', NN)
+print('the initial-mesh subdivision = ', NN)
+print('# #')
 
 # # error settings
 # errorType = ['$|| u - u_h||_0$', '$||\\nabla u - \\nabla u_h||_0$', '|| p - p_h ||_0']
@@ -60,20 +63,25 @@ Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
 
 # --- start for-loop --- #
 for i in range(maxit):
+    print('# ------------ in the space-mesh circle ------------ #')
     print('i = ', i)
+    print('# -------------------------------------------------- #')
     ch = FEMCahnHilliardModel2d(pde, mesh, p, dt)
-    l2err = ch.CH_Solver()
+    l2err, h1err = ch.CH_Solver()
     # sol = ns.solve_by_Newton_iteration()
     Ndof[i] = ch.space.number_of_global_dofs()  # get the number of dofs
     errorMatrix[0, i] = l2err  # get the velocity L2 error
+    errorMatrix[1, i] = h1err  # get the velocity L2 error
     if i < maxit - 1:
         mesh.uniform_refine()
 
 
 # --- get the convergence rate --- #
-# # show the error table
+print('# ------------ the error-table ------------ #')
 show_error_table(Ndof, errorType, errorMatrix)
 
 # # plot the rate
 # showmultirate(plt, 0, Ndof, errorMatrix, errorType)
 # plt.show()
+
+print('# ------------ end of the file ------------ #')

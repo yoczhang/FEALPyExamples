@@ -34,13 +34,13 @@ def create_detail_day():
     return detail_time
 
 
-def make_print_to_file(filename="Default.log", path='./'):
-    '''
-     example:
-    use  make_print_to_file() ,  and the   all the information of funtion print , will be write in to a log file
+def make_print_to_file(filename="Default.log", setpath='./'):
+    """
+    example:
+    use  make_print_to_file(),  and the   all the information of funtion print , will be write in to a log file
     :param path:  the path to save print information
     :return:
-    '''
+    """
 
     class Logger:
         def __init__(self, filename="Default.log", path="./"):
@@ -55,18 +55,20 @@ def make_print_to_file(filename="Default.log", path='./'):
         def flush(self):
             pass
 
-    sys.stdout = Logger(filename=filename + '-' + create_detail_day() + '.log', path=path)
+    path = os.path.abspath(os.path.dirname(__file__))
+    type = sys.getfilesystemencoding()
+    sys.stdout = Logger(filename=filename + '-' + create_detail_day() + '.log', path=setpath)
 
     # print(create_detail_time().center(60, '*'))
 
 
 # # --- to test --- # #
-if __name__ == '__main__':
-    make_print_to_file(filename='lala', path="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
-
-    print('explanation'.center(80, '*'))
-    info1 = '从大到小排序'
-    info2 = ' sort the form large to small'
-    print(info1)
-    print(info2)
-    print('END:  explanation'.center(80, '*'))
+# if __name__ == '__main__':
+#     make_print_to_file(filename='lala', path="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
+#
+#     print('explanation'.center(80, '*'))
+#     info1 = '从大到小排序'
+#     info2 = ' sort the form large to small'
+#     print(info1)
+#     print(info2)
+#     print('END:  explanation'.center(80, '*'))

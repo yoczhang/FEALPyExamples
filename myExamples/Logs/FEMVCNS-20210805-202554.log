@@ -1,9 +1,0 @@
-run boxmesh2d with time: 0.0074441330000001305
-t0 = 0.000000e+00
-dt = 1.000000e-03
-domain box =  [0, 1, 0, 1]
-mesh subdivision =  64
-Backend MacOSX is interactive backend. Turning interactive mode on.
-PyDev console: starting.
-
-(1, 1)
