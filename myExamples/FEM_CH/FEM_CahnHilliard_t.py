@@ -35,8 +35,8 @@ maxit = 5  # the max iteration of the mesh
 
 t0 = 0.
 T = 0.01
-dt = 1.0e-6
-NN = 4
+dt = 1e-1
+NN = 64
 
 box = [0, 1, 0, 1]
 mesh = MF.boxmesh2d(box, nx=NN, ny=NN, meshtype='tri')
@@ -59,26 +59,26 @@ print('# #')
 errorType = ['$|| u - u_h||_0$', '$||\\nabla u - \\nabla u_h||_0$']
 errorMatrix = np.zeros((len(errorType), maxit), dtype=np.float)
 
-Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
+Ndt = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
 
 # --- start for-loop --- #
 for i in range(maxit):
-    print('# ------------ in the space-mesh circle ------------ #')
+    print('# ------------ in the time-mesh circle ------------ #')
     print('i = ', i)
     print('# -------------------------------------------------- #')
     ch = FEMCahnHilliardModel2d(pde, mesh, p, dt)
     l2err, h1err = ch.CH_Solver()
     # sol = ns.solve_by_Newton_iteration()
-    Ndof[i] = ch.space.number_of_global_dofs()  # get the number of dofs
+    Ndt[i] = dt
     errorMatrix[0, i] = l2err  # get the velocity L2 error
     errorMatrix[1, i] = h1err  # get the velocity L2 error
     if i < maxit - 1:
-        mesh.uniform_refine()
+        dt = dt / 2
 
 
 # --- get the convergence rate --- #
 print('# ------------ the error-table ------------ #')
-show_error_table(Ndof, errorType, errorMatrix)
+show_error_table(Ndt, errorType, errorMatrix)
 
 # # plot the rate
 # showmultirate(plt, 0, Ndof, errorMatrix, errorType)
