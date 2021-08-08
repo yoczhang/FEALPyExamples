@@ -50,7 +50,8 @@ pde = CahnHilliardData0(t0, T)  # create pde model
 pde.setPDEParameters(pdePars)
 
 # # print some basic info
-print('# ------------ the initial parameters ------------ #')
+print('\n# ------------ the initial parameters ------------ #')
+print('p = ', p)
 print('t0 = %.4e' % t0)
 print('dt_space = ', dt_space)
 print('domain box = ', box)
