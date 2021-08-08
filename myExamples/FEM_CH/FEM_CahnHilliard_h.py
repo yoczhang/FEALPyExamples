@@ -43,7 +43,7 @@ mesh = MF.boxmesh2d(box, nx=NN, ny=NN, meshtype='tri')
 
 pde = CahnHilliardData0(t0, T)  # create pde model
 
-pdePars = {'m': 1e-3, 's': 1, 'alpha': 1, 'epsilon': 1e-3, 'eta': 1e-1, 'ConstantCoefficient': False}  # value of parameters
+pdePars = {'m': 1e-3, 's': 1, 'alpha': 1, 'epsilon': 1e-3, 'eta': 1e-1}  # value of parameters
 pde.setPDEParameters(pdePars)
 
 # # print some basic info
@@ -67,7 +67,7 @@ for i in range(maxit):
     print('i = ', i)
     print('# -------------------------------------------------- #')
     ch = FEMCahnHilliardModel2d(pde, mesh, p, dt)
-    l2err, h1err = ch.CH_Solver()
+    l2err, h1err = ch.CH_Solver_T1stOrder()
     # sol = ns.solve_by_Newton_iteration()
     Ndof[i] = ch.space.number_of_global_dofs()  # get the number of dofs
     errorMatrix[0, i] = l2err  # get the velocity L2 error

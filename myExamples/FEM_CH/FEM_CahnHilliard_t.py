@@ -25,7 +25,7 @@ from PrintLogger import make_print_to_file
 from to_show import show_error_table
 
 # --- logging --- #
-make_print_to_file(filename='FEM_CH', setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
+make_print_to_file(filename='FEM_CH_t', setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
 
 # --- begin setting --- #
 d = 2  # the dimension
@@ -34,22 +34,25 @@ n = 2  # the number of refine mesh
 maxit = 5  # the max iteration of the mesh
 
 t0 = 0.
-T = 0.01
-dt = 1e-1
-NN = 64
-
+T = 1
+NN = 128
 box = [0, 1, 0, 1]
 mesh = MF.boxmesh2d(box, nx=NN, ny=NN, meshtype='tri')
 
-pde = CahnHilliardData0(t0, T)  # create pde model
+start = 0  # (1/2)^0
+stop = 4  # (1/2)^4
+N_T = stop - start + 1
+dt_space = 1e-1 * np.logspace(start, stop, N_T, base=1/2)
+dt_min = min(dt_space)
 
-pdePars = {'m': 1e-3, 's': 1, 'alpha': 1, 'epsilon': 1e-3, 'eta': 1e-1, 'ConstantCoefficient': False}  # value of parameters
+pdePars = {'m': 1e-3, 's': 1, 'alpha': 1, 'epsilon': 1e-3, 'eta': 1e-1, 'dt_min': dt_min}  # value of parameters
+pde = CahnHilliardData0(t0, T)  # create pde model
 pde.setPDEParameters(pdePars)
 
 # # print some basic info
 print('# ------------ the initial parameters ------------ #')
 print('t0 = %.4e' % t0)
-print('dt = %.4e' % dt)
+print('dt_space = ', dt_space)
 print('domain box = ', box)
 print('the initial-mesh subdivision = ', NN)
 print('# #')
@@ -59,26 +62,20 @@ print('# #')
 errorType = ['$|| u - u_h||_0$', '$||\\nabla u - \\nabla u_h||_0$']
 errorMatrix = np.zeros((len(errorType), maxit), dtype=np.float)
 
-Ndt = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
-
 # --- start for-loop --- #
-for i in range(maxit):
+for i in range(N_T):
     print('# ------------ in the time-mesh circle ------------ #')
     print('i = ', i)
-    print('# -------------------------------------------------- #')
-    ch = FEMCahnHilliardModel2d(pde, mesh, p, dt)
-    l2err, h1err = ch.CH_Solver()
-    # sol = ns.solve_by_Newton_iteration()
-    Ndt[i] = dt
+    print('# -------------------------------------------------- #\n')
+    ch = FEMCahnHilliardModel2d(pde, mesh, p, dt_space[i])
+    # l2err, h1err = ch.CH_Solver_T1stOrder()
+    l2err, h1err = ch.CH_Solver_T2ndOrder()
     errorMatrix[0, i] = l2err  # get the velocity L2 error
     errorMatrix[1, i] = h1err  # get the velocity L2 error
-    if i < maxit - 1:
-        dt = dt / 2
-
 
 # --- get the convergence rate --- #
 print('# ------------ the error-table ------------ #')
-show_error_table(Ndt, errorType, errorMatrix)
+show_error_table(dt_space, errorType, errorMatrix)
 
 # # plot the rate
 # showmultirate(plt, 0, Ndof, errorMatrix, errorType)
