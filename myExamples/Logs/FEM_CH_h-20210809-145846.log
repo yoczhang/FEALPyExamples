@@ -1,0 +1,159 @@
+run boxmesh2d with time: 0.00028497599999999235
+# ------------ the initial parameters ------------ #
+p =  2
+t0 = 0.0000e+00
+dt = 1.0000e-05
+domain box =  [0, 1, 0, 1]
+the initial-mesh subdivision =  4
+# #
+# ------------ in the space-mesh circle ------------ #
+i =  0
+# -------------------------------------------------- #
+run serial_construct_matrix with time: 0.0016786509999999755
+run serial_construct_matrix with time: 0.0005295319999999992
+    # #################################### #
+      Time 2nd-order scheme
+    # #################################### #
+    # ------------ parameters ------------ #
+    s = 7.7460e+02,  alpha = -3.8730e+05,  m = 1.0000e-03,  epsilon = 1.0000e-03,  eta = 1.0000e-01
+    t0 = 0.0000e+00,  T = 1.0000e-02, dt = 1.0000e-05
+ 
+    # ------------ begin the time-looping ------------ #
+    currt_t = 0.0000e+00
+    currt_t = 1.0000e-03
+    currt_t = 2.0000e-03
+    currt_t = 3.0000e-03
+    currt_t = 4.0000e-03
+    currt_t = 5.0000e-03
+    currt_t = 6.0000e-03
+    currt_t = 7.0000e-03
+    currt_t = 8.0000e-03
+    currt_t = 9.0000e-03
+    # ------------ end the time-looping ------------ #
+
+    # ------------ the last errors ------------ #
+    l2err = 4.9328e-05, h1err = 1.4104e-03
+# ------------ in the space-mesh circle ------------ #
+i =  1
+# -------------------------------------------------- #
+run serial_construct_matrix with time: 0.004008295999999412
+run serial_construct_matrix with time: 0.0007765280000002761
+    # #################################### #
+      Time 2nd-order scheme
+    # #################################### #
+    # ------------ parameters ------------ #
+    s = 7.7460e+02,  alpha = -3.8730e+05,  m = 1.0000e-03,  epsilon = 1.0000e-03,  eta = 1.0000e-01
+    t0 = 0.0000e+00,  T = 1.0000e-02, dt = 1.0000e-05
+ 
+    # ------------ begin the time-looping ------------ #
+    currt_t = 0.0000e+00
+    currt_t = 1.0000e-03
+    currt_t = 2.0000e-03
+    currt_t = 3.0000e-03
+    currt_t = 4.0000e-03
+    currt_t = 5.0000e-03
+    currt_t = 6.0000e-03
+    currt_t = 7.0000e-03
+    currt_t = 8.0000e-03
+    currt_t = 9.0000e-03
+    # ------------ end the time-looping ------------ #
+
+    # ------------ the last errors ------------ #
+    l2err = 6.8869e-06, h1err = 3.6735e-04
+# ------------ in the space-mesh circle ------------ #
+i =  2
+# -------------------------------------------------- #
+run serial_construct_matrix with time: 0.014204139000000282
+run serial_construct_matrix with time: 0.0019472979999992646
+    # #################################### #
+      Time 2nd-order scheme
+    # #################################### #
+    # ------------ parameters ------------ #
+    s = 7.7460e+02,  alpha = -3.8730e+05,  m = 1.0000e-03,  epsilon = 1.0000e-03,  eta = 1.0000e-01
+    t0 = 0.0000e+00,  T = 1.0000e-02, dt = 1.0000e-05
+ 
+    # ------------ begin the time-looping ------------ #
+    currt_t = 0.0000e+00
+    currt_t = 1.0000e-03
+    currt_t = 2.0000e-03
+    currt_t = 3.0000e-03
+    currt_t = 4.0000e-03
+    currt_t = 5.0000e-03
+    currt_t = 6.0000e-03
+    currt_t = 7.0000e-03
+    currt_t = 8.0000e-03
+    currt_t = 9.0000e-03
+    # ------------ end the time-looping ------------ #
+
+    # ------------ the last errors ------------ #
+    l2err = 8.5610e-07, h1err = 9.1014e-05
+# ------------ in the space-mesh circle ------------ #
+i =  3
+# -------------------------------------------------- #
+run serial_construct_matrix with time: 0.055359263999996244
+run serial_construct_matrix with time: 0.006512006999997766
+    # #################################### #
+      Time 2nd-order scheme
+    # #################################### #
+    # ------------ parameters ------------ #
+    s = 7.7460e+02,  alpha = -3.8730e+05,  m = 1.0000e-03,  epsilon = 1.0000e-03,  eta = 1.0000e-01
+    t0 = 0.0000e+00,  T = 1.0000e-02, dt = 1.0000e-05
+ 
+    # ------------ begin the time-looping ------------ #
+    currt_t = 0.0000e+00
+    currt_t = 1.0000e-03
+    currt_t = 2.0000e-03
+    currt_t = 3.0000e-03
+    currt_t = 4.0000e-03
+    currt_t = 5.0000e-03
+    currt_t = 6.0000e-03
+    currt_t = 7.0000e-03
+    currt_t = 8.0000e-03
+    currt_t = 9.0000e-03
+    # ------------ end the time-looping ------------ #
+
+    # ------------ the last errors ------------ #
+    l2err = 1.2589e-07, h1err = 2.1932e-05
+# ------------ in the space-mesh circle ------------ #
+i =  4
+# -------------------------------------------------- #
+run serial_construct_matrix with time: 0.222370858000005
+run serial_construct_matrix with time: 0.02602526100000091
+    # #################################### #
+      Time 2nd-order scheme
+    # #################################### #
+    # ------------ parameters ------------ #
+    s = 7.7460e+02,  alpha = -3.8730e+05,  m = 1.0000e-03,  epsilon = 1.0000e-03,  eta = 1.0000e-01
+    t0 = 0.0000e+00,  T = 1.0000e-02, dt = 1.0000e-05
+ 
+    # ------------ begin the time-looping ------------ #
+    currt_t = 0.0000e+00
+    currt_t = 1.0000e-03
+    currt_t = 2.0000e-03
+    currt_t = 3.0000e-03
+    currt_t = 4.0000e-03
+    currt_t = 5.0000e-03
+    currt_t = 6.0000e-03
+    currt_t = 7.0000e-03
+    currt_t = 8.0000e-03
+    currt_t = 9.0000e-03
+    # ------------ end the time-looping ------------ #
+
+    # ------------ the last errors ------------ #
+    l2err = 4.4649e-08, h1err = 6.0677e-06
+# ------------ the error-table ------------ #
+\begin{table}[!htdp]
+\begin{tabular}[c]{|c|c|c|c|c|c|}\hline
+Dof &    81 &   289 &  1089 &  4225 & 16641
+\\\hline
+$|| u - u_h||_0$ & 4.9328e-05 & 6.8869e-06 & 8.5610e-07 & 1.2589e-07 & 4.4649e-08
+\\\hline
+Order & -- & 2.84 & 3.01 & 2.77 & 1.5 
+\\\hline
+$||\nabla u - \nabla u_h||_0$ & 1.4104e-03 & 3.6735e-04 & 9.1014e-05 & 2.1932e-05 & 6.0677e-06
+\\\hline
+Order & -- & 1.94 & 2.01 & 2.05 & 1.85
+\\\hline
+\end{tabular}
+\end{table}
+# ------------ end of the file ------------ #

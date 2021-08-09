@@ -25,7 +25,7 @@ from PrintLogger import make_print_to_file
 from to_show import show_error_table
 
 # --- logging --- #
-make_print_to_file(filename='FEM_CH', setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
+make_print_to_file(filename='FEM_CH_h', setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
 
 # --- begin setting --- #
 d = 2  # the dimension
@@ -48,6 +48,7 @@ pde.setPDEParameters(pdePars)
 
 # # print some basic info
 print('# ------------ the initial parameters ------------ #')
+print('p = ', p)
 print('t0 = %.4e' % t0)
 print('dt = %.4e' % dt)
 print('domain box = ', box)
@@ -67,8 +68,8 @@ for i in range(maxit):
     print('i = ', i)
     print('# -------------------------------------------------- #')
     ch = FEMCahnHilliardModel2d(pde, mesh, p, dt)
-    l2err, h1err = ch.CH_Solver_T1stOrder()
-    # sol = ns.solve_by_Newton_iteration()
+    # l2err, h1err = ch.CH_Solver_T1stOrder()
+    l2err, h1err = ch.CH_Solver_T2ndOrder()
     Ndof[i] = ch.space.number_of_global_dofs()  # get the number of dofs
     errorMatrix[0, i] = l2err  # get the velocity L2 error
     errorMatrix[1, i] = h1err  # get the velocity L2 error

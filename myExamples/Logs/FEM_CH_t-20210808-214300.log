@@ -1,7 +1,7 @@
-run boxmesh2d with time: 0.03385907300000002
+run boxmesh2d with time: 0.03462177400000005
 
 # ------------ the initial parameters ------------ #
-p = 2
+p =  3
 t0 = 0.0000e+00
 dt_space =  [0.1     0.05    0.025   0.0125  0.00625]
 domain box =  [0, 1, 0, 1]
@@ -11,8 +11,8 @@ the initial-mesh subdivision =  128
 i =  0
 # -------------------------------------------------- #
 
-run serial_construct_matrix with time: 0.9169573000000001
-run serial_construct_matrix with time: 0.11407988400000013
+run serial_construct_matrix with time: 2.250221506
+run serial_construct_matrix with time: 0.2457353160000002
     # #################################### #
       Time 2nd-order scheme
     # #################################### #
@@ -34,13 +34,13 @@ run serial_construct_matrix with time: 0.11407988400000013
     # ------------ end the time-looping ------------ #
 
     # ------------ the last errors ------------ #
-    l2err = 4.0167e-03, h1err = 1.7849e-02
+    l2err = 4.0163e-03, h1err = 1.7844e-02
 # ------------ in the time-mesh circle ------------ #
 i =  1
 # -------------------------------------------------- #
 
-run serial_construct_matrix with time: 0.8762640879999992
-run serial_construct_matrix with time: 0.10020522700000356
+run serial_construct_matrix with time: 2.093344695999974
+run serial_construct_matrix with time: 0.21390877100000694
     # #################################### #
       Time 2nd-order scheme
     # #################################### #
@@ -62,13 +62,13 @@ run serial_construct_matrix with time: 0.10020522700000356
     # ------------ end the time-looping ------------ #
 
     # ------------ the last errors ------------ #
-    l2err = 9.7384e-04, h1err = 4.3455e-03
+    l2err = 9.7329e-04, h1err = 4.3242e-03
 # ------------ in the time-mesh circle ------------ #
 i =  2
 # -------------------------------------------------- #
 
-run serial_construct_matrix with time: 0.876993605999985
-run serial_construct_matrix with time: 0.09853270900001121
+run serial_construct_matrix with time: 2.1130508760000453
+run serial_construct_matrix with time: 0.21629917699999623
     # #################################### #
       Time 2nd-order scheme
     # #################################### #
@@ -90,13 +90,13 @@ run serial_construct_matrix with time: 0.09853270900001121
     # ------------ end the time-looping ------------ #
 
     # ------------ the last errors ------------ #
-    l2err = 2.4023e-04, h1err = 1.1458e-03
+    l2err = 2.3914e-04, h1err = 1.0625e-03
 # ------------ in the time-mesh circle ------------ #
 i =  3
 # -------------------------------------------------- #
 
-run serial_construct_matrix with time: 0.8803190499999687
-run serial_construct_matrix with time: 0.0998910910000177
+run serial_construct_matrix with time: 2.0971085390001463
+run serial_construct_matrix with time: 0.2175967270000001
     # #################################### #
       Time 2nd-order scheme
     # #################################### #
@@ -118,13 +118,13 @@ run serial_construct_matrix with time: 0.0998910910000177
     # ------------ end the time-looping ------------ #
 
     # ------------ the last errors ------------ #
-    l2err = 6.2363e-05, h1err = 5.0304e-04
+    l2err = 5.9224e-05, h1err = 2.6313e-04
 # ------------ in the time-mesh circle ------------ #
 i =  4
 # -------------------------------------------------- #
 
-run serial_construct_matrix with time: 0.8744157999999516
-run serial_construct_matrix with time: 0.0996241090000467
+run serial_construct_matrix with time: 2.0954008530002284
+run serial_construct_matrix with time: 0.21197626100001798
     # #################################### #
       Time 2nd-order scheme
     # #################################### #
@@ -146,19 +146,19 @@ run serial_construct_matrix with time: 0.0996241090000467
     # ------------ end the time-looping ------------ #
 
     # ------------ the last errors ------------ #
-    l2err = 2.3747e-05, h1err = 4.3361e-04
+    l2err = 1.4711e-05, h1err = 6.5372e-05
 # ------------ the error-table ------------ #
 \begin{table}[!htdp]
 \begin{tabular}[c]{|c|c|c|c|c|c|}\hline
 Dof & 0.1     & 0.05    & 0.025   & 0.0125  & 0.00625
 \\\hline
-$|| u - u_h||_0$ & 4.0167e-03 & 9.7384e-04 & 2.4023e-04 & 6.2363e-05 & 2.3747e-05
+$|| u - u_h||_0$ & 4.0163e-03 & 9.7329e-04 & 2.3914e-04 & 5.9224e-05 & 1.4711e-05
 \\\hline
-Order & -- & 2.04 & 2.02 & 1.95 & 1.39
+Order & -- & 2.04 & 2.02 & 2.01 & 2.01
 \\\hline
-$||\nabla u - \nabla u_h||_0$ & 1.7849e-02 & 4.3455e-03 & 1.1458e-03 & 5.0304e-04 & 4.3361e-04
+$||\nabla u - \nabla u_h||_0$ & 1.7844e-02 & 4.3242e-03 & 1.0625e-03 & 2.6313e-04 & 6.5372e-05
 \\\hline
-Order & -- & 2.04 & 1.92 & 1.19 & 0.21
+Order & -- & 2.04 & 2.02 & 2.01 & 2.01
 \\\hline
 \end{tabular}
 \end{table}

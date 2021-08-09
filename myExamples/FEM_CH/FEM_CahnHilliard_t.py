@@ -29,13 +29,13 @@ make_print_to_file(filename='FEM_CH_t', setpath="/Users/yczhang/Documents/FEALPy
 
 # --- begin setting --- #
 d = 2  # the dimension
-p = 2  # the polynomial order
+p = 3  # the polynomial order
 n = 2  # the number of refine mesh
 maxit = 5  # the max iteration of the mesh
 
 t0 = 0.
 T = 1
-NN = 128
+NN = 64
 box = [0, 1, 0, 1]
 mesh = MF.boxmesh2d(box, nx=NN, ny=NN, meshtype='tri')
 
