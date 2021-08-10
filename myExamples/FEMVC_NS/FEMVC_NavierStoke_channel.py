@@ -68,7 +68,6 @@ for i in range(maxit):
     # ns.set_velocity_inflow_dof()
     uh0, uh1, ph = ns.NS_VC_Solver()
 
-
     # sol = ns.solve_by_Newton_iteration()
     # Ndof[i] = ns.space.number_of_global_dofs()  # get the number of dofs
     # errorMatrix[0, i] = ns.velocity_L2_error()  # get the velocity L2 error
@@ -85,8 +84,7 @@ uh_[:] = np.sqrt(uh0 ** 2 + uh1 ** 2)
 ph_ = ns.pspace.function()
 ph_[:] = ph
 
-
-
+# plot the results
 fig = plt.figure()
 axes = fig.gca(projection='3d')
 uh_.add_plot(axes, cmap='rainbow')

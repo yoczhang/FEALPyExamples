@@ -155,9 +155,8 @@ class FEMCahnHilliardModel2d:
             currt_t = timemesh[nt]
             next_t = currt_t + dt
 
-            if nt % int(NT/10) == 0:
+            if nt % max([int(NT / 10), 1]) == 0:
                 print('    currt_t = %.4e' % currt_t)
-
             if nt == 0:
                 # the initial value setting
                 u_c = pde.solution(c_pp, pde.t0)  # (NQC,NC)
@@ -188,13 +187,25 @@ class FEMCahnHilliardModel2d:
                 guh_val_c = space.grad_value(uh, c_bcs)  # (NQ,NC,2)
                 guh_val_f = self.uh_grad_value_at_faces(uh, f_bcs, NeuCellIdx, NeuLocalIdx)  # (NQ,NE,2)
 
+            # # # ---------------------------------------- yc test --------------------------------------------------- # #
+            # if nt == 0:
+            #     def init_solution(p):
+            #         return pde.solution(p, 0)
+            #     uh[:] = space.interpolation(init_solution)
+            # grad_free_energy_c = epsilon / eta ** 2 * self.grad_free_energy_at_cells(uh, c_bcs)  # (NQ,NC,2)
+            # grad_free_energy_f = epsilon / eta ** 2 * self.grad_free_energy_at_faces(uh, f_bcs, idxNeuEdge, NeuCellIdx,
+            #                                                                          NeuLocalIdx)  # (NQ,NE,2)
+            # uh_val = space.value(uh, c_bcs)  # (NQ,NC)
+            # guh_val_c = space.grad_value(uh, c_bcs)  # (NQ,NC,2)
+            # guh_val_f = self.uh_grad_value_at_faces(uh, f_bcs, NeuCellIdx, NeuLocalIdx)  # (NQ,NE,2)
+            # # # --------------------------------------- end test ---------------------------------------------------- # #
+
             Neumann = pde.neumann(f_pp, next_t, nBd)  # (NQ,NE)
             LaplaceNeumann = pde.laplace_neumann(f_pp, next_t, nBd)  # (NQ,NE)
             f_val = pde.source(c_pp, next_t, m, epsilon, eta)  # (NQ,NC)
 
             # # get the auxiliary equation Right-hand-side-Vector
             aux_rv = np.zeros((dof.number_of_global_dofs(),), dtype=self.ftype)  # (Ndof,)
-            aux_rv_temp = np.zeros((dof.number_of_global_dofs(),), dtype=self.ftype)
 
             # # aux_rhs_c_0:  -1. / (epsilon * m * dt) * (uh^n,phi)_\Omega
             aux_rhs_c_0 = -1. / (epsilon * m) * (1/dt * np.einsum('i, ij, ijk, j->jk', c_ws, uh_val, phi_c, cell_measure) +
@@ -218,7 +229,6 @@ class FEMCahnHilliardModel2d:
             aux_rhs_f_2 = -1. / epsilon * np.einsum('i, ijk, jk, ijn, j->jn', f_ws, grad_free_energy_f, nBd, phi_f,
                                                     neu_face_measure)  # (Nneu,fldof)
 
-            np.add.at(aux_rv_temp, cell2dof, aux_rhs_c_0)
             np.add.at(aux_rv, cell2dof, aux_rhs_c_0 + aux_rhs_c_1 + aux_rhs_c_2)
             np.add.at(aux_rv, face2dof[idxNeuEdge, :], aux_rhs_f_0 + aux_rhs_f_1 + aux_rhs_f_2)
 
@@ -301,7 +311,7 @@ class FEMCahnHilliardModel2d:
         for nt in range(NT-1):
             currt_t = timemesh[nt]
             next_t = currt_t + dt
-            if nt % int(NT/10) == 0:
+            if nt % max([int(NT/10), 1]) == 0:
                 print('    currt_t = %.4e' % currt_t)
             if nt == 0:
                 # the initial value setting

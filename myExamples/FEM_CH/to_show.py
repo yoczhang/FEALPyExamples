@@ -14,13 +14,19 @@ import numpy as np
 from types import ModuleType
 
 
-def show_error_table(N, errorType, errorMatrix, f='e', pre=4, sep=' & '):
+def show_error_table(N, errorType, errorMatrix, f='e', pre=4, sep=' & ', table_scheme='h', GD=2):
 
     n = errorMatrix.shape[1] + 1
     print('\\begin{table}[!htdp]')
     print('\\begin{tabular}[c]{|' + n * 'c|' + '}\hline')
 
-    s = 'Dof' + sep + np.array2string(N, separator=sep,)
+    if table_scheme == 'h':
+        s = 'Dof' + sep + np.array2string(N, separator=sep,)
+        hh = N ** (-1. / GD)
+    else:
+        hh = np.logspace(0, len(N)-1, len(N), base=2)[::-1]
+        s = 'dt' + sep + np.array2string(N, separator=sep, )
+
     s = s.replace('\n', '')
     s = s.replace('[', '')
     s = s.replace(']', '')
@@ -41,7 +47,7 @@ def show_error_table(N, errorType, errorMatrix, f='e', pre=4, sep=' & '):
         print(s)
         print('\\\\\\hline')
 
-        order = np.log(line[0:-1] / line[1:]) / np.log(2)
+        order = np.log(line[0:-1] / line[1:]) / np.log(hh[0:-1] / hh[1:])
         s = 'Order' + sep + '--' + sep + np.array2string(order,
                                                          separator=sep, precision=2)
         s = s.replace('\n', '')

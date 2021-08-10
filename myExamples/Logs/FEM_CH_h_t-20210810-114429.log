@@ -1,0 +1,174 @@
+
+# ------------ the initial parameters ------------ #
+p =  2
+t0 = 0.0000e+00
+dt_space =  [0.1     0.05    0.025   0.0125  0.00625]
+h_space =  [0.31622777 0.2236068  0.15811388 0.1118034  0.07905694]
+domain box =  [0, 1, 0, 1]
+# #
+# ------------ in the time-mesh circle ------------ #
+i =  0
+# -------------------------------------------------- #
+
+run boxmesh2d with time: 0.000263369999999985
+run serial_construct_matrix with time: 0.0017173299999999614
+run serial_construct_matrix with time: 0.0005543860000000178
+    # #################################### #
+      Time 1st-order scheme
+    # #################################### #
+    # ------------ parameters ------------ #
+    s = 2.5298e+01,  alpha = -4.0166e+02,  m = 1.0000e-03,  epsilon = 1.0000e-03,  eta = 1.0000e-01
+    t0 = 0.0000e+00,  T = 1.0000e+00, dt = 1.0000e-01
+ 
+    # ------------ begin the time-looping ------------ #
+    currt_t = 0.0000e+00
+    currt_t = 1.0000e-01
+    currt_t = 2.0000e-01
+    currt_t = 3.0000e-01
+    currt_t = 4.0000e-01
+    currt_t = 5.0000e-01
+    currt_t = 6.0000e-01
+    currt_t = 7.0000e-01
+    currt_t = 8.0000e-01
+    currt_t = 9.0000e-01
+    # ------------ end the time-looping ------------ #
+
+    # ------------ the last errors ------------ #
+    l2err = 3.3703e-02, h1err = 1.8589e-01
+run CH_Solver_T1stOrder with time: 0.04411275499999989
+# ------------ in the time-mesh circle ------------ #
+i =  1
+# -------------------------------------------------- #
+
+run boxmesh2d with time: 0.00018790099999999033
+run serial_construct_matrix with time: 0.0019084500000000615
+run serial_construct_matrix with time: 0.0005645669999999603
+    # #################################### #
+      Time 1st-order scheme
+    # #################################### #
+    # ------------ parameters ------------ #
+    s = 2.5298e+01,  alpha = -8.1695e+02,  m = 1.0000e-03,  epsilon = 1.0000e-03,  eta = 1.0000e-01
+    t0 = 0.0000e+00,  T = 1.0000e+00, dt = 5.0000e-02
+ 
+    # ------------ begin the time-looping ------------ #
+    currt_t = 0.0000e+00
+    currt_t = 1.0000e-01
+    currt_t = 2.0000e-01
+    currt_t = 3.0000e-01
+    currt_t = 4.0000e-01
+    currt_t = 5.0000e-01
+    currt_t = 6.0000e-01
+    currt_t = 7.0000e-01
+    currt_t = 8.0000e-01
+    currt_t = 9.0000e-01
+    # ------------ end the time-looping ------------ #
+
+    # ------------ the last errors ------------ #
+    l2err = 1.6977e-02, h1err = 1.0688e-01
+run CH_Solver_T1stOrder with time: 0.10793557199999992
+# ------------ in the time-mesh circle ------------ #
+i =  2
+# -------------------------------------------------- #
+
+run boxmesh2d with time: 0.000225028000000016
+run serial_construct_matrix with time: 0.0031529949999999918
+run serial_construct_matrix with time: 0.0006717219999999857
+    # #################################### #
+      Time 1st-order scheme
+    # #################################### #
+    # ------------ parameters ------------ #
+    s = 2.5298e+01,  alpha = -1.6947e+03,  m = 1.0000e-03,  epsilon = 1.0000e-03,  eta = 1.0000e-01
+    t0 = 0.0000e+00,  T = 1.0000e+00, dt = 2.5000e-02
+ 
+    # ------------ begin the time-looping ------------ #
+    currt_t = 0.0000e+00
+    currt_t = 1.0000e-01
+    currt_t = 2.0000e-01
+    currt_t = 3.0000e-01
+    currt_t = 4.0000e-01
+    currt_t = 5.0000e-01
+    currt_t = 6.0000e-01
+    currt_t = 7.0000e-01
+    currt_t = 8.0000e-01
+    currt_t = 9.0000e-01
+    # ------------ end the time-looping ------------ #
+
+    # ------------ the last errors ------------ #
+    l2err = 8.3543e-03, h1err = 5.4094e-02
+run CH_Solver_T1stOrder with time: 0.34237002699999985
+# ------------ in the time-mesh circle ------------ #
+i =  3
+# -------------------------------------------------- #
+
+run boxmesh2d with time: 0.00028723200000002613
+run serial_construct_matrix with time: 0.004912225999999853
+run serial_construct_matrix with time: 0.0008801379999998638
+    # #################################### #
+      Time 1st-order scheme
+    # #################################### #
+    # ------------ parameters ------------ #
+    s = 2.5298e+01,  alpha = -3.7048e+03,  m = 1.0000e-03,  epsilon = 1.0000e-03,  eta = 1.0000e-01
+    t0 = 0.0000e+00,  T = 1.0000e+00, dt = 1.2500e-02
+ 
+    # ------------ begin the time-looping ------------ #
+    currt_t = 0.0000e+00
+    currt_t = 1.0000e-01
+    currt_t = 2.0000e-01
+    currt_t = 3.0000e-01
+    currt_t = 4.0000e-01
+    currt_t = 5.0000e-01
+    currt_t = 6.0000e-01
+    currt_t = 7.0000e-01
+    currt_t = 8.0000e-01
+    currt_t = 9.0000e-01
+    # ------------ end the time-looping ------------ #
+
+    # ------------ the last errors ------------ #
+    l2err = 4.1889e-03, h1err = 3.0434e-02
+run CH_Solver_T1stOrder with time: 0.971283409
+# ------------ in the time-mesh circle ------------ #
+i =  4
+# -------------------------------------------------- #
+
+run boxmesh2d with time: 0.0004261260000002487
+run serial_construct_matrix with time: 0.00956865000000029
+run serial_construct_matrix with time: 0.0013512480000001936
+    # #################################### #
+      Time 1st-order scheme
+    # #################################### #
+    # ------------ parameters ------------ #
+    s = 2.5298e+01,  alpha = -1.2649e+04,  m = 1.0000e-03,  epsilon = 1.0000e-03,  eta = 1.0000e-01
+    t0 = 0.0000e+00,  T = 1.0000e+00, dt = 6.2500e-03
+ 
+    # ------------ begin the time-looping ------------ #
+    currt_t = 0.0000e+00
+    currt_t = 1.0000e-01
+    currt_t = 2.0000e-01
+    currt_t = 3.0000e-01
+    currt_t = 4.0000e-01
+    currt_t = 5.0000e-01
+    currt_t = 6.0000e-01
+    currt_t = 7.0000e-01
+    currt_t = 8.0000e-01
+    currt_t = 9.0000e-01
+    # ------------ end the time-looping ------------ #
+
+    # ------------ the last errors ------------ #
+    l2err = 2.0923e-03, h1err = 1.5259e-02
+run CH_Solver_T1stOrder with time: 3.626306284
+# ------------ the error-table ------------ #
+\begin{table}[!htdp]
+\begin{tabular}[c]{|c|c|c|c|c|c|}\hline
+Dof & 0.1     & 0.05    & 0.025   & 0.0125  & 0.00625
+\\\hline
+$|| u - u_h||_0$ & 3.3703e-02 & 1.6977e-02 & 8.3543e-03 & 4.1889e-03 & 2.0923e-03
+\\\hline
+Order & -- & 0.99 & 1.02 & 1.   & 1.  
+\\\hline
+$||\nabla u - \nabla u_h||_0$ & 1.8589e-01 & 1.0688e-01 & 5.4094e-02 & 3.0434e-02 & 1.5259e-02
+\\\hline
+Order & -- & 0.8  & 0.98 & 0.83 & 1.  
+\\\hline
+\end{tabular}
+\end{table}
+# ------------ end of the file ------------ #

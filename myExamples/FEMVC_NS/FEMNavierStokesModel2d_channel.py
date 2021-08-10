@@ -313,7 +313,6 @@ class FEMNavierStokesModel2d_channel:
         idxDirEdge = self.set_Dirichlet_edge()
         dirIndicator = np.full(idxDirEdge.shape, False)
 
-
         mid_coor = (node[edge2node[:, 0], :] + node[edge2node[:, 1], :]) / 2  # (NE,2)
         bd_mid = mid_coor[idxDirEdge, :]
 

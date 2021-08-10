@@ -40,6 +40,8 @@ laplace_c = c_xx + c_yy
 g = u_t - m*laplace_c
 
 print('u = ', u)
+print('laplace_x = ', laplace_x)
+print('laplace_y = ', laplace_y)
 print('g = ', g)
 
 print('end of the file')
