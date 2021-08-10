@@ -80,9 +80,9 @@ class FEMNavierStokesModel2d:
         c_bcs, c_ws = c_q.get_quadrature_points_and_weights()  # c_bcs.shape: (NQ,GD+1)
         c_pp = self.mesh.bc_to_point(c_bcs)  # c_pp.shape: (NQ_cell,NC,GD) the physical Gauss points
 
-        # last_uh0 = vspace.function()
-        # last_uh1 = vspace.function()
-        # next_ph = pspace.function()
+        last_uh0 = vspace.function()
+        last_uh1 = vspace.function()
+        next_ph = pspace.function()
 
         # # t^{n+1}: Pressure-Left-StiffMatrix
         plsm = self.pspace.stiff_matrix()
@@ -107,28 +107,28 @@ class FEMNavierStokesModel2d:
             # # Pressure-Right-Matrix
             if curr_t == 0.:
                 # for Dirichlet-face-integration
-                gu_val0 = pde.grad_velocity0(f_pp, 0)  # grad_u0: (NQ,NDir,GD)
-                gu_val1 = pde.grad_velocity1(f_pp, 0)  # grad_u1: (NQ,NDir,GD)
+                last_gu_val0 = pde.grad_velocity0(f_pp, 0)  # grad_u0: (NQ,NDir,GD)
+                last_gu_val1 = pde.grad_velocity1(f_pp, 0)  # grad_u1: (NQ,NDir,GD)
 
                 # for cell-integration
-                u_val = pde.velocityInitialValue(c_pp)  # (NQ,NC,GD)
-                u_val0 = u_val[..., 0]  # (NQ,NC)
-                u_val1 = u_val[..., 1]  # (NQ,NC)
+                last_u_val = pde.velocityInitialValue(c_pp)  # (NQ,NC,GD)
+                last_u_val0 = last_u_val[..., 0]  # (NQ,NC)
+                last_u_val1 = last_u_val[..., 1]  # (NQ,NC)
 
-                nolinear_val0 = pde.NS_nolinearTerm_0(c_pp, 0)  # (NQ,NC)
-                nolinear_val1 = pde.NS_nolinearTerm_1(c_pp, 0)  # (NQ,NC)
+                last_nolinear_val0 = pde.NS_nolinearTerm_0(c_pp, 0)  # (NQ,NC)
+                last_nolinear_val1 = pde.NS_nolinearTerm_1(c_pp, 0)  # (NQ,NC)
             else:
                 # for Dirichlet-face-integration
-                gu_val0 = self.uh_grad_value_at_faces(uh0, f_bcs, cellidxDir, localidxDir)  # grad_u0: (NQ,NDir,GD)
-                gu_val1 = self.uh_grad_value_at_faces(uh1, f_bcs, cellidxDir, localidxDir)  # grad_u0: (NQ,NDir,GD)
+                last_gu_val0 = self.uh_grad_value_at_faces(last_uh0, f_bcs, cellidxDir, localidxDir)  # grad_u0: (NQ,NDir,GD)
+                last_gu_val1 = self.uh_grad_value_at_faces(last_uh1, f_bcs, cellidxDir, localidxDir)  # grad_u0: (NQ,NDir,GD)
 
                 # for cell-integration
-                u_val0 = vspace.value(uh0, c_bcs)  # (NQ,NC)
-                u_val1 = vspace.value(uh1, c_bcs)
+                last_u_val0 = vspace.value(last_uh0, c_bcs)  # (NQ,NC)
+                last_u_val1 = vspace.value(last_uh1, c_bcs)
 
-                nolinear_val = self.NSNolinearTerm(uh0, uh1, c_bcs)  # last_nolinear_val.shape: (NQ,NC,GD)
-                nolinear_val0 = nolinear_val[..., 0]  # (NQ,NC)
-                nolinear_val1 = nolinear_val[..., 1]  # (NQ,NC)
+                last_nolinear_val = self.NSNolinearTerm(last_uh0, last_uh1, c_bcs)  # last_nolinear_val.shape: (NQ,NC,GD)
+                last_nolinear_val0 = last_nolinear_val[..., 0]  # (NQ,NC)
+                last_nolinear_val1 = last_nolinear_val[..., 1]  # (NQ,NC)
 
             uDir_val = pde.dirichlet(f_pp, next_t)  # (NQ,NDir,GD)
             f_val = pde.source(c_pp, next_t)  # (NQ,NC,GD)
@@ -139,15 +139,15 @@ class FEMNavierStokesModel2d:
 
             # for Dirichlet faces integration
             dir_int0 = -1/dt * np.einsum('i, ijk, jk, ijn, j->jn', f_ws, uDir_val, n_Dir, p_phi, dir_face_measure)  # (NDir,fldof)
-            dir_int1 = - pde.nu * (np.einsum('i, j, ij, jin, j->jn', f_ws, n_Dir[:, 1], gu_val1[..., 0]-gu_val0[..., 1],
+            dir_int1 = - pde.nu * (np.einsum('i, j, ij, jin, j->jn', f_ws, n_Dir[:, 1], last_gu_val1[..., 0]-last_gu_val0[..., 1],
                                              p_gphi_f[..., 0], dir_face_measure)
-                                   + np.einsum('i, j, ij, jin, j->jn', f_ws, -n_Dir[:, 0], gu_val1[..., 0]-gu_val0[..., 1],
+                                   + np.einsum('i, j, ij, jin, j->jn', f_ws, -n_Dir[:, 0], last_gu_val1[..., 0]-last_gu_val0[..., 1],
                                                p_gphi_f[..., 1], dir_face_measure))  # (NDir,cldof)
             # for cell integration
-            cell_int0 = 1/dt * (np.einsum('i, ij, ijk, j->jk', c_ws, u_val0, p_gphi_c[..., 0], cell_measure)
-                                + np.einsum('i, ij, ijk, j->jk', c_ws, u_val1, p_gphi_c[..., 1], cell_measure))  # (NC,cldof)
-            cell_int1 = -(np.einsum('i, ij, ijk, j->jk', c_ws, nolinear_val0, p_gphi_c[..., 0], cell_measure)
-                          + np.einsum('i, ij, ijk, j->jk', c_ws, nolinear_val1, p_gphi_c[..., 1], cell_measure))  # (NC,cldof)
+            cell_int0 = 1/dt * (np.einsum('i, ij, ijk, j->jk', c_ws, last_u_val0, p_gphi_c[..., 0], cell_measure)
+                                + np.einsum('i, ij, ijk, j->jk', c_ws, last_u_val1, p_gphi_c[..., 1], cell_measure))  # (NC,cldof)
+            cell_int1 = -(np.einsum('i, ij, ijk, j->jk', c_ws, last_nolinear_val0, p_gphi_c[..., 0], cell_measure)
+                          + np.einsum('i, ij, ijk, j->jk', c_ws, last_nolinear_val1, p_gphi_c[..., 1], cell_measure))  # (NC,cldof)
             cell_int2 = (np.einsum('i, ij, ijk, j->jk', c_ws, f_val[..., 0], p_gphi_c[..., 0], cell_measure)
                          + np.einsum('i, ij, ijk, j->jk', c_ws, f_val[..., 1], p_gphi_c[..., 1], cell_measure))  # (NC,cldof)
 
@@ -158,17 +158,17 @@ class FEMNavierStokesModel2d:
             # # Method I: The following code is right! Pressure satisfies \int_\Omega p = 0
             plsm_temp = bmat([[plsm, basis_int.reshape(-1, 1)], [basis_int, None]], format='csr')
             prv = np.r_[prv, 0]
-            ph[:] = spsolve(plsm_temp, prv)[:-1]  # we have added one addtional dof
+            next_ph[:] = spsolve(plsm_temp, prv)[:-1]  # we have added one addtional dof
 
             # # Method II: Using the Dirichlet boundary of pressure
             # def dir_pressure(p):
             #     return pde.pressure(p, next_t)
             # bc = DirichletBC(pspace, dir_pressure)
             # plsm_temp, prv = bc.apply(plsm.copy(), prv)
-            # ph[:] = spsolve(plsm_temp, prv).reshape(-1)
+            # next_ph[:] = spsolve(plsm_temp, prv).reshape(-1)
 
             # # --- to update the velocity value --- # #
-            grad_ph = pspace.grad_value(ph, c_bcs)  # (NQ,NC,2)
+            next_gradph = pspace.grad_value(next_ph, c_bcs)  # (NQ,NC,2)
 
             # the velocity u's Left-Matrix
             ulm0 = 1 / dt * ulmm + pde.nu * ulsm
@@ -183,26 +183,26 @@ class FEMNavierStokesModel2d:
 
             # for the first-component of velocity
             urv0 = np.zeros((vdof.number_of_global_dofs(),), dtype=self.ftype)  # (Nvdof,)
-            urv0_temp = np.einsum('i, ij, ijk, j->jk', c_ws, u_val0/dt - grad_ph[..., 0] - nolinear_val0
+            urv0_temp = np.einsum('i, ij, ijk, j->jk', c_ws, last_u_val0/dt - next_gradph[..., 0] - last_nolinear_val0
                                   + f_val[..., 0], u_phi, cell_measure)  # (NC,clodf)
             np.add.at(urv0, ucell2dof, urv0_temp)
             u0_bc = DirichletBC(vspace, dir_u0, threshold=idxDirEdge)
             ulm0, urv0 = u0_bc.apply(ulm0, urv0)
-            uh0[:] = spsolve(ulm0, urv0).reshape(-1)
+            last_uh0[:] = spsolve(ulm0, urv0).reshape(-1)
 
             # for the second-component of velocity
             urv1 = np.zeros((vdof.number_of_global_dofs(),), dtype=self.ftype)  # (Nvdof,)
-            urv1_temp = np.einsum('i, ij, ijk, j->jk', c_ws,u_val1/dt - grad_ph[..., 1] - nolinear_val1
+            urv1_temp = np.einsum('i, ij, ijk, j->jk', c_ws, last_u_val1/dt - next_gradph[..., 1] - last_nolinear_val1
                                   + f_val[..., 1], u_phi, cell_measure)  # (NC,clodf)
             np.add.at(urv1, ucell2dof, urv1_temp)
             u1_bc = DirichletBC(vspace, dir_u1, threshold=idxDirEdge)
             ulm1, urv1 = u1_bc.apply(ulm1, urv1)
-            uh1[:] = spsolve(ulm1, urv1).reshape(-1)
+            last_uh1[:] = spsolve(ulm1, urv1).reshape(-1)
 
             if nt % 500 == 0:
                 print('# ------------ logging the circle info ------------ #')
                 print('current t = ', curr_t)
-                p_l2err, u0_l2err, u1_l2err = self.currt_error(ph, uh0, uh1, next_t)
+                p_l2err, u0_l2err, u1_l2err = self.currt_error(next_ph, last_uh0, last_uh1, next_t)
                 print('p_l2err = %e,  u0_l2err = %e,  u1_l2err = %e' % (p_l2err, u0_l2err, u1_l2err))
                 print('# ------------------------------------------------- # \n')
                 if np.isnan(p_l2err) | np.isnan(u0_l2err) | np.isnan(u1_l2err):
@@ -212,7 +212,7 @@ class FEMNavierStokesModel2d:
             # print('end of current time')
 
         print('# ------------ the end error ------------ #')
-        p_l2err, u0_l2err, u1_l2err = self.currt_error(ph, uh0, uh1, next_t)
+        p_l2err, u0_l2err, u1_l2err = self.currt_error(next_ph, last_uh0, last_uh1, next_t)
         print('p_l2err = %e,  u0_l2err = %e,  u1_l2err = %e' % (p_l2err, u0_l2err, u1_l2err))
 
     def currt_error(self, ph, uh0, uh1, t):
