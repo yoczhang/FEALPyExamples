@@ -199,7 +199,7 @@ class FEMNavierStokesModel2d:
             ulm1, urv1 = u1_bc.apply(ulm1, urv1)
             last_uh1[:] = spsolve(ulm1, urv1).reshape(-1)
 
-            if nt % 500 == 0:
+            if nt % 50 == 0:
                 print('# ------------ logging the circle info ------------ #')
                 print('current t = ', curr_t)
                 p_l2err, u0_l2err, u1_l2err = self.currt_error(next_ph, last_uh0, last_uh1, next_t)

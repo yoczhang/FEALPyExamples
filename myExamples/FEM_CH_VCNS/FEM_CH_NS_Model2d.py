@@ -114,7 +114,7 @@ class FEM_CH_NS_Model2d:
         cell2dof = dof.cell_to_dof()  # (NC,cldof)
 
         dt_min = pde.dt_min if hasattr(pde, 'dt_min') else dt
-        s, alpha = self.setCoefficient_T1stOrder(dt_minimum=dt_min)
+        s, alpha = self.set_CH_Coeff(dt_minimum=dt_min)
         m = pde.m
         epsilon = pde.epsilon
         eta = pde.eta
@@ -145,6 +145,61 @@ class FEM_CH_NS_Model2d:
         phi_f_Neu_CH = space.face_basis(f_bcs)  # (NQ,1,fldof). 实际上这里可以直接用 pspace.basis(f_bcs), 两个函数的代码是相同的
         phi_c = space.basis(c_bcs)  # (NQ,NC,clodf)
         gphi_c = space.grad_basis(c_bcs)  # (NQ,NC,cldof,GD)
+
+    def assemble_CH_T1stOrder(self, m, alpha, epsilon, eta, next_t, uh, c_bcs, f_bcs, idxNeuEdge, NeuCellIdx, NeuLocalIdx):
+
+        grad_free_energy_c = epsilon / eta ** 2 * self.grad_free_energy_at_cells(uh, c_bcs)  # (NQ,NC,2)
+        grad_free_energy_f = epsilon / eta ** 2 * self.grad_free_energy_at_faces(uh, f_bcs, idxNeuEdge, NeuCellIdx,
+                                                                                 NeuLocalIdx)  # (NQ,NE,2)
+        uh_val = self.space.value(uh, c_bcs)  # (NQ,NC)
+        guh_val_c = self.space.grad_value(uh, c_bcs)  # (NQ,NC,2)
+        guh_val_f = self.uh_grad_value_at_faces(uh, f_bcs, NeuCellIdx, NeuLocalIdx)  # (NQ,NE,2)
+
+        Neumann = pde.neumann(f_pp, next_t, nBd)  # (NQ,NE)
+        LaplaceNeumann = pde.laplace_neumann(f_pp, next_t, nBd)  # (NQ,NE)
+        f_val = pde.source(c_pp, next_t, m, epsilon, eta)  # (NQ,NC)
+
+        # # get the auxiliary equation Right-hand-side-Vector
+        aux_rv = np.zeros((dof.number_of_global_dofs(),), dtype=self.ftype)  # (Ndof,)
+
+        # # aux_rhs_c_0:  -1. / (epsilon * m * dt) * (uh^n,phi)_\Omega
+        aux_rhs_c_0 = -1. / (epsilon * m) * (1 / dt * np.einsum('i, ij, ijk, j->jk', c_ws, uh_val, phi_c, cell_measure) +
+                                             np.einsum('i, ij, ijk, j->jk', c_ws, f_val, phi_c, cell_measure))  # (NC,cldof)
+        # # aux_rhs_c_1: -s / epsilon * (\nabla uh^n, \nabla phi)_\Omega
+        aux_rhs_c_1 = -s / epsilon * (
+                np.einsum('i, ij, ijk, j->jk', c_ws, guh_val_c[..., 0], gphi_c[..., 0], cell_measure)
+                + np.einsum('i, ij, ijk, j->jk', c_ws, guh_val_c[..., 1], gphi_c[..., 1], cell_measure))  # (NC,cldof)
+        # # aux_rhs_c_2: 1 / epsilon * (\nabla h(uh^n), \nabla phi)_\Omega
+        aux_rhs_c_2 = 1. / epsilon * (
+                np.einsum('i, ij, ijk, j->jk', c_ws, grad_free_energy_c[..., 0], gphi_c[..., 0], cell_measure)
+                + np.einsum('i, ij, ijk, j->jk', c_ws, grad_free_energy_c[..., 1], gphi_c[..., 1], cell_measure))  # (NC,cldof)
+
+        # # aux_rhs_f_0: (\nabla wh^{n+1}\cdot n, phi)_\Gamma, wh is the solution of auxiliary equation
+        aux_rhs_f_0 = alpha * np.einsum('i, ij, ijn, j->jn', f_ws, Neumann, phi_f, neu_face_measure) \
+                      + np.einsum('i, ij, ijn, j->jn', f_ws, LaplaceNeumann, phi_f, neu_face_measure)  # (Nneu,fldof)
+        # # aux_rhs_f_1: s / epsilon * (\nabla uh^n \cdot n, phi)_\Gamma
+        aux_rhs_f_1 = s / epsilon * np.einsum('i, ijk, jk, ijn, j->jn', f_ws, guh_val_f, nBd, phi_f,
+                                              neu_face_measure)  # (Nneu,fldof)
+        # # aux_rhs_f_2: -1 / epsilon * (\nabla h(uh^n) \cdot n, phi)_\Gamma
+        aux_rhs_f_2 = -1. / epsilon * np.einsum('i, ijk, jk, ijn, j->jn', f_ws, grad_free_energy_f, nBd, phi_f,
+                                                neu_face_measure)  # (Nneu,fldof)
+
+        np.add.at(aux_rv, cell2dof, aux_rhs_c_0 + aux_rhs_c_1 + aux_rhs_c_2)
+        np.add.at(aux_rv, face2dof[idxNeuEdge, :], aux_rhs_f_0 + aux_rhs_f_1 + aux_rhs_f_2)
+
+        # # update the solution of auxiliary equation
+        wh[:] = spsolve(sm + (alpha + s / epsilon) * mm, aux_rv)
+
+        # # update the original solution
+        orig_rv = np.zeros((dof.number_of_global_dofs(),), dtype=self.ftype)  # (Ndof,)
+        wh_val = space.value(wh, c_bcs)  # (NQ,NC)
+        orig_rhs_c = - np.einsum('i, ij, ijk, j->jk', c_ws, wh_val, phi_c, cell_measure)  # (NC,cldof)
+        orig_rhs_f = np.einsum('i, ij, ijn, j->jn', f_ws, Neumann, phi_f, neu_face_measure)
+        np.add.at(orig_rv, cell2dof, orig_rhs_c)
+        np.add.at(orig_rv, face2dof[idxNeuEdge, :], orig_rhs_f)
+        uh[:] = spsolve(sm - alpha * mm, orig_rv)
+
+
 
 
     def set_NS_Dirichlet_edge(self, idxDirEdge=None):

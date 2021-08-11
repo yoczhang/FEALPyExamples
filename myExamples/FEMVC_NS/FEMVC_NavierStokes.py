@@ -31,8 +31,8 @@ p = 2  # the polynomial order
 n = 2  # the number of refine mesh
 maxit = 1  # the max iteration of the mesh
 
-dt = 1.0e-4
-T = 5
+dt = 1.0e-3
+T = 1
 NN = 64
 
 box = [0, 1, 0, 1]
