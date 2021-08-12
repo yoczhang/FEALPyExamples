@@ -46,7 +46,7 @@ dt_min = min(dt_space)
 time_scheme = 2  # 1 stands for 1st-order time-scheme; 2 is the 2nd-order time-scheme
 h_space = dt_space ** (time_scheme/(p+0))
 
-pdePars = {'m': 1e-3, 's': 1, 'alpha': 1, 'epsilon': 1e-3, 'eta': 1e-1, 'dt_min': dt_min}  # value of parameters
+pdePars = {'m': 1e-3, 's': 1, 'alpha': 1, 'epsilon': 1e-3, 'eta': 1e-1, 'dt_min': dt_min, 'timeScheme': '1stOrder'}  # value of parameters
 pde = CahnHilliardData0(t0, T)  # create pde model
 pde.setPDEParameters(pdePars)
 
@@ -72,11 +72,11 @@ for i in range(N_T):
     print('# -------------------------------------------------- #\n')
     NN = int(1./h_space[i]) + 1
     mesh = MF.boxmesh2d(box, nx=NN, ny=NN, meshtype='tri')
-    ch = FEMCahnHilliardModel2d(pde, mesh, p, dt_space[i])
+    ch = FEM_CH_NS_Model2d(pde, mesh, p, dt_space[i])
     if time_scheme == 1:
-        l2err, h1err = ch.CH_Solver_T1stOrder()
+        l2err, h1err = ch.CH_NS_Solver_T1stOrder()
     else:
-        l2err, h1err = ch.CH_Solver_T2ndOrder()
+        l2err, h1err = ch.CH_NS_Solver_T1stOrder()
 
     Ndof[i] = ch.space.number_of_global_dofs()
     errorMatrix[0, i] = l2err  # get the velocity L2 error

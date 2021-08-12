@@ -44,6 +44,27 @@ class FEM_CH_NS_Model2d:
         self.ph = self.space.function()  # NS 方程中的压力
         self.StiffMatrix = self.space.stiff_matrix()
         self.MassMatrix = self.space.mass_matrix()
+        self.dt_min = pde.dt_min if hasattr(pde, 'dt_min') else self.dt
+        self.s, self.alpha = self.set_CH_Coeff(dt_minimum=self.dt_min)
+        self.face2dof = self.dof.face_to_dof()  # (NE,fldof)
+        self.cell2dof = self.dof.cell_to_dof()  # (NC,cldof)
+        self.vface2dof = self.vdof.face_to_dof()  # (NE,vfldof)
+        self.vcell2dof = self.vdof.cell_to_dof()  # (NC,vcldof)
+        self.NeuEdgeIdx_CH = self.set_CH_Neumann_edge()
+        self.nNeu_CH = self.mesh.face_unit_normal(index=self.NeuEdgeIdx_CH)  # (NBE,2)
+        self.NeuCellIdx_CH = self.mesh.ds.edge2cell[self.NeuEdgeIdx_CH, 0]
+        self.NeuLocalIdx_CH = self.mesh.ds.edge2cell[self.NeuEdgeIdx_CH, 2]
+        self.NeuEdgeMeasure_CH = self.mesh.entity_measure('face', index=self.NeuEdgeIdx_CH)  # (Nneu,2)
+        # f_q = self.integralalg.faceintegrator
+        self.f_bcs, self.f_ws = self.integralalg.faceintegrator.get_quadrature_points_and_weights()  # f_bcs.shape: (NQ,(GD-1)+1)
+        self.f_pp_Neu_CH = self.mesh.bc_to_point(self.f_bcs,
+                                                 index=self.NeuEdgeIdx_CH)  # f_pp.shape: (NQ,NBE,GD) the physical Gauss points
+        # c_q = self.integralalg.cellintegrator
+        self.c_bcs, self.c_ws = self.integralalg.faceintegrator.get_quadrature_points_and_weights()  # c_bcs.shape: (NQ,GD+1)
+        self.c_pp = self.mesh.bc_to_point(self.c_bcs)  # c_pp.shape: (NQ_cell,NC,GD) the physical Gauss points
+        self.phi_f = self.space.face_basis(self.f_bcs)  # (NQ,1,fldof) 实际上这里可以直接用 pspace.basis(f_bcs), 两个函数的代码是相同的
+        self.phi_c = self.space.basis(self.c_bcs)  # (NQ,NC,clodf)
+        self.gphi_c = self.space.grad_basis(self.c_bcs)  # (NQ,NC,cldof,GD)
 
     def set_CH_Coeff(self, dt_minimum=None):
         pde = self.pde
@@ -51,7 +72,7 @@ class FEM_CH_NS_Model2d:
         m = pde.m
         epsilon = pde.epsilon
 
-        if pde.timeScheme in {1, '1', '1st', '1st-order', 'first', 'first-order', 'firstorder'}:
+        if pde.timeScheme in {1, '1', '1st', '1st-order', '1stOrder', 'first', 'first-order', 'firstorder'}:
             s = np.sqrt(4 * epsilon / (m * dt_min))
             alpha = 1. / (2 * epsilon) * (-s + np.sqrt(abs(s ** 2 - 4 * epsilon / (m * self.dt))))
         else:  # time Second-Order
@@ -113,79 +134,78 @@ class FEM_CH_NS_Model2d:
         face2dof = dof.face_to_dof()  # (NE,fldof)
         cell2dof = dof.cell_to_dof()  # (NC,cldof)
 
-        dt_min = pde.dt_min if hasattr(pde, 'dt_min') else dt
-        s, alpha = self.set_CH_Coeff(dt_minimum=dt_min)
-        m = pde.m
-        epsilon = pde.epsilon
-        eta = pde.eta
-
         print('    # #################################### #')
         print('      Time 1st-order scheme')
         print('    # #################################### #')
 
         print('    # ------------ parameters ------------ #')
-        print('    s = %.4e,  alpha = %.4e,  m = %.4e,  epsilon = %.4e,  eta = %.4e' % (s, alpha, m, epsilon, eta))
+        print('    s = %.4e,  alpha = %.4e,  m = %.4e,  epsilon = %.4e,  eta = %.4e' % (self.s, self.alpha, self.pde.m,
+                                                                                        self.pde.epsilon, self.pde.eta))
         print('    t0 = %.4e,  T = %.4e, dt = %.4e' % (timemesh[0], timemesh[-1], dt))
         print(' ')
 
-        idxNeuEdge_CH = self.set_CH_Neumann_edge()
-        n_Bd_CH = self.mesh.face_unit_normal(index=idxNeuEdge_CH)  # (NBE,2)
-        NeuCellIdx_CH = self.mesh.ds.edge2cell[idxNeuEdge_CH, 0]
-        NeuLocalIdx_CH = self.mesh.ds.edge2cell[idxNeuEdge_CH, 2]
-        Neu_face_measure_CH = self.mesh.entity_measure('face', index=idxNeuEdge_CH)  # (Nneu,2)
-        cell_measure = self.mesh.cell_area()
+        phi_f_Neu_CH = space.face_basis(self.f_bcs)  # (NQ,1,fldof). 实际上这里可以直接用 pspace.basis(f_bcs), 两个函数的代码是相同的
+        phi_c = space.basis(self.c_bcs)  # (NQ,NC,clodf)
+        gphi_c = space.grad_basis(self.c_bcs)  # (NQ,NC,cldof,GD)
 
-        f_q = self.integralalg.faceintegrator
-        f_bcs, f_ws = f_q.get_quadrature_points_and_weights()  # f_bcs.shape: (NQ,(GD-1)+1)
-        f_pp_Neu_CH = self.mesh.bc_to_point(f_bcs, index=idxNeuEdge_CH)  # f_pp.shape: (NQ,NBE,GD) the physical Gauss points
-        c_q = self.integralalg.cellintegrator
-        c_bcs, c_ws = c_q.get_quadrature_points_and_weights()  # c_bcs.shape: (NQ,GD+1)
-        c_pp = self.mesh.bc_to_point(c_bcs)  # c_pp.shape: (NQ_cell,NC,GD) the physical Gauss points
+    def decoupled_CH_Solver_T1stOrder(self, uh, next_t, vel0, vel1):
+        """
+        The docoupled solver for CH equation.
+        """
 
-        phi_f_Neu_CH = space.face_basis(f_bcs)  # (NQ,1,fldof). 实际上这里可以直接用 pspace.basis(f_bcs), 两个函数的代码是相同的
-        phi_c = space.basis(c_bcs)  # (NQ,NC,clodf)
-        gphi_c = space.grad_basis(c_bcs)  # (NQ,NC,cldof,GD)
+        # # --- the following is
+        grad_free_energy_c = self.pde.epsilon / self.pde.eta ** 2 * self.grad_free_energy_at_cells(uh, self.c_bcs)  # (NQ,NC,2)
+        grad_free_energy_f = self.pde.epsilon / self.pde.eta ** 2 * \
+                             self.grad_free_energy_at_faces(uh, self.f_bcs, self.NeuEdgeIdx_CH, self.NeuCellIdx_CH,
+                                                            self.NeuLocalIdx_CH)  # (NQ,NE,2)
+        uh_val = self.space.value(uh, self.c_bcs)  # (NQ,NC)
+        guh_val_c = self.space.grad_value(uh, self.c_bcs)  # (NQ,NC,2)
+        guh_val_f = self.uh_grad_value_at_faces(uh, self.f_bcs, self.NeuCellIdx_CH, self.NeuLocalIdx_CH)  # (NQ,NE,2)
 
-    def assemble_CH_T1stOrder(self, m, alpha, epsilon, eta, next_t, uh, c_bcs, f_bcs, idxNeuEdge, NeuCellIdx, NeuLocalIdx):
-
-        grad_free_energy_c = epsilon / eta ** 2 * self.grad_free_energy_at_cells(uh, c_bcs)  # (NQ,NC,2)
-        grad_free_energy_f = epsilon / eta ** 2 * self.grad_free_energy_at_faces(uh, f_bcs, idxNeuEdge, NeuCellIdx,
-                                                                                 NeuLocalIdx)  # (NQ,NE,2)
-        uh_val = self.space.value(uh, c_bcs)  # (NQ,NC)
-        guh_val_c = self.space.grad_value(uh, c_bcs)  # (NQ,NC,2)
-        guh_val_f = self.uh_grad_value_at_faces(uh, f_bcs, NeuCellIdx, NeuLocalIdx)  # (NQ,NE,2)
-
-        Neumann = pde.neumann(f_pp, next_t, nBd)  # (NQ,NE)
-        LaplaceNeumann = pde.laplace_neumann(f_pp, next_t, nBd)  # (NQ,NE)
-        f_val = pde.source(c_pp, next_t, m, epsilon, eta)  # (NQ,NC)
+        Neumann = self.pde.neumann(self.f_pp_Neu_CH, next_t, self.nNeu_CH)  # (NQ,NE)
+        LaplaceNeumann = self.pde.laplace_neumann(self.f_pp_Neu_CH, next_t, self.nNeu_CH)  # (NQ,NE)
+        f_val_CH = self.pde.source_CH(self.c_pp, next_t, self.pde.m, self.pde.epsilon, self.pde.eta)  # (NQ,NC)
 
         # # get the auxiliary equation Right-hand-side-Vector
-        aux_rv = np.zeros((dof.number_of_global_dofs(),), dtype=self.ftype)  # (Ndof,)
+        aux_rv = np.zeros((self.dof.number_of_global_dofs(),), dtype=self.ftype)  # (Ndof,)
 
         # # aux_rhs_c_0:  -1. / (epsilon * m * dt) * (uh^n,phi)_\Omega
-        aux_rhs_c_0 = -1. / (epsilon * m) * (1 / dt * np.einsum('i, ij, ijk, j->jk', c_ws, uh_val, phi_c, cell_measure) +
-                                             np.einsum('i, ij, ijk, j->jk', c_ws, f_val, phi_c, cell_measure))  # (NC,cldof)
+        aux_rhs_c_0 = -1. / (self.pde.epsilon * self.pde.m) * (1 / self.dt * np.einsum('i, ij, ijk, j->jk', self.c_ws, uh_val, self.phi_c, self.cellmeasure) +
+                                             np.einsum('i, ij, ijk, j->jk', self.c_ws, f_val_CH, self.phi_c, self.cellmeasure))  # (NC,cldof)
         # # aux_rhs_c_1: -s / epsilon * (\nabla uh^n, \nabla phi)_\Omega
-        aux_rhs_c_1 = -s / epsilon * (
-                np.einsum('i, ij, ijk, j->jk', c_ws, guh_val_c[..., 0], gphi_c[..., 0], cell_measure)
-                + np.einsum('i, ij, ijk, j->jk', c_ws, guh_val_c[..., 1], gphi_c[..., 1], cell_measure))  # (NC,cldof)
+        aux_rhs_c_1 = -self.s / self.pde.epsilon * (
+                np.einsum('i, ij, ijk, j->jk', self.c_ws, guh_val_c[..., 0], self.gphi_c[..., 0], self.cellmeasure)
+                + np.einsum('i, ij, ijk, j->jk', self.c_ws, guh_val_c[..., 1], self.gphi_c[..., 1], self.cellmeasure))  # (NC,cldof)
         # # aux_rhs_c_2: 1 / epsilon * (\nabla h(uh^n), \nabla phi)_\Omega
-        aux_rhs_c_2 = 1. / epsilon * (
-                np.einsum('i, ij, ijk, j->jk', c_ws, grad_free_energy_c[..., 0], gphi_c[..., 0], cell_measure)
-                + np.einsum('i, ij, ijk, j->jk', c_ws, grad_free_energy_c[..., 1], gphi_c[..., 1], cell_measure))  # (NC,cldof)
+        aux_rhs_c_2 = 1. / self.pde.epsilon * (
+                np.einsum('i, ij, ijk, j->jk', self.c_ws, grad_free_energy_c[..., 0], self.gphi_c[..., 0], self.cellmeasure)
+                + np.einsum('i, ij, ijk, j->jk', self.c_ws, grad_free_energy_c[..., 1], self.gphi_c[..., 1], self.cellmeasure))  # (NC,cldof)
 
         # # aux_rhs_f_0: (\nabla wh^{n+1}\cdot n, phi)_\Gamma, wh is the solution of auxiliary equation
-        aux_rhs_f_0 = alpha * np.einsum('i, ij, ijn, j->jn', f_ws, Neumann, phi_f, neu_face_measure) \
-                      + np.einsum('i, ij, ijn, j->jn', f_ws, LaplaceNeumann, phi_f, neu_face_measure)  # (Nneu,fldof)
+        aux_rhs_f_0 = self.alpha * np.einsum('i, ij, ijn, j->jn', self.f_ws, Neumann, self.phi_f, self.NeuEdgeMeasure_CH) \
+                      + np.einsum('i, ij, ijn, j->jn', self.f_ws, LaplaceNeumann, self.phi_f, self.NeuEdgeMeasure_CH)  # (Nneu,fldof)
         # # aux_rhs_f_1: s / epsilon * (\nabla uh^n \cdot n, phi)_\Gamma
-        aux_rhs_f_1 = s / epsilon * np.einsum('i, ijk, jk, ijn, j->jn', f_ws, guh_val_f, nBd, phi_f,
-                                              neu_face_measure)  # (Nneu,fldof)
+        aux_rhs_f_1 = self.s / self.pde.epsilon * np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, guh_val_f, self.nNeu_CH, self.phi_f,
+                                              self.NeuEdgeMeasure_CH)  # (Nneu,fldof)
         # # aux_rhs_f_2: -1 / epsilon * (\nabla h(uh^n) \cdot n, phi)_\Gamma
-        aux_rhs_f_2 = -1. / epsilon * np.einsum('i, ijk, jk, ijn, j->jn', f_ws, grad_free_energy_f, nBd, phi_f,
-                                                neu_face_measure)  # (Nneu,fldof)
+        aux_rhs_f_2 = -1. / self.pde.epsilon * np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, grad_free_energy_f, self.nNeu_CH, self.phi_f,
+                                                self.NeuEdgeMeasure_CH)  # (Nneu,fldof)
 
-        np.add.at(aux_rv, cell2dof, aux_rhs_c_0 + aux_rhs_c_1 + aux_rhs_c_2)
-        np.add.at(aux_rv, face2dof[idxNeuEdge, :], aux_rhs_f_0 + aux_rhs_f_1 + aux_rhs_f_2)
+        # # --- now, we add the NS term
+        vel0_val_c = self.vspace.value(vel0, self.c_bcs)  # (NQ,NC)
+        vel1_val_c = self.vspace.value(vel1, self.c_bcs)  # (NQ,NC)
+        vel0_val_f = self.vspace.value(vel0, self.f_bcs)[..., self.NeuEdgeIdx_CH]  # (NQ,NBE)
+        vel1_val_f = self.vspace.value(vel0, self.f_bcs)[..., self.NeuEdgeIdx_CH]  # (NQ,NBE)
+
+        aux_rhs_c_3 = -1. / (self.pde.epsilon * self.pde.m) * \
+                      (np.einsum('i, ij, ijk, j->jk', self.c_ws, uh_val * vel0_val_c, self.gphi_c[..., 0], self.cellmeasure)
+                       + np.einsum('i, ij, ijk, j->jk', self.c_ws, uh_val * vel1_val_c, self.gphi_c[..., 1], self.cellmeasure))
+        aux_rhs_f_3 = 1. / (self.pde.epsilon * self.pde.m) * 
+
+ \
+            # # --- assemble the CH's aux equation
+        np.add.at(aux_rv, self.cell2dof, aux_rhs_c_0 + aux_rhs_c_1 + aux_rhs_c_2)
+        np.add.at(aux_rv, self.face2dof[self.NeuEdgeIdx_CH, :], aux_rhs_f_0 + aux_rhs_f_1 + aux_rhs_f_2)
 
         # # update the solution of auxiliary equation
         wh[:] = spsolve(sm + (alpha + s / epsilon) * mm, aux_rv)
@@ -198,9 +218,6 @@ class FEM_CH_NS_Model2d:
         np.add.at(orig_rv, cell2dof, orig_rhs_c)
         np.add.at(orig_rv, face2dof[idxNeuEdge, :], orig_rhs_f)
         uh[:] = spsolve(sm - alpha * mm, orig_rv)
-
-
-
 
     def set_NS_Dirichlet_edge(self, idxDirEdge=None):
         if idxDirEdge is not None:
@@ -226,13 +243,3 @@ class FEM_CH_NS_Model2d:
         isNeuEdge = bdEdge  # here, we first set all the boundary edges are Neu edges
         idxNeuEdge, = np.nonzero(isNeuEdge)  # (NE_Dir,)
         return idxNeuEdge
-
-
-
-
-
-
-
-
-
-
