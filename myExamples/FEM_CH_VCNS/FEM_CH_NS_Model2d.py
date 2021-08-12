@@ -148,7 +148,7 @@ class FEM_CH_NS_Model2d:
         phi_c = space.basis(self.c_bcs)  # (NQ,NC,clodf)
         gphi_c = space.grad_basis(self.c_bcs)  # (NQ,NC,cldof,GD)
 
-    def decoupled_CH_Solver_T1stOrder(self, uh, next_t, vel0, vel1):
+    def decoupled_CH_Solver_T1stOrder(self, uh, wh, next_t, vel0, vel1):
         """
         The docoupled solver for CH equation.
         """
@@ -188,36 +188,37 @@ class FEM_CH_NS_Model2d:
         aux_rhs_f_1 = self.s / self.pde.epsilon * np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, guh_val_f, self.nNeu_CH, self.phi_f,
                                               self.NeuEdgeMeasure_CH)  # (Nneu,fldof)
         # # aux_rhs_f_2: -1 / epsilon * (\nabla h(uh^n) \cdot n, phi)_\Gamma
-        aux_rhs_f_2 = -1. / self.pde.epsilon * np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, grad_free_energy_f, self.nNeu_CH, self.phi_f,
-                                                self.NeuEdgeMeasure_CH)  # (Nneu,fldof)
+        aux_rhs_f_2 = -1. / self.pde.epsilon * \
+                      np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, grad_free_energy_f, self.nNeu_CH, self.phi_f, self.NeuEdgeMeasure_CH)  # (Nneu,fldof)
 
         # # --- now, we add the NS term
         vel0_val_c = self.vspace.value(vel0, self.c_bcs)  # (NQ,NC)
         vel1_val_c = self.vspace.value(vel1, self.c_bcs)  # (NQ,NC)
         vel0_val_f = self.vspace.value(vel0, self.f_bcs)[..., self.NeuEdgeIdx_CH]  # (NQ,NBE)
         vel1_val_f = self.vspace.value(vel0, self.f_bcs)[..., self.NeuEdgeIdx_CH]  # (NQ,NBE)
+        vel_val_f = np.concatenate([vel0_val_f[..., np.newaxis], vel1_val_f[..., np.newaxis]], axis=2)
 
         aux_rhs_c_3 = -1. / (self.pde.epsilon * self.pde.m) * \
                       (np.einsum('i, ij, ijk, j->jk', self.c_ws, uh_val * vel0_val_c, self.gphi_c[..., 0], self.cellmeasure)
-                       + np.einsum('i, ij, ijk, j->jk', self.c_ws, uh_val * vel1_val_c, self.gphi_c[..., 1], self.cellmeasure))
-        aux_rhs_f_3 = 1. / (self.pde.epsilon * self.pde.m) * 
+                       + np.einsum('i, ij, ijk, j->jk', self.c_ws, uh_val * vel1_val_c, self.gphi_c[..., 1], self.cellmeasure))  # (NC,cldof)
+        aux_rhs_f_3 = 1. / (self.pde.epsilon * self.pde.m) * \
+                      np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, vel_val_f, self.nNeu_CH, self.phi_f, self.NeuEdgeMeasure_CH)  # (Nneu,fldof)
 
- \
-            # # --- assemble the CH's aux equation
+        # # --- assemble the CH's aux equation
         np.add.at(aux_rv, self.cell2dof, aux_rhs_c_0 + aux_rhs_c_1 + aux_rhs_c_2)
         np.add.at(aux_rv, self.face2dof[self.NeuEdgeIdx_CH, :], aux_rhs_f_0 + aux_rhs_f_1 + aux_rhs_f_2)
 
         # # update the solution of auxiliary equation
-        wh[:] = spsolve(sm + (alpha + s / epsilon) * mm, aux_rv)
+        wh[:] = spsolve(self.StiffMatrix + (self.alpha + self.s / self.pde.epsilon) * self.MassMatrix, aux_rv)
 
-        # # update the original solution
-        orig_rv = np.zeros((dof.number_of_global_dofs(),), dtype=self.ftype)  # (Ndof,)
-        wh_val = space.value(wh, c_bcs)  # (NQ,NC)
-        orig_rhs_c = - np.einsum('i, ij, ijk, j->jk', c_ws, wh_val, phi_c, cell_measure)  # (NC,cldof)
-        orig_rhs_f = np.einsum('i, ij, ijn, j->jn', f_ws, Neumann, phi_f, neu_face_measure)
-        np.add.at(orig_rv, cell2dof, orig_rhs_c)
-        np.add.at(orig_rv, face2dof[idxNeuEdge, :], orig_rhs_f)
-        uh[:] = spsolve(sm - alpha * mm, orig_rv)
+        # # update the original CH solution uh, we do not need to change the code
+        orig_rv = np.zeros((self.dof.number_of_global_dofs(),), dtype=self.ftype)  # (Ndof,)
+        wh_val = self.space.value(wh, self.c_bcs)  # (NQ,NC)
+        orig_rhs_c = - np.einsum('i, ij, ijk, j->jk', self.c_ws, wh_val, self.phi_c, self.cellmeasure)  # (NC,cldof)
+        orig_rhs_f = np.einsum('i, ij, ijn, j->jn', self.f_ws, Neumann, self.phi_f, self.NeuEdgeMeasure_CH)
+        np.add.at(orig_rv, self.cell2dof, orig_rhs_c)
+        np.add.at(orig_rv, self.face2dof[self.NeuEdgeIdx_CH, :], orig_rhs_f)
+        uh[:] = spsolve(self.StiffMatrix - self.alpha * self.MassMatrix, orig_rv)
 
     def set_NS_Dirichlet_edge(self, idxDirEdge=None):
         if idxDirEdge is not None:
