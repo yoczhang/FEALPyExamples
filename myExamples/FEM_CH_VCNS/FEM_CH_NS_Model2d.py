@@ -55,15 +55,25 @@ class FEM_CH_NS_Model2d:
         self.NeuCellIdx_CH = self.mesh.ds.edge2cell[self.NeuEdgeIdx_CH, 0]
         self.NeuLocalIdx_CH = self.mesh.ds.edge2cell[self.NeuEdgeIdx_CH, 2]
         self.NeuEdgeMeasure_CH = self.mesh.entity_measure('face', index=self.NeuEdgeIdx_CH)  # (Nneu,2)
+
+        self.DirEdgeIdx_NS = self.set_NS_Dirichlet_edge()
+        self.nDir_NS = self.mesh.face_unit_normal(index=self.DirEdgeIdx_NS)  # (NBE,2)
+        self.DirCellIdx_NS = self.mesh.ds.edge2cell[self.DirEdgeIdx_NS, 0]
+        self.DirLocalIdx_NS = self.mesh.ds.edge2cell[self.DirEdgeIdx_NS, 2]
+        self.DirEdgeMeasure_NS = self.mesh.entity_measure('face', index=self.DirEdgeIdx_NS)  # (Nneu,2)
+
         # f_q = self.integralalg.faceintegrator
         self.f_bcs, self.f_ws = self.integralalg.faceintegrator.get_quadrature_points_and_weights()  # f_bcs.shape: (NQ,(GD-1)+1)
         self.f_pp_Neu_CH = self.mesh.bc_to_point(self.f_bcs,
                                                  index=self.NeuEdgeIdx_CH)  # f_pp.shape: (NQ,NBE,GD) the physical Gauss points
+        self.f_pp_Dir_NS = self.mesh.bc_to_point(self.f_bcs,
+                                                 index=self.DirEdgeIdx_NS)  # f_pp.shape: (NQ,NBE,GD) the physical Gauss points
         # c_q = self.integralalg.cellintegrator
         self.c_bcs, self.c_ws = self.integralalg.faceintegrator.get_quadrature_points_and_weights()  # c_bcs.shape: (NQ,GD+1)
         self.c_pp = self.mesh.bc_to_point(self.c_bcs)  # c_pp.shape: (NQ_cell,NC,GD) the physical Gauss points
         self.phi_f = self.space.face_basis(self.f_bcs)  # (NQ,1,fldof) 实际上这里可以直接用 pspace.basis(f_bcs), 两个函数的代码是相同的
         self.phi_c = self.space.basis(self.c_bcs)  # (NQ,NC,clodf)
+        self.gphi_f = self.space.edge_grad_basis(self.f_bcs, self.DirCellIdx_NS, self.DirLocalIdx_NS)  # (NDir,NQ,cldof,GD)
         self.gphi_c = self.space.grad_basis(self.c_bcs)  # (NQ,NC,cldof,GD)
 
     def set_CH_Coeff(self, dt_minimum=None):
@@ -205,8 +215,8 @@ class FEM_CH_NS_Model2d:
                       np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, vel_val_f, self.nNeu_CH, self.phi_f, self.NeuEdgeMeasure_CH)  # (Nneu,fldof)
 
         # # --- assemble the CH's aux equation
-        np.add.at(aux_rv, self.cell2dof, aux_rhs_c_0 + aux_rhs_c_1 + aux_rhs_c_2)
-        np.add.at(aux_rv, self.face2dof[self.NeuEdgeIdx_CH, :], aux_rhs_f_0 + aux_rhs_f_1 + aux_rhs_f_2)
+        np.add.at(aux_rv, self.cell2dof, aux_rhs_c_0 + aux_rhs_c_1 + aux_rhs_c_2 + aux_rhs_c_3)
+        np.add.at(aux_rv, self.face2dof[self.NeuEdgeIdx_CH, :], aux_rhs_f_0 + aux_rhs_f_1 + aux_rhs_f_2 + aux_rhs_f_3)
 
         # # update the solution of auxiliary equation
         wh[:] = spsolve(self.StiffMatrix + (self.alpha + self.s / self.pde.epsilon) * self.MassMatrix, aux_rv)
@@ -219,6 +229,61 @@ class FEM_CH_NS_Model2d:
         np.add.at(orig_rv, self.cell2dof, orig_rhs_c)
         np.add.at(orig_rv, self.face2dof[self.NeuEdgeIdx_CH, :], orig_rhs_f)
         uh[:] = spsolve(self.StiffMatrix - self.alpha * self.MassMatrix, orig_rv)
+
+    def decoupled_NS_Solver_T1stOrder(self, vel0, vel1, uh, next_t):
+        grad_vel0_f = self.uh_grad_value_at_faces(vel0, self.f_bcs, self.DirCellIdx_NS, self.DirLocalIdx_NS)  # grad_vel0: (NQ,NDir,GD)
+        grad_vel1_f = self.uh_grad_value_at_faces(vel1, self.f_bcs, self.DirCellIdx_NS, self.DirLocalIdx_NS)  # grad_vel1: (NQ,NDir,GD)
+
+        # for cell-integration
+        vel0_val = self.vspace.value(vel0, self.c_bcs)  # (NQ,NC)
+        vel1_val = self.vspace.value(vel1, self.c_bcs)
+
+        nolinear_val = self.NSNolinearTerm(vel0, vel1, self.c_bcs)  # last_nolinear_val.shape: (NQ,NC,GD)
+        nolinear_val0 = nolinear_val[..., 0]  # (NQ,NC)
+        nolinear_val1 = nolinear_val[..., 1]  # (NQ,NC)
+
+        velDir_val = self.pde.dirichlet_NS(self.f_pp_Dir_NS, next_t)  # (NQ,NDir,GD)
+        f_val_NS = self.pde.source_NS(self.c_pp, next_t)  # (NQ,NC,GD)
+
+        # # --- to update the pressure value --- # #
+        # # to get the Pressure's Right-hand Vector
+        prv = np.zeros((self.dof.number_of_global_dofs(),), dtype=self.ftype)  # (Npdof,)
+
+        # for Dirichlet faces integration
+        dir_int0 = -1 / self.dt * np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, velDir_val, self.nDir_NS, self.phi_c, self.DirEdgeMeasure_NS)  # (NDir,fldof)
+        dir_int1 = - self.pde.nu * (np.einsum('i, j, ij, jin, j->jn', self.f_ws, self.nDir_NS[:, 1], grad_vel1_f[..., 0] - grad_vel0_f[..., 1],
+                                              self.gphi_f[..., 0], self.DirEdgeMeasure_NS)
+                                    + np.einsum('i, j, ij, jin, j->jn', self.f_ws, -self.nDir_NS[:, 0], grad_vel1_f[..., 0] - grad_vel0_f[..., 1],
+                                                self.gphi_f[..., 1], self.DirEdgeMeasure_NS))  # (NDir,cldof)
+        # for cell integration
+        cell_int0 = 1 / self.dt * (np.einsum('i, ij, ijk, j->jk', self.c_ws, vel0_val, self.gphi_c[..., 0], self.cellmeasure)
+                              + np.einsum('i, ij, ijk, j->jk', self.c_ws, vel1_val, self.gphi_c[..., 1], self.cellmeasure))  # (NC,cldof)
+        cell_int1 = -(np.einsum('i, ij, ijk, j->jk', self.c_ws, nolinear_val0, self.gphi_c[..., 0], self.cellmeasure)
+                      + np.einsum('i, ij, ijk, j->jk', self.c_ws, nolinear_val1, self.gphi_c[..., 1], self.cellmeasure))  # (NC,cldof)
+        cell_int2 = (np.einsum('i, ij, ijk, j->jk', self.c_ws, f_val_NS[..., 0], self.gphi_c[..., 0], self.cellmeasure)
+                     + np.einsum('i, ij, ijk, j->jk', self.c_ws, f_val_NS[..., 1], self.gphi_c[..., 1], self.cellmeasure))  # (NC,cldof)
+
+        # # --- now, we add the CH term
+
+
+        # # --- assemble the NS's pressure equation
+        np.add.at(prv, self.face2dof[self.DirEdgeIdx_NS, :], dir_int0)
+        np.add.at(prv, self.cell2dof[self.DirCellIdx_NS, :], dir_int1)
+        np.add.at(prv, self.cell2dof, cell_int0 + cell_int1 + cell_int2)
+
+
+    def NSNolinearTerm(self, uh0, uh1, bcs):
+        vspace = self.vspace
+        val0 = vspace.value(uh0, bcs)  # val0.shape: (NQ,NC)
+        val1 = vspace.value(uh1, bcs)  # val1.shape: (NQ,NC)
+        gval0 = vspace.grad_value(uh0, bcs)  # gval0.shape: (NQ,NC,2)
+        gval1 = vspace.grad_value(uh1, bcs)
+
+        NSNolinear = np.empty(gval0.shape, dtype=self.ftype)  # NSNolinear.shape: (NQ,NC,2)
+
+        NSNolinear[..., 0] = val0 * gval0[..., 0] + val1 * gval0[..., 1]
+        NSNolinear[..., 1] = val0 * gval1[..., 0] + val1 * gval1[..., 1]
+        return NSNolinear
 
     def set_NS_Dirichlet_edge(self, idxDirEdge=None):
         if idxDirEdge is not None:
