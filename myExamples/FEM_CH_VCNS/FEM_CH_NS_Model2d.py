@@ -20,6 +20,7 @@ from scipy.sparse.linalg import spsolve
 from fealpy.boundarycondition import DirichletBC
 from fealpy.decorator import timer
 from fealpy.functionspace import LagrangeFiniteElementSpace
+from sym_diff_basis import compute_basis
 
 
 class FEM_CH_NS_Model2d:
@@ -27,6 +28,7 @@ class FEM_CH_NS_Model2d:
         self.pde = pde
         self.p = p
         self.mesh = mesh
+        self.cb = compute_basis(p, mesh)
         self.timemesh, self.dt = self.pde.time_mesh(dt)
         self.itype = self.mesh.itype
         self.ftype = self.mesh.ftype
@@ -257,13 +259,24 @@ class FEM_CH_NS_Model2d:
                                                 self.gphi_f[..., 1], self.DirEdgeMeasure_NS))  # (NDir,cldof)
         # for cell integration
         cell_int0 = 1 / self.dt * (np.einsum('i, ij, ijk, j->jk', self.c_ws, vel0_val, self.gphi_c[..., 0], self.cellmeasure)
-                              + np.einsum('i, ij, ijk, j->jk', self.c_ws, vel1_val, self.gphi_c[..., 1], self.cellmeasure))  # (NC,cldof)
+                                   + np.einsum('i, ij, ijk, j->jk', self.c_ws, vel1_val, self.gphi_c[..., 1], self.cellmeasure))  # (NC,cldof)
         cell_int1 = -(np.einsum('i, ij, ijk, j->jk', self.c_ws, nolinear_val0, self.gphi_c[..., 0], self.cellmeasure)
                       + np.einsum('i, ij, ijk, j->jk', self.c_ws, nolinear_val1, self.gphi_c[..., 1], self.cellmeasure))  # (NC,cldof)
         cell_int2 = (np.einsum('i, ij, ijk, j->jk', self.c_ws, f_val_NS[..., 0], self.gphi_c[..., 0], self.cellmeasure)
                      + np.einsum('i, ij, ijk, j->jk', self.c_ws, f_val_NS[..., 1], self.gphi_c[..., 1], self.cellmeasure))  # (NC,cldof)
 
         # # --- now, we add the CH term
+        if self.p < 3:
+            cell_int3 = 0
+        elif self.p == 3:
+            epsilon = self.pde.epsilon
+            phi_xxx, phi_yyy, phi_yxx, phi_xyy = self.cb.get_highorder_diff(self.c_bcs, order='3rd-order')  # (NQ,NC,ldof)
+            grad_x_laplace_uh = -epsilon * np.einsum('ijk, jk->ij', phi_xxx + phi_xyy, uh[self.cell2dof])
+            grad_y_laplace_uh = -epsilon * np.einsum('ijk, jk->ij', phi_yxx + phi_yyy, uh[self.cell2dof])
+            grad_free_energy_c = self.pde.epsilon / self.pde.eta ** 2 * self.grad_free_energy_at_cells(uh,
+                                                                                                       self.c_bcs)  # (NQ,NC,2)
+            cell_int3 = 
+
 
 
         # # --- assemble the NS's pressure equation
