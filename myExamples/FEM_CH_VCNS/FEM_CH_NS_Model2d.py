@@ -135,13 +135,16 @@ class FEM_CH_NS_Model2d:
         guh_val[..., 1] = 3 * uh_val ** 2 * guh_val[..., 1] - guh_val[..., 1]
         return guh_val  # (NQ,NC,2)
 
-    def CH_NS_Solver_T1stOrder(self):
+    def decoupled_CH_NS_Solver_T1stOrder(self):
         pde = self.pde
         timemesh = self.timemesh
         NT = len(timemesh)
         dt = self.dt
         uh = self.uh
         wh = self.wh
+        vel0 = self.vel0
+        vel1 = self.vel1
+        ph = self.ph
         sm = self.StiffMatrix
         mm = self.MassMatrix
         space = self.space
@@ -159,9 +162,38 @@ class FEM_CH_NS_Model2d:
         print('    t0 = %.4e,  T = %.4e, dt = %.4e' % (timemesh[0], timemesh[-1], dt))
         print(' ')
 
-        phi_f_Neu_CH = space.face_basis(self.f_bcs)  # (NQ,1,fldof). 实际上这里可以直接用 pspace.basis(f_bcs), 两个函数的代码是相同的
-        phi_c = space.basis(self.c_bcs)  # (NQ,NC,clodf)
-        gphi_c = space.grad_basis(self.c_bcs)  # (NQ,NC,cldof,GD)
+        if pde.haveTrueSolution:
+            def init_solution_CH(p):
+                return pde.solution_CH(p, 0)
+            uh[:] = self.space.interpolation(init_solution_CH)
+
+            def init_velocity0(p):
+                return pde.velocity_NS(p, 0)[..., 0]
+            vel0[:] = self.vspace.interpolation(init_velocity0)
+
+            def init_velocity1(p):
+                return pde.velocity_NS(p, 0)[..., 1]
+            vel1[:] = self.vspace.interpolation(init_velocity1)
+
+            def init_pressure(p):
+                return pde.pressure_NS(p, 0)
+            ph[:] = self.space.interpolation(init_pressure)
+
+            # # time-looping
+            print('    # ------------ begin the time-looping ------------ #')
+            for nt in range(NT - 1):
+                currt_t = timemesh[nt]
+                next_t = currt_t + dt
+
+                if nt % max([int(NT / 10), 1]) == 0:
+                    print('    currt_t = %.4e' % currt_t)
+
+                # # --- decoupled solvers
+                self.decoupled_CH_Solver_T1stOrder(uh, wh, vel0, vel1, next_t)
+                
+
+
+
 
     def decoupled_CH_Solver_T1stOrder(self, uh, wh, vel0, vel1, next_t):
         """
@@ -182,8 +214,8 @@ class FEM_CH_NS_Model2d:
         guh_val_c = self.space.grad_value(uh, self.c_bcs)  # (NQ,NC,2)
         guh_val_f = self.uh_grad_value_at_faces(uh, self.f_bcs, self.NeuCellIdx_CH, self.NeuLocalIdx_CH)  # (NQ,NE,2)
 
-        Neumann = self.pde.neumann(self.f_pp_Neu_CH, next_t, self.nNeu_CH)  # (NQ,NE)
-        LaplaceNeumann = self.pde.laplace_neumann(self.f_pp_Neu_CH, next_t, self.nNeu_CH)  # (NQ,NE)
+        Neumann = self.pde.neumann_CH(self.f_pp_Neu_CH, next_t, self.nNeu_CH)  # (NQ,NE)
+        LaplaceNeumann = self.pde.laplace_neumann_CH(self.f_pp_Neu_CH, next_t, self.nNeu_CH)  # (NQ,NE)
         f_val_CH = self.pde.source_CH(self.c_pp, next_t, self.pde.m, self.pde.epsilon, self.pde.eta)  # (NQ,NC)
 
         # # get the auxiliary equation Right-hand-side-Vector
@@ -344,7 +376,6 @@ class FEM_CH_NS_Model2d:
         v1_bc = DirichletBC(self.vspace, dir_u1, threshold=self.DirEdgeIdx_NS)
         vlm1, vrv1 = v1_bc.apply(vlm1, vrv1)
         vel1[:] = spsolve(vlm1, vrv1).reshape(-1)
-
 
     def NSNolinearTerm(self, uh0, uh1, bcs):
         vspace = self.vspace
