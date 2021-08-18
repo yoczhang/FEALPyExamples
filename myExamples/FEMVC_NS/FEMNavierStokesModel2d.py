@@ -192,7 +192,7 @@ class FEMNavierStokesModel2d:
 
             # for the second-component of velocity
             urv1 = np.zeros((vdof.number_of_global_dofs(),), dtype=self.ftype)  # (Nvdof,)
-            urv1_temp = np.einsum('i, ij, ijk, j->jk', c_ws,u_val1/dt - grad_ph[..., 1] - nolinear_val1
+            urv1_temp = np.einsum('i, ij, ijk, j->jk', c_ws, u_val1/dt - grad_ph[..., 1] - nolinear_val1
                                   + f_val[..., 1], u_phi, cell_measure)  # (NC,clodf)
             np.add.at(urv1, ucell2dof, urv1_temp)
             u1_bc = DirichletBC(vspace, dir_u1, threshold=idxDirEdge)
