@@ -15,7 +15,7 @@ from fealpy.mesh.TriangleMesh import TriangleMesh
 from numpy import pi, sin, cos, exp
 
 
-class CH_NS_Data0:
+class CH_NS_Data_truesolution:
     def __init__(self, t0, T):
         self.t0 = t0
         self.T = T
