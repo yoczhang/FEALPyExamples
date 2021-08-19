@@ -15,7 +15,7 @@ The fealpy-FEM program for coupled Cahn-Hilliard-Navier-Stokes equation.
 
 import numpy as np
 import matplotlib.pyplot as plt
-from CahnHilliard2DData import CahnHilliardData0
+from CH_NS_Data import CH_NS_Data0
 from FEM_CH_NS_Model2d import FEM_CH_NS_Model2d
 from fealpy.mesh import MeshFactory as MF
 from PrintLogger import make_print_to_file

@@ -143,7 +143,7 @@ class FEM_CH_NS_Model2d:
         guh_val[..., 1] = 3 * uh_val ** 2 * guh_val[..., 1] - guh_val[..., 1]
         return guh_val  # (NQ,NC,2)
 
-    def decoupled_CH_NS_Solver_T1stOrder(self):
+    def CH_NS_Solver_T1stOrder(self):
         pde = self.pde
         timemesh = self.timemesh
         NT = len(timemesh)
@@ -187,19 +187,20 @@ class FEM_CH_NS_Model2d:
                 return pde.pressure_NS(p, 0)
             ph[:] = self.space.interpolation(init_pressure)
 
-            # # time-looping
-            print('    # ------------ begin the time-looping ------------ #')
-            for nt in range(NT - 1):
-                currt_t = timemesh[nt]
-                next_t = currt_t + dt
+        # # time-looping
+        print('    # ------------ begin the time-looping ------------ #')
+        for nt in range(NT - 1):
+            currt_t = timemesh[nt]
+            next_t = currt_t + dt
 
-                if nt % max([int(NT / 10), 1]) == 0:
-                    print('    currt_t = %.4e' % currt_t)
+            if nt % max([int(NT / 10), 1]) == 0:
+                print('    currt_t = %.4e' % currt_t)
 
-                # # --- decoupled solvers
-                uh_currt = uh.copy()
-                self.decoupled_CH_Solver_T1stOrder(uh, wh, vel0, vel1, next_t)
-                self.decoupled_NS_Solver_T1stOrder(vel0, vel1, ph, uh_currt, next_t)
+            # # --- decoupled solvers
+            uh_currt = uh.copy()
+            self.decoupled_CH_Solver_T1stOrder(uh, wh, vel0, vel1, next_t)
+            self.decoupled_NS_Solver_T1stOrder(vel0, vel1, ph, uh_currt, next_t)
+
 
     def decoupled_CH_Solver_T1stOrder(self, uh, wh, vel0, vel1, next_t):
         """
