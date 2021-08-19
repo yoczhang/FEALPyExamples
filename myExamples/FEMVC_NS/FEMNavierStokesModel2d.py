@@ -60,6 +60,7 @@ class FEMNavierStokesModel2d:
         pface2dof = pdof.face_to_dof()  # (NE,fldof)
         pcell2dof = pdof.cell_to_dof()  # (NC,cldof)
         ucell2dof = vspace.cell_to_dof()  # (NC,cldof)
+        vface2dof = vdof.face_to_dof()  # (NE,fldof)
 
         idxDirEdge = self.set_Dirichlet_edge()
         cellidxDir = self.mesh.ds.edge2cell[idxDirEdge, 0]
@@ -72,9 +73,15 @@ class FEMNavierStokesModel2d:
         cell_measure = self.mesh.cell_area()
         dir_cell_measure = self.mesh.cell_area(cellidxDir)
 
+        idxNeuEdge = self.mesh.ds.boundary_face_index()  # here Neumann edges are all the boundary
+        n_Neu = self.mesh.face_unit_normal(index=idxNeuEdge)  # (NNeu,2)
+        neu_face_measure = self.mesh.entity_measure('face', index=idxNeuEdge)  # (NNeu,2)
+        Neu_face2dof = vface2dof[idxNeuEdge, :]  # (NNeu,flodf)
+
         f_q = self.integralalg.faceintegrator
         f_bcs, f_ws = f_q.get_quadrature_points_and_weights()  # f_bcs.shape: (NQ,(GD-1)+1)
         f_pp = self.mesh.bc_to_point(f_bcs, index=idxDirEdge)  # f_pp.shape: (NQ,NDir,GD) the physical Gauss points
+        f_pp_Neu = self.mesh.bc_to_point(f_bcs, index=idxNeuEdge)  # f_pp.shape: (NQ,NNeu,GD) the physical Gauss points
 
         c_q = self.integralalg.cellintegrator
         c_bcs, c_ws = c_q.get_quadrature_points_and_weights()  # c_bcs.shape: (NQ,GD+1)
@@ -95,6 +102,7 @@ class FEMNavierStokesModel2d:
         ulmm = self.vspace.mass_matrix()
         ulsm = self.vspace.stiff_matrix()
         u_phi = vspace.basis(c_bcs)  # (NQ,1,cldof)
+        u_phi_f = vspace.face_basis(f_bcs)  # (NQ,1,fldof) 实际上这里可以直接用 vspace.basis(f_bcs), 两个函数的代码是相同的
 
         next_t = 0
         for nt in range(int(self.T/dt)):
@@ -130,6 +138,8 @@ class FEMNavierStokesModel2d:
                 nolinear_val0 = nolinear_val[..., 0]  # (NQ,NC)
                 nolinear_val1 = nolinear_val[..., 1]  # (NQ,NC)
 
+            Neumann_0 = pde.neumann_0(f_pp_Neu, next_t, n_Neu)  # (NQ,NE)
+            Neumann_1 = pde.neumann_1(f_pp_Neu, next_t, n_Neu)  # (NQ,NE)
             uDir_val = pde.dirichlet(f_pp, next_t)  # (NQ,NDir,GD)
             f_val = pde.source(c_pp, next_t)  # (NQ,NC,GD)
 
@@ -183,18 +193,22 @@ class FEMNavierStokesModel2d:
 
             # for the first-component of velocity
             urv0 = np.zeros((vdof.number_of_global_dofs(),), dtype=self.ftype)  # (Nvdof,)
-            urv0_temp = np.einsum('i, ij, ijk, j->jk', c_ws, u_val0/dt - grad_ph[..., 0] - nolinear_val0
-                                  + f_val[..., 0], u_phi, cell_measure)  # (NC,clodf)
-            np.add.at(urv0, ucell2dof, urv0_temp)
+            urv0_c = np.einsum('i, ij, ijk, j->jk', c_ws, u_val0/dt - grad_ph[..., 0] - nolinear_val0
+                               + f_val[..., 0], u_phi, cell_measure)  # (NC,clodf)
+            urv0_f = self.pde.nu * np.einsum('i, ij, ijn, j->jn', f_ws, Neumann_0, u_phi_f, neu_face_measure)
+            np.add.at(urv0, ucell2dof, urv0_c)
+            np.add.at(urv0, Neu_face2dof, urv0_f)
             u0_bc = DirichletBC(vspace, dir_u0, threshold=idxDirEdge)
             ulm0, urv0 = u0_bc.apply(ulm0, urv0)
             uh0[:] = spsolve(ulm0, urv0).reshape(-1)
 
             # for the second-component of velocity
             urv1 = np.zeros((vdof.number_of_global_dofs(),), dtype=self.ftype)  # (Nvdof,)
-            urv1_temp = np.einsum('i, ij, ijk, j->jk', c_ws, u_val1/dt - grad_ph[..., 1] - nolinear_val1
-                                  + f_val[..., 1], u_phi, cell_measure)  # (NC,clodf)
-            np.add.at(urv1, ucell2dof, urv1_temp)
+            urv1_c = np.einsum('i, ij, ijk, j->jk', c_ws, u_val1/dt - grad_ph[..., 1] - nolinear_val1
+                               + f_val[..., 1], u_phi, cell_measure)  # (NC,clodf)
+            urv1_f = self.pde.nu * np.einsum('i, ij, ijn, j->jn', f_ws, Neumann_1, u_phi_f, neu_face_measure)
+            np.add.at(urv1, ucell2dof, urv1_c)
+            np.add.at(urv1, Neu_face2dof, urv1_f)
             u1_bc = DirichletBC(vspace, dir_u1, threshold=idxDirEdge)
             ulm1, urv1 = u1_bc.apply(ulm1, urv1)
             uh1[:] = spsolve(ulm1, urv1).reshape(-1)

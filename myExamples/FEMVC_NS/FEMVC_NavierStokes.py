@@ -33,7 +33,7 @@ maxit = 1  # the max iteration of the mesh
 
 dt = 1.0e-3
 T = 1
-NN = 64
+NN = 32
 
 box = [0, 1, 0, 1]
 mesh = MF.boxmesh2d(box, nx=NN, ny=NN, meshtype='tri')

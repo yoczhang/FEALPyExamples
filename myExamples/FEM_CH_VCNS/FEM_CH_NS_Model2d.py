@@ -54,6 +54,7 @@ class FEM_CH_NS_Model2d:
         self.cell2dof = self.dof.cell_to_dof()  # (NC,cldof)
         self.vface2dof = self.vdof.face_to_dof()  # (NE,vfldof)
         self.vcell2dof = self.vdof.cell_to_dof()  # (NC,vcldof)
+
         self.NeuEdgeIdx_CH = self.set_CH_Neumann_edge()
         self.nNeu_CH = self.mesh.face_unit_normal(index=self.NeuEdgeIdx_CH)  # (NBE,2)
         self.NeuCellIdx_CH = self.mesh.ds.edge2cell[self.NeuEdgeIdx_CH, 0]
@@ -65,6 +66,9 @@ class FEM_CH_NS_Model2d:
         self.DirCellIdx_NS = self.mesh.ds.edge2cell[self.DirEdgeIdx_NS, 0]
         self.DirLocalIdx_NS = self.mesh.ds.edge2cell[self.DirEdgeIdx_NS, 2]
         self.DirEdgeMeasure_NS = self.mesh.entity_measure('face', index=self.DirEdgeIdx_NS)  # (Nneu,2)
+        self.NeuEdgeIdx_NS = self.mesh.ds.boundary_face_index()  # here Neumann edges are all the boundary
+        self.nNeu_NS = self.mesh.face_unit_normal(index=self.NeuEdgeIdx_NS)  # (NBE,2)
+        self.NeuEdgeMeasure_NS = self.mesh.entity_measure('face', index=self.NeuEdgeIdx_NS)  # (Nneu,2)
 
         # f_q = self.integralalg.faceintegrator
         self.f_bcs, self.f_ws = self.integralalg.faceintegrator.get_quadrature_points_and_weights()  # f_bcs.shape: (NQ,(GD-1)+1)
@@ -72,12 +76,16 @@ class FEM_CH_NS_Model2d:
                                                  index=self.NeuEdgeIdx_CH)  # f_pp.shape: (NQ,NBE,GD) the physical Gauss points
         self.f_pp_Dir_NS = self.mesh.bc_to_point(self.f_bcs,
                                                  index=self.DirEdgeIdx_NS)  # f_pp.shape: (NQ,NBE,GD) the physical Gauss points
+        self.f_pp_Neu_NS = self.mesh.bc_to_point(self.f_bcs,
+                                                 index=self.NeuEdgeIdx_NS)  # f_pp.shape: (NQ,NBE,GD) the physical Gauss points
+
         # c_q = self.integralalg.cellintegrator
         self.c_bcs, self.c_ws = self.integralalg.faceintegrator.get_quadrature_points_and_weights()  # c_bcs.shape: (NQ,GD+1)
         self.c_pp = self.mesh.bc_to_point(self.c_bcs)  # c_pp.shape: (NQ_cell,NC,GD) the physical Gauss points
         self.phi_f = self.space.face_basis(self.f_bcs)  # (NQ,1,fldof) 实际上这里可以直接用 pspace.basis(f_bcs), 两个函数的代码是相同的
         self.phi_c = self.space.basis(self.c_bcs)  # (NQ,NC,cldof)
         self.vphi_c = self.vspace.basis(self.c_bcs)  # (NQ,NC,vcldof)
+        self.vphi_f = self.vspace.face_basis(self.f_bcs)  # (NQ,NC,vcldof)
         self.gphi_f = self.space.edge_grad_basis(self.f_bcs, self.DirCellIdx_NS, self.DirLocalIdx_NS)  # (NDir,NQ,cldof,GD)
         self.gphi_c = self.space.grad_basis(self.c_bcs)  # (NQ,NC,cldof,GD)
 
@@ -189,11 +197,9 @@ class FEM_CH_NS_Model2d:
                     print('    currt_t = %.4e' % currt_t)
 
                 # # --- decoupled solvers
+                uh_currt = uh.copy()
                 self.decoupled_CH_Solver_T1stOrder(uh, wh, vel0, vel1, next_t)
-                
-
-
-
+                self.decoupled_NS_Solver_T1stOrder(vel0, vel1, ph, uh_currt, next_t)
 
     def decoupled_CH_Solver_T1stOrder(self, uh, wh, vel0, vel1, next_t):
         """
@@ -296,6 +302,8 @@ class FEM_CH_NS_Model2d:
 
         velDir_val = self.pde.dirichlet_NS(self.f_pp_Dir_NS, next_t)  # (NQ,NDir,GD)
         f_val_NS = self.pde.source_NS(self.c_pp, next_t)  # (NQ,NC,GD)
+        Neumann_0 = self.pde.neumann_0_NS(self.f_pp_Neu_NS, next_t, self.nNeu_NS)  # (NQ,NE)
+        Neumann_1 = self.pde.neumann_1_NS(self.f_pp_Neu_NS, next_t, self.nNeu_NS)  # (NQ,NE)
 
         # # --- to update the pressure value --- # #
         # # to get the Pressure's Right-hand Vector
@@ -361,18 +369,22 @@ class FEM_CH_NS_Model2d:
 
         # # --- assemble the first-component of Velocity-Right-Vector
         vrv0 = np.zeros((self.vdof.number_of_global_dofs(),), dtype=self.ftype)  # (Nvdof,)
-        vrv0_temp = np.einsum('i, ij, ijk, j->jk', self.c_ws, vel0_val / self.dt - grad_ph[..., 0] - nolinear_val0
-                              + f_val_NS[..., 0] - CH_term_val0, self.vphi_c, self.cellmeasure)  # (NC,clodf)
-        np.add.at(vrv0, self.cell2dof, vrv0_temp)
+        vrv0_c = np.einsum('i, ij, ijk, j->jk', self.c_ws, vel0_val / self.dt - grad_ph[..., 0] - nolinear_val0
+                           + f_val_NS[..., 0] - CH_term_val0, self.vphi_c, self.cellmeasure)  # (NC,clodf)
+        vrv0_f = self.pde.nu * np.einsum('i, ij, ijn, j->jn', self.f_ws, Neumann_0, self.vphi_f, self.NeuEdgeMeasure_NS)
+        np.add.at(vrv0, self.cell2dof, vrv0_c)
+        np.add.at(vrv0, self.vface2dof[self.NeuEdgeIdx_NS, :], vrv0_f)
         v0_bc = DirichletBC(self.vspace, dir_u0, threshold=self.DirEdgeIdx_NS)
         vlm0, vrv0 = v0_bc.apply(vlm0, vrv0)
         vel0[:] = spsolve(vlm0, vrv0).reshape(-1)
 
         # # --- assemble the second-component of Velocity-Right-Vector
         vrv1 = np.zeros((self.vdof.number_of_global_dofs(),), dtype=self.ftype)  # (Nvdof,)
-        vrv1_temp = np.einsum('i, ij, ijk, j->jk', self.c_ws, vel1_val / self.dt - grad_ph[..., 1] - nolinear_val1
-                              + f_val_NS[..., 1] - CH_term_val1, self.vphi_c, self.cellmeasure)  # (NC,clodf)
-        np.add.at(vrv1, self.cell2dof, vrv1_temp)
+        vrv1_c = np.einsum('i, ij, ijk, j->jk', self.c_ws, vel1_val / self.dt - grad_ph[..., 1] - nolinear_val1
+                           + f_val_NS[..., 1] - CH_term_val1, self.vphi_c, self.cellmeasure)  # (NC,clodf)
+        vrv1_f = self.pde.nu * np.einsum('i, ij, ijn, j->jn', self.f_ws, Neumann_1, self.vphi_f, self.NeuEdgeMeasure_NS)
+        np.add.at(vrv1, self.cell2dof, vrv1_c)
+        np.add.at(vrv1, self.vface2dof[self.NeuEdgeIdx_NS, :], vrv1_f)
         v1_bc = DirichletBC(self.vspace, dir_u1, threshold=self.DirEdgeIdx_NS)
         vlm1, vrv1 = v1_bc.apply(vlm1, vrv1)
         vel1[:] = spsolve(vlm1, vrv1).reshape(-1)
