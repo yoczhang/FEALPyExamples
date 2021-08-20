@@ -202,11 +202,15 @@ class FEM_CH_NS_Model2d:
 
             # # --- decoupled solvers, updated the discrete-solutions to the next-time
             uh_currt = uh.copy()
-            print('    |___ decoupled Cahn-Hilliard Solver(Time-1st-order): ')
+            print('        |___ decoupled Cahn-Hilliard Solver(Time-1st-order): ')
             self.decoupled_CH_Solver_T1stOrder(uh, wh, vel0, vel1, next_t)
-            print('    -----------------------------------------------')
-            print('    |___ decoupled Navier-Stokes Solver(Time-1st-order): ')
+            print('        -----------------------------------------------')
+            print('        |___ decoupled Navier-Stokes Solver(Time-1st-order): ')
+            vel0_cp = vel0.copy()
+            vel1_cp = vel1.copy()
+            ph_cp = ph.copy()
             self.decoupled_NS_Solver_T1stOrder(vel0, vel1, ph, uh_currt, next_t)
+            print('   end of one-looping')
         print('    # ------------ end the time-looping ------------ #\n')
 
         # # --- errors
@@ -278,12 +282,15 @@ class FEM_CH_NS_Model2d:
         aux_rv = np.zeros((self.dof.number_of_global_dofs(),), dtype=self.ftype)  # (Ndof,)
 
         # # aux_rhs_c_0:  -1. / (epsilon * m * dt) * (uh^n,phi)_\Omega
-        aux_rhs_c_0 = -1. / (self.pde.epsilon * self.pde.m) * (1 / self.dt * np.einsum('i, ij, ijk, j->jk', self.c_ws, uh_val, self.phi_c, self.cellmeasure) +
-                                             np.einsum('i, ij, ijk, j->jk', self.c_ws, f_val_CH, self.phi_c, self.cellmeasure))  # (NC,cldof)
+        aux_rhs_c_0 = -1. / (self.pde.epsilon * self.pde.m) * \
+                      (1 / self.dt * np.einsum('i, ij, ijk, j->jk', self.c_ws, uh_val, self.phi_c, self.cellmeasure)
+                       + np.einsum('i, ij, ijk, j->jk', self.c_ws, f_val_CH, self.phi_c, self.cellmeasure))  # (NC,cldof)
+
         # # aux_rhs_c_1: -s / epsilon * (\nabla uh^n, \nabla phi)_\Omega
         aux_rhs_c_1 = -self.s / self.pde.epsilon * (
                 np.einsum('i, ij, ijk, j->jk', self.c_ws, guh_val_c[..., 0], self.gphi_c[..., 0], self.cellmeasure)
                 + np.einsum('i, ij, ijk, j->jk', self.c_ws, guh_val_c[..., 1], self.gphi_c[..., 1], self.cellmeasure))  # (NC,cldof)
+
         # # aux_rhs_c_2: 1 / epsilon * (\nabla h(uh^n), \nabla phi)_\Omega
         aux_rhs_c_2 = 1. / self.pde.epsilon * (
                 np.einsum('i, ij, ijk, j->jk', self.c_ws, grad_free_energy_c[..., 0], self.gphi_c[..., 0], self.cellmeasure)
@@ -296,7 +303,7 @@ class FEM_CH_NS_Model2d:
         # # aux_rhs_f_1: s / epsilon * (\nabla uh^n \cdot n, phi)_\Gamma
         aux_rhs_f_1 = self.s / self.pde.epsilon * np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, guh_val_f, self.nNeu_CH,
                                                             self.phi_f, self.NeuEdgeMeasure_CH)  # (Nneu,fldof)
-        
+
         # # aux_rhs_f_2: -1 / epsilon * (\nabla h(uh^n) \cdot n, phi)_\Gamma
         aux_rhs_f_2 = -1. / self.pde.epsilon * np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, grad_free_energy_f, self.nNeu_CH,
                                                          self.phi_f, self.NeuEdgeMeasure_CH)  # (Nneu,fldof)
@@ -405,12 +412,14 @@ class FEM_CH_NS_Model2d:
         prv = np.r_[prv, 0]
         ph[:] = spsolve(plsm_temp, prv)[:-1]  # we have added one addtional dof
 
+        # # ------------------------------------ # #
         # # --- to update the velocity value --- # #
+        # # ------------------------------------ # #
         grad_ph = self.space.grad_value(ph, self.c_bcs)  # (NQ,NC,2)
 
         # # the Velocity-Left-Matrix
         vlm0 = 1 / self.dt * self.vel_MM + self.pde.nu * self.vel_SM
-        vlm1 = 1 / self.dt * self.vel_MM + self.pde.nu * self.vel_SM
+        vlm1 = vlm0.copy()
 
         # # to get the u's Right-hand Vector
         def dir_u0(p):
@@ -424,7 +433,7 @@ class FEM_CH_NS_Model2d:
         vrv0_c = np.einsum('i, ij, ijk, j->jk', self.c_ws, vel0_val / self.dt - grad_ph[..., 0] - nolinear_val0
                            + f_val_NS[..., 0] - CH_term_val0, self.vphi_c, self.cellmeasure)  # (NC,clodf)
         vrv0_f = self.pde.nu * np.einsum('i, ij, ijn, j->jn', self.f_ws, Neumann_0, self.vphi_f, self.NeuEdgeMeasure_NS)
-        np.add.at(vrv0, self.cell2dof, vrv0_c)
+        np.add.at(vrv0, self.vcell2dof, vrv0_c)
         np.add.at(vrv0, self.vface2dof[self.NeuEdgeIdx_NS, :], vrv0_f)
         v0_bc = DirichletBC(self.vspace, dir_u0, threshold=self.DirEdgeIdx_NS)
         vlm0, vrv0 = v0_bc.apply(vlm0, vrv0)
@@ -435,7 +444,7 @@ class FEM_CH_NS_Model2d:
         vrv1_c = np.einsum('i, ij, ijk, j->jk', self.c_ws, vel1_val / self.dt - grad_ph[..., 1] - nolinear_val1
                            + f_val_NS[..., 1] - CH_term_val1, self.vphi_c, self.cellmeasure)  # (NC,clodf)
         vrv1_f = self.pde.nu * np.einsum('i, ij, ijn, j->jn', self.f_ws, Neumann_1, self.vphi_f, self.NeuEdgeMeasure_NS)
-        np.add.at(vrv1, self.cell2dof, vrv1_c)
+        np.add.at(vrv1, self.vcell2dof, vrv1_c)
         np.add.at(vrv1, self.vface2dof[self.NeuEdgeIdx_NS, :], vrv1_f)
         v1_bc = DirichletBC(self.vspace, dir_u1, threshold=self.DirEdgeIdx_NS)
         vlm1, vrv1 = v1_bc.apply(vlm1, vrv1)

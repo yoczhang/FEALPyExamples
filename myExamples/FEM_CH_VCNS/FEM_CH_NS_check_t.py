@@ -27,7 +27,7 @@ from to_show import show_error_table
 
 # --- begin setting --- #
 d = 2  # the dimension
-p = 4  # the polynomial order
+p = 2  # the polynomial order
 n = 2  # the number of refine mesh
 maxit = 5  # the max iteration of the mesh
 
