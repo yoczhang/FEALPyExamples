@@ -55,12 +55,14 @@ class FEM_CH_NS_Model2d:
         self.vface2dof = self.vdof.face_to_dof()  # (NE,vfldof)
         self.vcell2dof = self.vdof.cell_to_dof()  # (NC,vcldof)
 
+        # # --- Cahn-Hilliard boundary settings
         self.NeuEdgeIdx_CH = self.set_CH_Neumann_edge()
         self.nNeu_CH = self.mesh.face_unit_normal(index=self.NeuEdgeIdx_CH)  # (NBE,2)
         self.NeuCellIdx_CH = self.mesh.ds.edge2cell[self.NeuEdgeIdx_CH, 0]
         self.NeuLocalIdx_CH = self.mesh.ds.edge2cell[self.NeuEdgeIdx_CH, 2]
         self.NeuEdgeMeasure_CH = self.mesh.entity_measure('face', index=self.NeuEdgeIdx_CH)  # (Nneu,2)
 
+        # # --- Navier-Stokes boundary settings
         self.DirEdgeIdx_NS = self.set_NS_Dirichlet_edge()
         self.nDir_NS = self.mesh.face_unit_normal(index=self.DirEdgeIdx_NS)  # (NBE,2)
         self.DirCellIdx_NS = self.mesh.ds.edge2cell[self.DirEdgeIdx_NS, 0]
@@ -70,7 +72,7 @@ class FEM_CH_NS_Model2d:
         self.nNeu_NS = self.mesh.face_unit_normal(index=self.NeuEdgeIdx_NS)  # (NBE,2)
         self.NeuEdgeMeasure_NS = self.mesh.entity_measure('face', index=self.NeuEdgeIdx_NS)  # (Nneu,2)
 
-        # f_q = self.integralalg.faceintegrator
+        # # --- face-integrator settings
         self.f_bcs, self.f_ws = self.integralalg.faceintegrator.get_quadrature_points_and_weights()  # f_bcs.shape: (NQ,(GD-1)+1)
         self.f_pp_Neu_CH = self.mesh.bc_to_point(self.f_bcs,
                                                  index=self.NeuEdgeIdx_CH)  # f_pp.shape: (NQ,NBE,GD) the physical Gauss points
@@ -79,9 +81,11 @@ class FEM_CH_NS_Model2d:
         self.f_pp_Neu_NS = self.mesh.bc_to_point(self.f_bcs,
                                                  index=self.NeuEdgeIdx_NS)  # f_pp.shape: (NQ,NBE,GD) the physical Gauss points
 
-        # c_q = self.integralalg.cellintegrator
-        self.c_bcs, self.c_ws = self.integralalg.faceintegrator.get_quadrature_points_and_weights()  # c_bcs.shape: (NQ,GD+1)
+        # # --- cell-integrator settings
+        self.c_bcs, self.c_ws = self.integralalg.cellintegrator.get_quadrature_points_and_weights()  # c_bcs.shape: (NQ,GD+1)
         self.c_pp = self.mesh.bc_to_point(self.c_bcs)  # c_pp.shape: (NQ_cell,NC,GD) the physical Gauss points
+
+        # # --- basis-settings
         self.phi_f = self.space.face_basis(self.f_bcs)  # (NQ,1,fldof) 实际上这里可以直接用 pspace.basis(f_bcs), 两个函数的代码是相同的
         self.phi_c = self.space.basis(self.c_bcs)  # (NQ,NC,cldof)
         self.vphi_c = self.vspace.basis(self.c_bcs)  # (NQ,NC,vcldof)
@@ -196,11 +200,56 @@ class FEM_CH_NS_Model2d:
             if nt % max([int(NT / 10), 1]) == 0:
                 print('    currt_t = %.4e' % currt_t)
 
-            # # --- decoupled solvers
+            # # --- decoupled solvers, updated the discrete-solutions to the next-time
             uh_currt = uh.copy()
+            print('    |___ decoupled Cahn-Hilliard Solver(Time-1st-order): ')
             self.decoupled_CH_Solver_T1stOrder(uh, wh, vel0, vel1, next_t)
+            print('    -----------------------------------------------')
+            print('    |___ decoupled Navier-Stokes Solver(Time-1st-order): ')
             self.decoupled_NS_Solver_T1stOrder(vel0, vel1, ph, uh_currt, next_t)
+        print('    # ------------ end the time-looping ------------ #\n')
 
+        # # --- errors
+        uh_l2err, uh_h1err, vel_l2err, vel_h1err, ph_l2err = self.currt_error(uh, vel0, vel1, ph, timemesh[-1])
+        print('    # ------------ the last errors ------------ #')
+        print('    uh_l2err = %.4e, uh_h1err = %.4e' % (uh_l2err, uh_h1err))
+        print('    vel_l2err = %.4e, vel_h1err = %.4e, ph_l2err = %.4e' % (vel_l2err, vel_h1err, ph_l2err))
+        return uh_l2err, uh_h1err, vel_l2err, vel_h1err, ph_l2err
+
+    def currt_error(self, uh, vel0, vel1, ph, t):
+        pde = self.pde
+
+        # # --- Cahn-Hilliard equation's errors
+        def currt_solution_CH(p):
+            return pde.solution_CH(p, t)
+        l2err_CH = self.space.integralalg.L2_error(currt_solution_CH, uh)
+
+        def currt_grad_solution_CH(p):
+            return pde.gradient_CH(p, t)
+        h1err_CH = self.space.integralalg.L2_error(currt_grad_solution_CH, uh.grad_value)
+
+        # # --- Navier-Stokes equation's errors
+        def currt_pressure_NS(p):
+            return pde.pressure_NS(p, t)
+        p_l2err_NS = self.space.integralalg.L2_error(currt_pressure_NS, ph)
+
+        def currt_v0_NS(p):
+            return pde.velocity_NS(p, t)[..., 0]
+        v0_l2err_NS = self.vspace.integralalg.L2_error(currt_v0_NS, vel0)
+
+        def currt_v1_NS(p):
+            return pde.velocity_NS(p, t)[..., 1]
+        v1_l2err_NS = self.vspace.integralalg.L2_error(currt_v1_NS, vel1)
+
+        def currt_grad_velocity0_NS(p):
+            return pde.grad_velocity0_NS(p, t)
+        v0_h1err_NS = self.space.integralalg.L2_error(currt_grad_velocity0_NS, vel0.grad_value)
+
+        def currt_grad_velocity1_NS(p):
+            return pde.grad_velocity1_NS(p, t)
+        v1_h1err_NS = self.space.integralalg.L2_error(currt_grad_velocity1_NS, vel1.grad_value)
+
+        return l2err_CH, h1err_CH, np.sqrt(v0_l2err_NS**2 + v1_l2err_NS**2), np.sqrt(v0_h1err_NS**2 + v1_h1err_NS**2), p_l2err_NS
 
     def decoupled_CH_Solver_T1stOrder(self, uh, wh, vel0, vel1, next_t):
         """
@@ -241,14 +290,16 @@ class FEM_CH_NS_Model2d:
                 + np.einsum('i, ij, ijk, j->jk', self.c_ws, grad_free_energy_c[..., 1], self.gphi_c[..., 1], self.cellmeasure))  # (NC,cldof)
 
         # # aux_rhs_f_0: (\nabla wh^{n+1}\cdot n, phi)_\Gamma, wh is the solution of auxiliary equation
-        aux_rhs_f_0 = self.alpha * np.einsum('i, ij, ijn, j->jn', self.f_ws, Neumann, self.phi_f, self.NeuEdgeMeasure_CH) \
+        aux_rhs_f_0 = self.alpha * np.einsum('i, ij, ijn, j->jn', self.f_ws, Neumann, self.phi_f, self.NeuEdgeMeasure_CH)\
                       + np.einsum('i, ij, ijn, j->jn', self.f_ws, LaplaceNeumann, self.phi_f, self.NeuEdgeMeasure_CH)  # (Nneu,fldof)
+
         # # aux_rhs_f_1: s / epsilon * (\nabla uh^n \cdot n, phi)_\Gamma
-        aux_rhs_f_1 = self.s / self.pde.epsilon * np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, guh_val_f, self.nNeu_CH, self.phi_f,
-                                              self.NeuEdgeMeasure_CH)  # (Nneu,fldof)
+        aux_rhs_f_1 = self.s / self.pde.epsilon * np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, guh_val_f, self.nNeu_CH,
+                                                            self.phi_f, self.NeuEdgeMeasure_CH)  # (Nneu,fldof)
+        
         # # aux_rhs_f_2: -1 / epsilon * (\nabla h(uh^n) \cdot n, phi)_\Gamma
-        aux_rhs_f_2 = -1. / self.pde.epsilon * \
-                      np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, grad_free_energy_f, self.nNeu_CH, self.phi_f, self.NeuEdgeMeasure_CH)  # (Nneu,fldof)
+        aux_rhs_f_2 = -1. / self.pde.epsilon * np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, grad_free_energy_f, self.nNeu_CH,
+                                                         self.phi_f, self.NeuEdgeMeasure_CH)  # (Nneu,fldof)
 
         # # --- now, we add the NS term
         vel0_val_c = self.vspace.value(vel0, self.c_bcs)  # (NQ,NC)
@@ -302,7 +353,7 @@ class FEM_CH_NS_Model2d:
         nolinear_val1 = nolinear_val[..., 1]  # (NQ,NC)
 
         velDir_val = self.pde.dirichlet_NS(self.f_pp_Dir_NS, next_t)  # (NQ,NDir,GD)
-        f_val_NS = self.pde.source_NS(self.c_pp, next_t)  # (NQ,NC,GD)
+        f_val_NS = self.pde.source_NS(self.c_pp, next_t, self.pde.nu)  # (NQ,NC,GD)
         Neumann_0 = self.pde.neumann_0_NS(self.f_pp_Neu_NS, next_t, self.nNeu_NS)  # (NQ,NE)
         Neumann_1 = self.pde.neumann_1_NS(self.f_pp_Neu_NS, next_t, self.nNeu_NS)  # (NQ,NE)
 
@@ -311,7 +362,7 @@ class FEM_CH_NS_Model2d:
         prv = np.zeros((self.dof.number_of_global_dofs(),), dtype=self.ftype)  # (Npdof,)
 
         # for Dirichlet faces integration
-        dir_int0 = -1 / self.dt * np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, velDir_val, self.nDir_NS, self.phi_c, self.DirEdgeMeasure_NS)  # (NDir,fldof)
+        dir_int0 = -1 / self.dt * np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, velDir_val, self.nDir_NS, self.phi_f, self.DirEdgeMeasure_NS)  # (NDir,fldof)
         dir_int1 = - self.pde.nu * (np.einsum('i, j, ij, jin, j->jn', self.f_ws, self.nDir_NS[:, 1], grad_vel1_f[..., 0] - grad_vel0_f[..., 1],
                                               self.gphi_f[..., 0], self.DirEdgeMeasure_NS)
                                     + np.einsum('i, j, ij, jin, j->jn', self.f_ws, -self.nDir_NS[:, 0], grad_vel1_f[..., 0] - grad_vel0_f[..., 1],

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ---
 # @Software: PyCharm
-# @File: FEM_CH_NS.py
+# @File: FEM_CH_NS_check_t.py
 # @Author: Yongchao Zhang, Northwest University, Xi'an
 # @E-mail: yoczhang@nwu.edu.cn
 # @Site:
@@ -33,7 +33,6 @@ maxit = 5  # the max iteration of the mesh
 
 t0 = 0.
 T = 1
-# NN = 64
 box = [0, 1, 0, 1]
 # mesh = MF.boxmesh2d(box, nx=NN, ny=NN, meshtype='tri')
 
@@ -43,12 +42,12 @@ N_T = stop - start + 1
 dt_space = 1e-1 * np.logspace(start, stop, N_T, base=1/2)
 dt_min = min(dt_space)
 
-time_scheme = 2  # 1 stands for 1st-order time-scheme; 2 is the 2nd-order time-scheme
+time_scheme = 1  # 1 stands for 1st-order time-scheme; 2 is the 2nd-order time-scheme
 h_space = dt_space ** (time_scheme/(p+0))
 
 pdePars = {'m': 1e-3, 's': 1, 'alpha': 1, 'epsilon': 1e-3, 'eta': 1e-1, 'dt_min': dt_min, 'timeScheme': '1stOrder',
            'nu': 1.0e-2}  # value of parameters
-pde = CH_NS_Data0(t0, T)  # create pde model
+pde = CH_NS_Data_truesolution(t0, T)  # create pde model
 pde.setPDEParameters(pdePars)
 
 # # print some basic info
@@ -60,28 +59,33 @@ print('h_space = ', h_space)
 print('domain box = ', box)
 print('# #')
 
-# # error settings
-# errorType = ['$|| u - u_h||_0$', '$||\\nabla u - \\nabla u_h||_0$', '|| p - p_h ||_0']
-errorType = ['$|| u - u_h||_0$', '$||\\nabla u - \\nabla u_h||_0$']
+# # --- error settings
+errorType = ['$|| u - u_h||_0$', '$||\\nabla u - \\nabla u_h||_0$, '
+                                 '$|| vel - vel_h||_0$', '$||\\nabla vel - \\nabla vel_h||_0$', '|| p - p_h ||_0']
 errorMatrix = np.zeros((len(errorType), maxit), dtype=np.float)
 Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
 
 # --- start for-loop --- #
+
 for i in range(N_T):
     print('# ------------ in the time-mesh circle ------------ #')
     print('i = ', i)
     print('# -------------------------------------------------- #\n')
-    NN = int(1./h_space[i]) + 1
+    # NN = int(1./h_space[i]) + 1
+    NN = 64
     mesh = MF.boxmesh2d(box, nx=NN, ny=NN, meshtype='tri')
     ch = FEM_CH_NS_Model2d(pde, mesh, p, dt_space[i])
     if time_scheme == 1:
-        l2err, h1err = ch.CH_NS_Solver_T1stOrder()
+        uh_l2err, uh_h1err, vel_l2err, vel_h1err, ph_l2err = ch.CH_NS_Solver_T1stOrder()
     else:
-        l2err, h1err = ch.CH_NS_Solver_T1stOrder()
+        uh_l2err, uh_h1err, vel_l2err, vel_h1err, ph_l2err = ch.CH_NS_Solver_T1stOrder()
 
     Ndof[i] = ch.space.number_of_global_dofs()
-    errorMatrix[0, i] = l2err  # get the velocity L2 error
-    errorMatrix[1, i] = h1err  # get the velocity L2 error
+    errorMatrix[0, i] = uh_l2err
+    errorMatrix[1, i] = uh_h1err
+    errorMatrix[3, i] = vel_l2err
+    errorMatrix[4, i] = vel_h1err
+    errorMatrix[5, i] = ph_l2err
 
 # --- get the convergence rate --- #
 print('# ------------ the error-table ------------ #')

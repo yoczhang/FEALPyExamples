@@ -390,7 +390,6 @@ class FEMCahnHilliardModel2d:
         print('    l2err = %.4e, h1err = %.4e' % (l2err, h1err))
         return l2err, h1err
 
-
     def currt_error(self, uh, t):
         pde = self.pde
 

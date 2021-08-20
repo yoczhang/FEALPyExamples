@@ -19,6 +19,7 @@ class CH_NS_Data_truesolution:
     def __init__(self, t0, T):
         self.t0 = t0
         self.T = T
+        self.haveTrueSolution = True
 
     def setPDEParameters(self, parameters):
         for k, v in parameters.items():
