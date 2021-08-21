@@ -107,9 +107,10 @@ class FEM_CH_NS_Model2d:
             alpha = 1. / (2 * epsilon) * (-s + np.sqrt(abs(s ** 2 - 4 * (3 / 2) * epsilon / (m * self.dt))))
         return s, alpha
 
-    def uh_grad_value_at_faces(self, vh, f_bcs, cellidx, localidx):
-        cell2dof = self.dof.cell2dof
-        f_gphi = self.space.edge_grad_basis(f_bcs, cellidx, localidx)  # (NE,NQ,cldof,GD)
+    def uh_grad_value_at_faces(self, vh, f_bcs, cellidx, localidx, space=None):
+        sp = self.space if space is None else space
+        cell2dof = sp.dof.cell2dof
+        f_gphi = sp.edge_grad_basis(f_bcs, cellidx, localidx)  # (NE,NQ,cldof,GD)
         val = np.einsum('ik, ijkm->jim', vh[cell2dof[cellidx]], f_gphi)  # (NQ,NE,GD)
         return val
 
@@ -157,12 +158,6 @@ class FEM_CH_NS_Model2d:
         vel0 = self.vel0
         vel1 = self.vel1
         ph = self.ph
-        sm = self.StiffMatrix
-        mm = self.MassMatrix
-        space = self.space
-        dof = self.dof
-        face2dof = dof.face_to_dof()  # (NE,fldof)
-        cell2dof = dof.cell_to_dof()  # (NC,cldof)
 
         print('    # #################################### #')
         print('      Time 1st-order scheme')
@@ -206,11 +201,11 @@ class FEM_CH_NS_Model2d:
             self.decoupled_CH_Solver_T1stOrder(uh, wh, vel0, vel1, next_t)
             print('        -----------------------------------------------')
             print('        |___ decoupled Navier-Stokes Solver(Time-1st-order): ')
-            vel0_cp = vel0.copy()
-            vel1_cp = vel1.copy()
-            ph_cp = ph.copy()
+            # vel0_cp = vel0.copy()
+            # vel1_cp = vel1.copy()
+            # ph_cp = ph.copy()
             self.decoupled_NS_Solver_T1stOrder(vel0, vel1, ph, uh_currt, next_t)
-            print('   end of one-looping')
+            print('    end of one-looping')
         print('    # ------------ end the time-looping ------------ #\n')
 
         # # --- errors
@@ -272,7 +267,7 @@ class FEM_CH_NS_Model2d:
                                                             self.NeuLocalIdx_CH)  # (NQ,NE,2)
         uh_val = self.space.value(uh, self.c_bcs)  # (NQ,NC)
         guh_val_c = self.space.grad_value(uh, self.c_bcs)  # (NQ,NC,2)
-        guh_val_f = self.uh_grad_value_at_faces(uh, self.f_bcs, self.NeuCellIdx_CH, self.NeuLocalIdx_CH)  # (NQ,NE,2)
+        guh_val_f = self.uh_grad_value_at_faces(uh, self.f_bcs, self.NeuCellIdx_CH, self.NeuLocalIdx_CH)  # (NQ,NNeu,2)
 
         Neumann = self.pde.neumann_CH(self.f_pp_Neu_CH, next_t, self.nNeu_CH)  # (NQ,NE)
         LaplaceNeumann = self.pde.laplace_neumann_CH(self.f_pp_Neu_CH, next_t, self.nNeu_CH)  # (NQ,NE)
@@ -312,7 +307,7 @@ class FEM_CH_NS_Model2d:
         vel0_val_c = self.vspace.value(vel0, self.c_bcs)  # (NQ,NC)
         vel1_val_c = self.vspace.value(vel1, self.c_bcs)  # (NQ,NC)
         vel0_val_f = self.vspace.value(vel0, self.f_bcs)[..., self.NeuEdgeIdx_CH]  # (NQ,NBE)
-        vel1_val_f = self.vspace.value(vel0, self.f_bcs)[..., self.NeuEdgeIdx_CH]  # (NQ,NBE)
+        vel1_val_f = self.vspace.value(vel1, self.f_bcs)[..., self.NeuEdgeIdx_CH]  # (NQ,NBE)
         vel_val_f = np.concatenate([vel0_val_f[..., np.newaxis], vel1_val_f[..., np.newaxis]], axis=2)
 
         aux_rhs_c_3 = -1. / (self.pde.epsilon * self.pde.m) * \
@@ -348,8 +343,8 @@ class FEM_CH_NS_Model2d:
         :return: Updated vel0, vel1, ph.
         """
 
-        grad_vel0_f = self.uh_grad_value_at_faces(vel0, self.f_bcs, self.DirCellIdx_NS, self.DirLocalIdx_NS)  # grad_vel0: (NQ,NDir,GD)
-        grad_vel1_f = self.uh_grad_value_at_faces(vel1, self.f_bcs, self.DirCellIdx_NS, self.DirLocalIdx_NS)  # grad_vel1: (NQ,NDir,GD)
+        grad_vel0_f = self.uh_grad_value_at_faces(vel0, self.f_bcs, self.DirCellIdx_NS, self.DirLocalIdx_NS, space=self.vspace)  # grad_vel0: (NQ,NDir,GD)
+        grad_vel1_f = self.uh_grad_value_at_faces(vel1, self.f_bcs, self.DirCellIdx_NS, self.DirLocalIdx_NS, space=self.vspace)  # grad_vel1: (NQ,NDir,GD)
 
         # for cell-integration
         vel0_val = self.vspace.value(vel0, self.c_bcs)  # (NQ,NC)
@@ -434,7 +429,7 @@ class FEM_CH_NS_Model2d:
                            + f_val_NS[..., 0] - CH_term_val0, self.vphi_c, self.cellmeasure)  # (NC,clodf)
         vrv0_f = self.pde.nu * np.einsum('i, ij, ijn, j->jn', self.f_ws, Neumann_0, self.vphi_f, self.NeuEdgeMeasure_NS)
         np.add.at(vrv0, self.vcell2dof, vrv0_c)
-        np.add.at(vrv0, self.vface2dof[self.NeuEdgeIdx_NS, :], vrv0_f)
+        # np.add.at(vrv0, self.vface2dof[self.NeuEdgeIdx_NS, :], vrv0_f)
         v0_bc = DirichletBC(self.vspace, dir_u0, threshold=self.DirEdgeIdx_NS)
         vlm0, vrv0 = v0_bc.apply(vlm0, vrv0)
         vel0[:] = spsolve(vlm0, vrv0).reshape(-1)
@@ -445,7 +440,7 @@ class FEM_CH_NS_Model2d:
                            + f_val_NS[..., 1] - CH_term_val1, self.vphi_c, self.cellmeasure)  # (NC,clodf)
         vrv1_f = self.pde.nu * np.einsum('i, ij, ijn, j->jn', self.f_ws, Neumann_1, self.vphi_f, self.NeuEdgeMeasure_NS)
         np.add.at(vrv1, self.vcell2dof, vrv1_c)
-        np.add.at(vrv1, self.vface2dof[self.NeuEdgeIdx_NS, :], vrv1_f)
+        # np.add.at(vrv1, self.vface2dof[self.NeuEdgeIdx_NS, :], vrv1_f)
         v1_bc = DirichletBC(self.vspace, dir_u1, threshold=self.DirEdgeIdx_NS)
         vlm1, vrv1 = v1_bc.apply(vlm1, vrv1)
         vel1[:] = spsolve(vlm1, vrv1).reshape(-1)

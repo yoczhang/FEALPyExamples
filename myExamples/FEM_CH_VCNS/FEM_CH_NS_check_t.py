@@ -60,7 +60,7 @@ print('domain box = ', box)
 print('# #')
 
 # # --- error settings
-errorType = ['$|| u - u_h||_0$', '$||\\nabla u - \\nabla u_h||_0$, '
+errorType = ['$|| u - u_h||_0$', '$||\\nabla u - \\nabla u_h||_0$',
                                  '$|| vel - vel_h||_0$', '$||\\nabla vel - \\nabla vel_h||_0$', '|| p - p_h ||_0']
 errorMatrix = np.zeros((len(errorType), maxit), dtype=np.float)
 Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
@@ -83,9 +83,9 @@ for i in range(N_T):
     Ndof[i] = ch.space.number_of_global_dofs()
     errorMatrix[0, i] = uh_l2err
     errorMatrix[1, i] = uh_h1err
-    errorMatrix[3, i] = vel_l2err
-    errorMatrix[4, i] = vel_h1err
-    errorMatrix[5, i] = ph_l2err
+    errorMatrix[2, i] = vel_l2err
+    errorMatrix[3, i] = vel_h1err
+    errorMatrix[4, i] = ph_l2err
 
 # --- get the convergence rate --- #
 print('# ------------ the error-table ------------ #')
