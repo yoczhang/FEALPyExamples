@@ -103,17 +103,26 @@ class CH_NS_Data_truesolution:
         val = np.sum(grad_laplace * n, axis=-1)  # (NQ, NE)
         return val
 
+    # # 这是原来的 单独 CH 方程中的原项
+    # @cartesian
+    # def source_CH(self, p, t, m, epsilon, eta):
+    #     x = p[..., 0]
+    #     y = p[..., 1]
+    #
+    #     val = -m * (-4 * epsilon * pi ** 4 * sin(t) * cos(pi * x) * cos(pi * y) - 2 * epsilon * pi ** 2 * (
+    #             sin(t) ** 2 * cos(pi * x) ** 2 * cos(pi * y) ** 2 - 1) * sin(t) * cos(pi * x) * cos(
+    #         pi * y) / eta ** 2 + 6 * epsilon * pi ** 2 * sin(t) ** 3 * sin(pi * x) ** 2 * cos(pi * x) * cos(
+    #         pi * y) ** 3 / eta ** 2 + 6 * epsilon * pi ** 2 * sin(t) ** 3 * sin(pi * y) ** 2 * cos(pi * x) ** 3 * cos(
+    #         pi * y) / eta ** 2 - 4 * epsilon * pi ** 2 * sin(t) ** 3 * cos(pi * x) ** 3 * cos(pi * y) ** 3 / eta ** 2) + cos(
+    #         t) * cos(pi * x) * cos(pi * y)
+    #     return val
+
     @cartesian
     def source_CH(self, p, t, m, epsilon, eta):
         x = p[..., 0]
         y = p[..., 1]
 
-        val = -m * (-4 * epsilon * pi ** 4 * sin(t) * cos(pi * x) * cos(pi * y) - 2 * epsilon * pi ** 2 * (
-                sin(t) ** 2 * cos(pi * x) ** 2 * cos(pi * y) ** 2 - 1) * sin(t) * cos(pi * x) * cos(
-            pi * y) / eta ** 2 + 6 * epsilon * pi ** 2 * sin(t) ** 3 * sin(pi * x) ** 2 * cos(pi * x) * cos(
-            pi * y) ** 3 / eta ** 2 + 6 * epsilon * pi ** 2 * sin(t) ** 3 * sin(pi * y) ** 2 * cos(pi * x) ** 3 * cos(
-            pi * y) / eta ** 2 - 4 * epsilon * pi ** 2 * sin(t) ** 3 * cos(pi * x) ** 3 * cos(pi * y) ** 3 / eta ** 2) + cos(
-            t) * cos(pi * x) * cos(pi * y)
+        val = -m*(-4*epsilon*pi**4*sin(t)*cos(pi*x)*cos(pi*y) - 2*epsilon*pi**2*(sin(t)**2*cos(pi*x)**2*cos(pi*y)**2 - 1)*sin(t)*cos(pi*x)*cos(pi*y)/eta**2 + 6*epsilon*pi**2*sin(t)**3*sin(pi*x)**2*cos(pi*x)*cos(pi*y)**3/eta**2 + 6*epsilon*pi**2*sin(t)**3*sin(pi*y)**2*cos(pi*x)**3*cos(pi*y)/eta**2 - 4*epsilon*pi**2*sin(t)**3*cos(pi*x)**3*cos(pi*y)**3/eta**2) - pi*x**2*y*exp(-t)*sin(t)*sin(pi*x)*cos(pi*y) + pi*x*y**2*exp(-t)*sin(t)*sin(pi*y)*cos(pi*x) + cos(t)*cos(pi*x)*cos(pi*y)
         return val
 
     # # --- the Navier-Stokes data
@@ -215,17 +224,27 @@ class CH_NS_Data_truesolution:
         u1y = self.grad_velocity1_NS(p, t)[..., 1]
         return u0 * u1x + u1 * u1y
 
+    # # 这是原来的 单独 CH 方程中的原项
+    # @cartesian
+    # def source_NS(self, p, t, nu):
+    #     # nu = self.nu
+    #     x = p[..., 0]
+    #     y = p[..., 1]
+    #     # pi = np.pi
+    #     # sin = np.sin
+    #     # cos = np.cos
+    #     val = np.zeros(p.shape, dtype=np.float)
+    #     val[..., 0] = y * np.exp(-t) - 2 * nu * y * np.exp(-t) - x ** 2 * y * np.exp(-t) + self.NS_nolinearTerm_0_NS(p, t)
+    #     val[..., 1] = x * np.exp(-t) + 2 * nu * x * np.exp(-t) + x * y ** 2 * np.exp(-t) + self.NS_nolinearTerm_1_NS(p, t)
+    #     return val
+
     @cartesian
-    def source_NS(self, p, t, nu):
-        # nu = self.nu
+    def source_NS(self, p, t, nu, epsilon, eta):
         x = p[..., 0]
         y = p[..., 1]
-        # pi = np.pi
-        # sin = np.sin
-        # cos = np.cos
         val = np.zeros(p.shape, dtype=np.float)
-        val[..., 0] = y * np.exp(-t) - 2 * nu * y * np.exp(-t) - x ** 2 * y * np.exp(-t) + self.NS_nolinearTerm_0_NS(p, t)
-        val[..., 1] = x * np.exp(-t) + 2 * nu * x * np.exp(-t) + x * y ** 2 * np.exp(-t) + self.NS_nolinearTerm_1_NS(p, t)
+        val[..., 0] = -2*nu*y*exp(-t) + x**3*y**2*exp(-2*t) - x**2*y*exp(-t) + y*exp(-t) + (-2*epsilon*pi**3*sin(t)*sin(pi*x)*cos(pi*y) - epsilon*pi*(sin(t)**2*cos(pi*x)**2*cos(pi*y)**2 - 1)*sin(t)*sin(pi*x)*cos(pi*y)/eta**2 - 2*epsilon*pi*sin(t)**3*sin(pi*x)*cos(pi*x)**2*cos(pi*y)**3/eta**2)*sin(t)*cos(pi*x)*cos(pi*y)
+        val[..., 1] = 2*nu*x*exp(-t) + x**2*y**3*exp(-2*t) + x*y**2*exp(-t) + x*exp(-t) + (-2*epsilon*pi**3*sin(t)*sin(pi*y)*cos(pi*x) - epsilon*pi*(sin(t)**2*cos(pi*x)**2*cos(pi*y)**2 - 1)*sin(t)*sin(pi*y)*cos(pi*x)/eta**2 - 2*epsilon*pi*sin(t)**3*sin(pi*y)*cos(pi*x)**3*cos(pi*y)**2/eta**2)*sin(t)*cos(pi*x)*cos(pi*y)
         return val
 
     @cartesian

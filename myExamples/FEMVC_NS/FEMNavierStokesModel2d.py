@@ -226,8 +226,9 @@ class FEMNavierStokesModel2d:
             # print('end of current time')
 
         print('# ------------ the end error ------------ #')
-        p_l2err, u0_l2err, u1_l2err = self.currt_error(ph, uh0, uh1, next_t)
-        print('p_l2err = %e,  u0_l2err = %e,  u1_l2err = %e' % (p_l2err, u0_l2err, u1_l2err))
+        u_l2err, u_h1err, p_l2err = self.currt_error(ph, uh0, uh1, next_t)
+        print('u_l2err = %e,  u_h1err = %e,  p_l2err = %e' % (u_l2err, u_h1err, p_l2err))
+        return u_l2err, u_h1err, p_l2err
 
     def currt_error(self, ph, uh0, uh1, t):
         pde = self.pde
@@ -235,19 +236,24 @@ class FEMNavierStokesModel2d:
         def currt_pressure(p):
             return pde.pressure(p, t)
         p_l2err = self.pspace.integralalg.L2_error(currt_pressure, ph)
-        # print('p_l2err = %e' % p_l2err)
 
         def currt_u0(p):
             return pde.velocity(p, t)[..., 0]
         u0_l2err = self.vspace.integralalg.L2_error(currt_u0, uh0)
-        # print('u0_l2err = %e' % u0_l2err)
 
         def currt_u1(p):
             return pde.velocity(p, t)[..., 1]
         u1_l2err = self.vspace.integralalg.L2_error(currt_u1, uh1)
-        # print('u1_l2err = %e' % u1_l2err)
 
-        return p_l2err, u0_l2err, u1_l2err
+        def currt_grad_velocity0(p):
+            return pde.grad_velocity0(p, t)
+        u0_h1err = self.vspace.integralalg.L2_error(currt_grad_velocity0, uh0.grad_value)
+
+        def currt_grad_velocity1(p):
+            return pde.grad_velocity1(p, t)
+        u1_h1err = self.vspace.integralalg.L2_error(currt_grad_velocity1, uh1.grad_value)
+
+        return np.sqrt(u0_l2err**2 + u1_l2err**2), np.sqrt(u0_h1err**2 + u1_h1err**2), p_l2err
 
     def uh_grad_value_at_faces(self, vh, f_bcs, cellidx, localidx):
         cell2dof = self.vdof.cell2dof

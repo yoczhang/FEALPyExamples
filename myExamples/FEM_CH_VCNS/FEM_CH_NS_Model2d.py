@@ -215,41 +215,6 @@ class FEM_CH_NS_Model2d:
         print('    vel_l2err = %.4e, vel_h1err = %.4e, ph_l2err = %.4e' % (vel_l2err, vel_h1err, ph_l2err))
         return uh_l2err, uh_h1err, vel_l2err, vel_h1err, ph_l2err
 
-    def currt_error(self, uh, vel0, vel1, ph, t):
-        pde = self.pde
-
-        # # --- Cahn-Hilliard equation's errors
-        def currt_solution_CH(p):
-            return pde.solution_CH(p, t)
-        l2err_CH = self.space.integralalg.L2_error(currt_solution_CH, uh)
-
-        def currt_grad_solution_CH(p):
-            return pde.gradient_CH(p, t)
-        h1err_CH = self.space.integralalg.L2_error(currt_grad_solution_CH, uh.grad_value)
-
-        # # --- Navier-Stokes equation's errors
-        def currt_pressure_NS(p):
-            return pde.pressure_NS(p, t)
-        p_l2err_NS = self.space.integralalg.L2_error(currt_pressure_NS, ph)
-
-        def currt_v0_NS(p):
-            return pde.velocity_NS(p, t)[..., 0]
-        v0_l2err_NS = self.vspace.integralalg.L2_error(currt_v0_NS, vel0)
-
-        def currt_v1_NS(p):
-            return pde.velocity_NS(p, t)[..., 1]
-        v1_l2err_NS = self.vspace.integralalg.L2_error(currt_v1_NS, vel1)
-
-        def currt_grad_velocity0_NS(p):
-            return pde.grad_velocity0_NS(p, t)
-        v0_h1err_NS = self.space.integralalg.L2_error(currt_grad_velocity0_NS, vel0.grad_value)
-
-        def currt_grad_velocity1_NS(p):
-            return pde.grad_velocity1_NS(p, t)
-        v1_h1err_NS = self.space.integralalg.L2_error(currt_grad_velocity1_NS, vel1.grad_value)
-
-        return l2err_CH, h1err_CH, np.sqrt(v0_l2err_NS**2 + v1_l2err_NS**2), np.sqrt(v0_h1err_NS**2 + v1_h1err_NS**2), p_l2err_NS
-
     def decoupled_CH_Solver_T1stOrder(self, uh, wh, vel0, vel1, next_t):
         """
         The decoupled-Cahn-Hilliard-solver for the all system.
@@ -355,7 +320,7 @@ class FEM_CH_NS_Model2d:
         nolinear_val1 = nolinear_val[..., 1]  # (NQ,NC)
 
         velDir_val = self.pde.dirichlet_NS(self.f_pp_Dir_NS, next_t)  # (NQ,NDir,GD)
-        f_val_NS = self.pde.source_NS(self.c_pp, next_t, self.pde.nu)  # (NQ,NC,GD)
+        f_val_NS = self.pde.source_NS(self.c_pp, next_t, self.pde.nu, self.pde.epsilon, self.pde.eta)  # (NQ,NC,GD)
         Neumann_0 = self.pde.neumann_0_NS(self.f_pp_Neu_NS, next_t, self.nNeu_NS)  # (NQ,NE)
         Neumann_1 = self.pde.neumann_1_NS(self.f_pp_Neu_NS, next_t, self.nNeu_NS)  # (NQ,NE)
 
@@ -457,6 +422,41 @@ class FEM_CH_NS_Model2d:
         NSNolinear[..., 0] = val0 * gval0[..., 0] + val1 * gval0[..., 1]
         NSNolinear[..., 1] = val0 * gval1[..., 0] + val1 * gval1[..., 1]
         return NSNolinear
+
+    def currt_error(self, uh, vel0, vel1, ph, t):
+        pde = self.pde
+
+        # # --- Cahn-Hilliard equation's errors
+        def currt_solution_CH(p):
+            return pde.solution_CH(p, t)
+        l2err_CH = self.space.integralalg.L2_error(currt_solution_CH, uh)
+
+        def currt_grad_solution_CH(p):
+            return pde.gradient_CH(p, t)
+        h1err_CH = self.space.integralalg.L2_error(currt_grad_solution_CH, uh.grad_value)
+
+        # # --- Navier-Stokes equation's errors
+        def currt_pressure_NS(p):
+            return pde.pressure_NS(p, t)
+        p_l2err_NS = self.space.integralalg.L2_error(currt_pressure_NS, ph)
+
+        def currt_v0_NS(p):
+            return pde.velocity_NS(p, t)[..., 0]
+        v0_l2err_NS = self.vspace.integralalg.L2_error(currt_v0_NS, vel0)
+
+        def currt_v1_NS(p):
+            return pde.velocity_NS(p, t)[..., 1]
+        v1_l2err_NS = self.vspace.integralalg.L2_error(currt_v1_NS, vel1)
+
+        def currt_grad_velocity0_NS(p):
+            return pde.grad_velocity0_NS(p, t)
+        v0_h1err_NS = self.vspace.integralalg.L2_error(currt_grad_velocity0_NS, vel0.grad_value)
+
+        def currt_grad_velocity1_NS(p):
+            return pde.grad_velocity1_NS(p, t)
+        v1_h1err_NS = self.vspace.integralalg.L2_error(currt_grad_velocity1_NS, vel1.grad_value)
+
+        return l2err_CH, h1err_CH, np.sqrt(v0_l2err_NS**2 + v1_l2err_NS**2), np.sqrt(v0_h1err_NS**2 + v1_h1err_NS**2), p_l2err_NS
 
     def set_NS_Dirichlet_edge(self, idxDirEdge=None):
         if idxDirEdge is not None:

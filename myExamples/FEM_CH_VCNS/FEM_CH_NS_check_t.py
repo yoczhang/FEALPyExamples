@@ -62,8 +62,8 @@ print('# #')
 # # --- error settings
 errorType = ['$|| u - u_h||_0$', '$||\\nabla u - \\nabla u_h||_0$',
                                  '$|| vel - vel_h||_0$', '$||\\nabla vel - \\nabla vel_h||_0$', '|| p - p_h ||_0']
-errorMatrix = np.zeros((len(errorType), maxit), dtype=np.float)
-Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
+errorMatrix = np.zeros((len(errorType), N_T), dtype=np.float)
+Ndof = np.zeros(N_T, dtype=np.int)  # the array to store the number of dofs
 
 # --- start for-loop --- #
 
@@ -89,7 +89,7 @@ for i in range(N_T):
 
 # --- get the convergence rate --- #
 print('# ------------ the error-table ------------ #')
-show_error_table(dt_space, errorType, errorMatrix)
+show_error_table(dt_space, errorType, errorMatrix, table_scheme='dt')
 
 # # plot the rate
 # showmultirate(plt, 0, Ndof, errorMatrix, errorType)
