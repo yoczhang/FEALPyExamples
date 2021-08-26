@@ -130,7 +130,7 @@ class compute_basis:
 
         # # 替换成 numpy 可计算的函数
         for n in range(ldof):
-            print('n = ', n)
+            # print('n = ', n)
 
             func = lambdify([self.lam0, self.lam1, self.lam2], phi[n], 'numpy')
             phi_val[:, n] = func(bcs[:, 0], bcs[:, 1], bcs[:, 2])

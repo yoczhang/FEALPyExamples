@@ -1,0 +1,65 @@
+
+# ------------ the initial parameters ------------ #
+p =  2
+t0 = 0.0000e+00
+dt_space =  0.001
+h_space =  [0.015625]
+domain box =  [0, 1, 0, 1]
+# #
+
+# *********************************************************************** # 
+
+# ------------ in the time-mesh circle ------------ #
+i =  0
+# -------------------------------------------------- #
+run boxmesh2d with time: 0.008319316999999993
+run serial_construct_matrix with time: 0.235054961
+run serial_construct_matrix with time: 0.027652918999999998
+run serial_construct_matrix with time: 0.5780753040000001
+run serial_construct_matrix with time: 0.06272337800000005
+    # #################################### #
+      Time 1st-order scheme
+    # #################################### #
+    # ------------ parameters ------------ #
+    s = 6.3246e+01,  alpha = -3.1623e+04,  m = 1.0000e-03,  epsilon = 1.0000e-03,  eta = 1.0000e-01
+    t0 = 0.0000e+00,  T = 5.0000e+00, dt = 1.0000e-03
+ 
+    # ------------ begin the time-looping ------------ #
+    currt_t = 0.0000e+00
+    currt_t = 1.0000e+00
+    currt_t = 2.0000e+00
+    currt_t = 3.0000e+00
+    currt_t = 4.0000e+00
+    # ------------ end the time-looping ------------ #
+
+    # ------------ the last errors ------------ #
+    uh_l2err = 5.5286e-04, uh_h1err = 4.5469e-03
+    vel_l2err = 5.2336e-06, vel_h1err = 3.8265e-05, ph_l2err = 2.5468e-03
+# ------------ the error-table ------------ #
+\begin{table}[!htdp]
+\begin{tabular}[c]{|c|c|}\hline
+Dof & 17161
+\\\hline
+$|| u - u_h||_0$ & 5.5286e-04
+\\\hline
+Order & -- & 
+\\\hline
+$||\nabla u - \nabla u_h||_0$ & 4.5469e-03
+\\\hline
+Order & -- & 
+\\\hline
+$|| vel - vel_h||_0$ & 5.2336e-06
+\\\hline
+Order & -- & 
+\\\hline
+$||\nabla vel - \nabla vel_h||_0$ & 3.8265e-05
+\\\hline
+Order & -- & 
+\\\hline
+|| p - p_h ||_0 & 2.5468e-03
+\\\hline
+Order & -- & 
+\\\hline
+\end{tabular}
+\end{table}
+# ------------ end of the file ------------ #

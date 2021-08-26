@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 # ---
 # @Software: PyCharm
-# @File: FEM_CH_NS_check_t.py
+# @File: FEM_CH_NS_check_h.py
 # @Author: Yongchao Zhang, Northwest University, Xi'an
 # @E-mail: yoczhang@nwu.edu.cn
 # @Site:
-# @Time: Aug 10, 2021
+# @Time: Aug 25, 2021
 # ---
+
 
 __doc__ = """
 The fealpy-FEM program for coupled Cahn-Hilliard-Navier-Stokes equation.
@@ -27,23 +28,21 @@ from to_show import show_error_table
 
 # --- begin setting --- #
 d = 2  # the dimension
-p = 3  # the polynomial order
+p = 1  # the polynomial order
 n = 2  # the number of refine mesh
 maxit = 5  # the max iteration of the mesh
 
 t0 = 0.
-T = 1
+T = 0.02
 box = [0, 1, 0, 1]
 # mesh = MF.boxmesh2d(box, nx=NN, ny=NN, meshtype='tri')
 
-start = 0  # (1/2)^0
-stop = 4  # (1/2)^4
-N_T = stop - start + 1
-dt_space = 1e-1 * np.logspace(start, stop, N_T, base=1/2)
-dt_min = min(dt_space)
+dt_space = 1e-5
+dt_min = dt_space
 
 time_scheme = 1  # 1 stands for 1st-order time-scheme; 2 is the 2nd-order time-scheme
-h_space = dt_space ** (time_scheme/(p+0))
+h_space = [1/4, 1/8, 1/16, 1/32, 1/64]
+N_T = len(h_space)
 
 pdePars = {'m': 1e-3, 's': 1, 'alpha': 1, 'epsilon': 1e-3, 'eta': 1e-1, 'dt_min': dt_min, 'timeScheme': '1stOrder',
            'nu': 1.0e-2}  # value of parameters
@@ -72,10 +71,9 @@ for i in range(N_T):
     print('# ------------ in the time-mesh circle ------------ #')
     print('i = ', i)
     print('# -------------------------------------------------- #')
-    # NN = int(1./h_space[i]) + 1
-    NN = 64
+    NN = int(1./h_space[i]) + 1
     mesh = MF.boxmesh2d(box, nx=NN, ny=NN, meshtype='tri')
-    ch = FEM_CH_NS_Model2d(pde, mesh, p, dt_space[i])
+    ch = FEM_CH_NS_Model2d(pde, mesh, p, dt_space)
     if time_scheme == 1:
         uh_l2err, uh_h1err, vel_l2err, vel_h1err, ph_l2err = ch.CH_NS_Solver_T1stOrder()
     else:
@@ -90,7 +88,7 @@ for i in range(N_T):
 
 # --- get the convergence rate --- #
 print('# ------------ the error-table ------------ #')
-show_error_table(dt_space, errorType, errorMatrix, table_scheme='dt')
+show_error_table(Ndof, errorType, errorMatrix, table_scheme='h')
 
 # # plot the rate
 # showmultirate(plt, 0, Ndof, errorMatrix, errorType)

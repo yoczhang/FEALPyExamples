@@ -166,16 +166,16 @@ class FEMNavierStokesModel2d:
             np.add.at(prv, pcell2dof, cell_int0 + cell_int1 + cell_int2)
 
             # # Method I: The following code is right! Pressure satisfies \int_\Omega p = 0
-            plsm_temp = bmat([[plsm, basis_int.reshape(-1, 1)], [basis_int, None]], format='csr')
-            prv = np.r_[prv, 0]
-            ph[:] = spsolve(plsm_temp, prv)[:-1]  # we have added one addtional dof
+            # plsm_temp = bmat([[plsm, basis_int.reshape(-1, 1)], [basis_int, None]], format='csr')
+            # prv = np.r_[prv, 0]
+            # ph[:] = spsolve(plsm_temp, prv)[:-1]  # we have added one addtional dof
 
             # # Method II: Using the Dirichlet boundary of pressure
-            # def dir_pressure(p):
-            #     return pde.pressure(p, next_t)
-            # bc = DirichletBC(pspace, dir_pressure)
-            # plsm_temp, prv = bc.apply(plsm.copy(), prv)
-            # ph[:] = spsolve(plsm_temp, prv).reshape(-1)
+            def dir_pressure(p):
+                return pde.pressure(p, next_t)
+            bc = DirichletBC(pspace, dir_pressure)
+            plsm_temp, prv = bc.apply(plsm.copy(), prv)
+            ph[:] = spsolve(plsm_temp, prv).reshape(-1)
 
             # # --- to update the velocity value --- # #
             grad_ph = pspace.grad_value(ph, c_bcs)  # (NQ,NC,2)

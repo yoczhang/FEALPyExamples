@@ -54,13 +54,15 @@ class FEM_CH_NS_Model2d:
         self.cell2dof = self.dof.cell_to_dof()  # (NC,cldof)
         self.vface2dof = self.vdof.face_to_dof()  # (NE,vfldof)
         self.vcell2dof = self.vdof.cell_to_dof()  # (NC,vcldof)
+        self.bdIndx = self.mesh.ds.boundary_face_index()  # all the boundary edge index
+        self.bdEdgeMeasure = self.mesh.entity_measure('face', index=self.bdIndx)  # (Nneu,)
 
         # # --- Cahn-Hilliard boundary settings
         self.NeuEdgeIdx_CH = self.set_CH_Neumann_edge()
         self.nNeu_CH = self.mesh.face_unit_normal(index=self.NeuEdgeIdx_CH)  # (NBE,2)
         self.NeuCellIdx_CH = self.mesh.ds.edge2cell[self.NeuEdgeIdx_CH, 0]
         self.NeuLocalIdx_CH = self.mesh.ds.edge2cell[self.NeuEdgeIdx_CH, 2]
-        self.NeuEdgeMeasure_CH = self.mesh.entity_measure('face', index=self.NeuEdgeIdx_CH)  # (Nneu,2)
+        self.NeuEdgeMeasure_CH = self.mesh.entity_measure('face', index=self.NeuEdgeIdx_CH)  # (Nneu,)
 
         # # --- Navier-Stokes boundary settings
         self.DirEdgeIdx_NS = self.set_NS_Dirichlet_edge()
@@ -68,7 +70,7 @@ class FEM_CH_NS_Model2d:
         self.DirCellIdx_NS = self.mesh.ds.edge2cell[self.DirEdgeIdx_NS, 0]
         self.DirLocalIdx_NS = self.mesh.ds.edge2cell[self.DirEdgeIdx_NS, 2]
         self.DirEdgeMeasure_NS = self.mesh.entity_measure('face', index=self.DirEdgeIdx_NS)  # (Nneu,2)
-        self.NeuEdgeIdx_NS = self.mesh.ds.boundary_face_index()  # here Neumann edges are all the boundary
+        self.NeuEdgeIdx_NS = self.bdIndx  # here Neumann edges are all the boundary
         self.nNeu_NS = self.mesh.face_unit_normal(index=self.NeuEdgeIdx_NS)  # (NBE,2)
         self.NeuEdgeMeasure_NS = self.mesh.entity_measure('face', index=self.NeuEdgeIdx_NS)  # (Nneu,2)
 
@@ -192,20 +194,21 @@ class FEM_CH_NS_Model2d:
             currt_t = timemesh[nt]
             next_t = currt_t + dt
 
-            if nt % max([int(NT / 10), 1]) == 0:
-                print('    currt_t = %.4e' % currt_t)
-
             # # --- decoupled solvers, updated the discrete-solutions to the next-time
             uh_currt = uh.copy()
-            print('        |___ decoupled Cahn-Hilliard Solver(Time-1st-order): ')
+            # print('        |___ decoupled Cahn-Hilliard Solver(Time-1st-order): ')
             self.decoupled_CH_Solver_T1stOrder(uh, wh, vel0, vel1, next_t)
-            print('        -----------------------------------------------')
-            print('        |___ decoupled Navier-Stokes Solver(Time-1st-order): ')
-            # vel0_cp = vel0.copy()
-            # vel1_cp = vel1.copy()
-            # ph_cp = ph.copy()
+            # print('        -----------------------------------------------')
+            # print('        |___ decoupled Navier-Stokes Solver(Time-1st-order): ')
             self.decoupled_NS_Solver_T1stOrder(vel0, vel1, ph, uh_currt, next_t)
-            print('    end of one-looping')
+            # print('    end of one-looping')
+
+            if nt % max([int(NT / 5), 1]) == 0:
+                print('    currt_t = %.4e' % currt_t)
+                uh_l2err, uh_h1err, vel_l2err, vel_h1err, ph_l2err = self.currt_error(uh, vel0, vel1, ph, timemesh[nt])
+                if np.isnan(uh_l2err) | np.isnan(uh_h1err) | np.isnan(vel_l2err) | np.isnan(vel_h1err) | np.isnan(ph_l2err):
+                    print('Some error is nan: breaking the program')
+                    break
         print('    # ------------ end the time-looping ------------ #\n')
 
         # # --- errors
@@ -213,6 +216,7 @@ class FEM_CH_NS_Model2d:
         print('    # ------------ the last errors ------------ #')
         print('    uh_l2err = %.4e, uh_h1err = %.4e' % (uh_l2err, uh_h1err))
         print('    vel_l2err = %.4e, vel_h1err = %.4e, ph_l2err = %.4e' % (vel_l2err, vel_h1err, ph_l2err))
+
         return uh_l2err, uh_h1err, vel_l2err, vel_h1err, ph_l2err
 
     def decoupled_CH_Solver_T1stOrder(self, uh, wh, vel0, vel1, next_t):
@@ -271,19 +275,23 @@ class FEM_CH_NS_Model2d:
         # # --- now, we add the NS term
         vel0_val_c = self.vspace.value(vel0, self.c_bcs)  # (NQ,NC)
         vel1_val_c = self.vspace.value(vel1, self.c_bcs)  # (NQ,NC)
-        vel0_val_f = self.vspace.value(vel0, self.f_bcs)[..., self.NeuEdgeIdx_CH]  # (NQ,NBE)
-        vel1_val_f = self.vspace.value(vel1, self.f_bcs)[..., self.NeuEdgeIdx_CH]  # (NQ,NBE)
-        vel_val_f = np.concatenate([vel0_val_f[..., np.newaxis], vel1_val_f[..., np.newaxis]], axis=2)
+        vel0_val_f = self.vspace.value(vel0, self.f_bcs)[..., self.bdIndx]  # (NQ,NBE)
+        vel1_val_f = self.vspace.value(vel1, self.f_bcs)[..., self.bdIndx]  # (NQ,NBE)
+
+        uh_val_f = self.space.value(uh, self.f_bcs)[..., self.bdIndx]  # (NQ,NBE)
+        uh_vel_val_f = np.concatenate([(uh_val_f*vel0_val_f)[..., np.newaxis],
+                                       (uh_val_f*vel1_val_f)[..., np.newaxis]], axis=2)
 
         aux_rhs_c_3 = -1. / (self.pde.epsilon * self.pde.m) * \
                       (np.einsum('i, ij, ijk, j->jk', self.c_ws, uh_val * vel0_val_c, self.gphi_c[..., 0], self.cellmeasure)
                        + np.einsum('i, ij, ijk, j->jk', self.c_ws, uh_val * vel1_val_c, self.gphi_c[..., 1], self.cellmeasure))  # (NC,cldof)
         aux_rhs_f_3 = 1. / (self.pde.epsilon * self.pde.m) * \
-                      np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, vel_val_f, self.nNeu_CH, self.phi_f, self.NeuEdgeMeasure_CH)  # (Nneu,fldof)
+                      np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, uh_vel_val_f, self.nNeu_CH, self.phi_f, self.bdEdgeMeasure)  # (Nneu,fldof)
 
         # # --- assemble the CH's aux equation
         np.add.at(aux_rv, self.cell2dof, aux_rhs_c_0 + aux_rhs_c_1 + aux_rhs_c_2 + aux_rhs_c_3)
-        np.add.at(aux_rv, self.face2dof[self.NeuEdgeIdx_CH, :], aux_rhs_f_0 + aux_rhs_f_1 + aux_rhs_f_2 + aux_rhs_f_3)
+        np.add.at(aux_rv, self.face2dof[self.NeuEdgeIdx_CH, :], aux_rhs_f_0 + aux_rhs_f_1 + aux_rhs_f_2)
+        np.add.at(aux_rv, self.face2dof[self.bdIndx, :], aux_rhs_f_3)
 
         # # update the solution of auxiliary equation
         wh[:] = spsolve(self.StiffMatrix + (self.alpha + self.s / self.pde.epsilon) * self.MassMatrix, aux_rv)
@@ -367,10 +375,20 @@ class FEM_CH_NS_Model2d:
 
         # # --- 2. solve the NS's pressure equation
         plsm = self.StiffMatrix
+
+        # # Method I: The following code is right! Pressure satisfies \int_\Omega p = 0
         basis_int = self.space.integral_basis()
         plsm_temp = bmat([[plsm, basis_int.reshape(-1, 1)], [basis_int, None]], format='csr')
         prv = np.r_[prv, 0]
         ph[:] = spsolve(plsm_temp, prv)[:-1]  # we have added one addtional dof
+        # ph[:] = spsolve(plsm, prv)
+
+        # # Method II: Using the Dirichlet boundary of pressure
+        # def dir_pressure(p):
+        #     return self.pde.pressure_NS(p, next_t)
+        # bc = DirichletBC(self.space, dir_pressure)
+        # plsm_temp, prv = bc.apply(plsm.copy(), prv)
+        # ph[:] = spsolve(plsm_temp, prv).reshape(-1)
 
         # # ------------------------------------ # #
         # # --- to update the velocity value --- # #

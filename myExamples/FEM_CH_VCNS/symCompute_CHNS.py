@@ -47,6 +47,7 @@ vel0_x = diff(vel0, x)
 vel0_xx = diff(vel0_x, x)
 vel0_y = diff(vel0, y)
 vel0_yy = diff(vel0_y, y)
+
 vel1_t = diff(vel1, t)
 vel1_x = diff(vel1, x)
 vel1_xx = diff(vel1_x, x)
