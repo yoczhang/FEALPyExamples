@@ -27,7 +27,7 @@ from PrintLogger import make_print_to_file
 
 # --- begin setting --- #
 d = 2  # the dimension
-p = 2  # the polynomial order
+p = 3  # the polynomial order
 n = 2  # the number of refine mesh
 maxit = 1  # the max iteration of the mesh
 
@@ -44,7 +44,7 @@ N_T = stop - start + 1
 dt_space = 1e-1 * np.logspace(start, stop, N_T, base=1/2)
 
 nu = 1.0e-2
-pde = NavierStokes2DData_time(nu)  # create pde model
+pde = NavierStokes2DData_time(nu, 0, T)  # create pde model
 
 # # print some basic info
 print('dt = %e' % dt)
@@ -60,8 +60,9 @@ Ndof = np.zeros(N_T, dtype=np.int)  # the array to store the number of dofs
 
 # --- start for-loop --- #
 for i in range(N_T):
-    ns = FEMNavierStokesModel2d(pde, mesh, p, dt_space[i], T)
-    u_l2err, u_h1err, p_l2err = ns.NS_VC_Solver()
+    ns = FEMNavierStokesModel2d(pde, mesh, p, dt_space[i])
+    # u_l2err, u_h1err, p_l2err = ns.NS_VC_Solver_T1stOrder()
+    u_l2err, u_h1err, p_l2err = ns.NS_VC_Solver_T2ndOrder()
     Ndof[i] = ns.vspace.number_of_global_dofs()  # get the number of dofs
     errorMatrix[0, i] = u_l2err  # get the velocity L2 error
     errorMatrix[1, i] = u_h1err  # get the velocity energy error
