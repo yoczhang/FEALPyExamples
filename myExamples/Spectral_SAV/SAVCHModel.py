@@ -12,6 +12,7 @@
 
 import numpy as np
 from FourierSpace_test import FourierSpace
+# from fealpy.functionspace.FourierSpace import FourierSpace
 import pyfftw as pw
 
 
@@ -43,7 +44,7 @@ class SAVCHModel:
         u0 = uin - uaver
 
         # # setting the initial something
-        TN = int(T/dt)
+        NT = int(T/dt)
         U = 1. / epsilon ** 2 * u0 * (u0 ** 2 - 1 - beta)
         E = 1. / (4 * epsilon ** 2) * h.prod() * np.sum((u0 ** 2 - 1 - beta) ** 2)
 
@@ -51,10 +52,16 @@ class SAVCHModel:
         rn = np.sqrt(E)
         bn = U/rn
 
-        timeCount = np.zeros((TN,))
-        storeEnergy = np.zeros((TN,))
+        timeCount = np.zeros((NT,))
+        storeEnergy = np.zeros((NT,))
 
     def fourierDiffCoeff(self, m):
+        """
+        returns the m-th derivative of function
+        :param m:
+        :return:
+        """
+
         N = self.N  # TODO: 这里规定 N 为一维数为 GD 的数组, 在每个方向为 N
         space = self.space
         box = space.box  # box.shape: (GD, 2),
