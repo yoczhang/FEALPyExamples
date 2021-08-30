@@ -57,9 +57,8 @@ class SAVCHModel:
 
     def FourierDiffCoeff(self, m):
         """
-        returns the m-th derivative of function
-        :param m:
-        :return:
+        :param m: the m-th order derivative
+        :return: the Fourier-coefficients of m-th derivative
         """
 
         multipleN = np.array(self.N)  # 分别在 x, y, z 方向上给出采样点个数 Nx, Ny, Nz
@@ -77,6 +76,7 @@ class SAVCHModel:
 
         normalK = []
         for i in range(GD):
+            # Wavenumbers (with ordering suitable for Numpy's FFT)
             basicK = 1j*np.concatenate([np.arange(0, multipleN[i]/2+1), np.arange(-multipleN[i]/2+1, 0)])
             normalK.append(basicK * normalization[i])
 
