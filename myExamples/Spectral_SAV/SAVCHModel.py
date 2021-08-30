@@ -12,7 +12,7 @@
 
 import numpy as np
 from FourierSpace_test import FourierSpace
-# from fealpy.functionspace.FourierSpace import FourierSpace
+from fealpy.functionspace.FourierSpace import FourierSpace
 import pyfftw as pw
 
 

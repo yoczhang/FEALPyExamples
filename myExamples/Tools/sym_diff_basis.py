@@ -55,16 +55,16 @@ class compute_basis:
 
         index = multi_index_matrix2d(p)
         n = len(index)
-        phi_list = list([])
-        phi_x_list = list([])
-        phi_y_list = list([])
-        phi_xy_list = list([])
-        phi_xx_list = list([])
-        phi_yy_list = list([])
-        phi_xxx_list = list([])
-        phi_yyy_list = list([])
-        phi_yxx_list = list([])
-        phi_xyy_list = list([])
+        phi_list = []
+        phi_x_list = []
+        phi_y_list = []
+        phi_xy_list = []
+        phi_xx_list = []
+        phi_yy_list = []
+        phi_xxx_list = []
+        phi_yyy_list = []
+        phi_yxx_list = []
+        phi_xyy_list = []
 
         for i in range(n):
             phi_list.append(basis(p, index[i, 0], index[i, 1], index[i, 2]))
@@ -130,8 +130,6 @@ class compute_basis:
 
         # # 替换成 numpy 可计算的函数
         for n in range(ldof):
-            # print('n = ', n)
-
             func = lambdify([self.lam0, self.lam1, self.lam2], phi[n], 'numpy')
             phi_val[:, n] = func(bcs[:, 0], bcs[:, 1], bcs[:, 2])
 

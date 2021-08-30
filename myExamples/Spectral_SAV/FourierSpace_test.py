@@ -22,7 +22,7 @@ import pyfftw
 
 class FourierSpace:
     def __init__(self, box, N, dft=None):
-        self.box = box
+        self.box = self.reset_box(box)
         self.N = N
         self.GD = len(N)
 
@@ -46,18 +46,32 @@ class FourierSpace:
             self.ifftn = dft.ifftn
             self.fftfreq = dft.fftfreq
 
+    def reset_box(self, box):
+        if type(box) is list:
+            newbox = np.array(box)
+        elif (type(box) is np.ndarray) & (box.shape[0] > 1):
+            newbox = box.flatten()
+        else:
+            newbox = box  # 即 box 为一维数组的情况
+        return newbox
+
     def number_of_dofs(self):
-        return np.prod(np.array(self.N) + 1)
+        return np.prod(np.array(self.N))
 
     def interpolation_points(self):
         N = self.N
         GD = self.GD
         box = self.box
-        index = np.ogrid[GD * (slice(0, 1, 1 / N),)]
-        points = []
+
+        coord_1d = []
         for i in range(GD):
-            points.append(sum(map(lambda x: x[0] * x[1], zip(box[i], index))))
-        return points
+            coord_1d.append(np.arange(box[i*GD], box[i*GD+1], abs(box[i*GD]-box[i*GD+1])/N[i]))
+        coord_list = np.meshgrid(*coord_1d)  # list: (GD,)
+
+        switch_idx = [i for i in range(1, GD+1)]
+        switch_idx.append(0)
+        coord_array = np.array(coord_list).transpose(switch_idx) # shape: (...,GD). Such as: GD=2, [...,0] is the x-coord, [...,1] is the y-coord
+        return coord_array
 
     def fourier_interpolation(self, data):
         """
