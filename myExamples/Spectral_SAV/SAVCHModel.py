@@ -55,19 +55,23 @@ class SAVCHModel:
         timeCount = np.zeros((NT,))
         storeEnergy = np.zeros((NT,))
 
-    def fourierDiffCoeff(self, m):
+    def FourierDiffCoeff(self, m):
         """
         returns the m-th derivative of function
         :param m:
         :return:
         """
 
-        N = self.N  # TODO: 这里规定 N 为一维数为 GD 的数组, 在每个方向为 N
+        multipleN = np.array(self.N)  # 分别在 x, y, z 方向上给出采样点个数 Nx, Ny, Nz
         space = self.space
         box = space.box  # box.shape: (GD, 2),
         GD = space.GD
-        multipleN = np.ones((GD,)) * N  # 分别在 x, y, z 方向上给出采样点个数 Nx, Ny, Nz
-        L = np.abs(box[:, 1] - box[:, 0])  # L.shape: (GD,), 用来存储 x, y, z 方向上的区间长度
+        if (type(box) is np.ndarray) & (len(box) == GD):
+            L = np.abs(box[:, 1] - box[:, 0])  # L.shape: (GD,), 用来存储 x, y, z 方向上的区间长度
+        elif type(box) is list:
+            L = np.array(box[1::GD])-np.array(box[::GD])
+        else:
+            L = multipleN
         h = L / multipleN  # 用来存储 x, y, z 方向上的网格尺寸
         normalization = 2*np.pi / L  # normalization.shape: (GD,), 在 x, y, z 方向上, 将 [a, b] 映射到 [0, 2*pi]
 

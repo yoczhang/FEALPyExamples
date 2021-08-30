@@ -24,13 +24,13 @@ class FourierSpace:
     def __init__(self, box, N, dft=None):
         self.box = box
         self.N = N
-        self.GD = box.shape[0]
+        self.GD = len(N)
 
         self.ftype = np.float
         self.itype = np.int32
 
         if dft is None:
-            ncpt = np.array([N, N])
+            ncpt = np.array(N)
             a = pyfftw.empty_aligned(ncpt, dtype=np.complex128)
             self.fftn = pyfftw.builders.fftn(a)
             b = pyfftw.empty_aligned(ncpt, dtype=np.complex128)
@@ -47,7 +47,7 @@ class FourierSpace:
             self.fftfreq = dft.fftfreq
 
     def number_of_dofs(self):
-        return self.N ** self.GD
+        return np.prod(np.array(self.N) + 1)
 
     def interpolation_points(self):
         N = self.N
@@ -67,7 +67,7 @@ class FourierSpace:
         data: data[0], data[1]
         """
         idx = data[0]
-        idx[idx < 0] += self.N
+        idx[idx < 0] += self.N[0]
         F = self.function(dtype=data[1].dtype)
 
         F[tuple(idx.T)] = data[1]
