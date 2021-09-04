@@ -47,6 +47,11 @@ class FourierSpace:
             self.fftfreq = dft.fftfreq
 
     def reset_box(self, box):
+        """
+        In this function, we translate 'box' into one-dimension numpy's array
+        :param box:
+        :return: newbox
+        """
         if type(box) is list:
             newbox = np.array(box)
         elif (type(box) is np.ndarray) & (box.shape[0] > 1):
@@ -95,3 +100,30 @@ class FourierSpace:
         U0 = self.interpolation(u)
         error = np.sqrt(np.sum((U0 - U) ** 2) / N ** GD)
         return error
+
+    def FourierDiffCoeff(self, m):
+        """
+        :param m: the m-th order differential
+        :return: the Fourier-coefficients of m-th differential
+        """
+
+        multipleN = np.array(self.N)  # 分别在 x, y, z 方向上给出采样点个数 Nx, Ny, Nz
+        box = self.box  # box.shape: (GD, 2),
+        GD = self.GD
+        if (type(box) is np.ndarray) & (len(box) == GD):
+            L = np.abs(box[:, 1] - box[:, 0])  # L.shape: (GD,), 用来存储 x, y, z 方向上的区间长度
+        elif type(box) is list:
+            L = np.array(box[1::GD])-np.array(box[::GD])
+        else:
+            L = multipleN
+        h = L / multipleN  # 用来存储 x, y, z 方向上的网格尺寸
+        normalization = 2*np.pi / L  # normalization.shape: (GD,), 在 x, y, z 方向上, 将 [a, b] 映射到 [0, 2*pi]
+
+        normalK = []
+        for i in range(GD):
+            # # Wavenumbers (with ordering suitable for Numpy's FFT)
+            basicK = 1j*np.concatenate([np.arange(0, multipleN[i]/2+1), np.arange(-multipleN[i]/2+1, 0)])
+            normalK.append(basicK * normalization[i])
+
+        meshgridK = np.meshgrid(*normalK)
+        return list(map(lambda x: x**m, meshgridK))

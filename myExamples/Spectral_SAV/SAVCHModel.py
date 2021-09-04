@@ -55,44 +55,6 @@ class SAVCHModel:
         timeCount = np.zeros((NT,))
         storeEnergy = np.zeros((NT,))
 
-    def FourierDiffCoeff(self, m):
-        """
-        :param m: the m-th order derivative
-        :return: the Fourier-coefficients of m-th derivative
-        """
-
-        multipleN = np.array(self.N)  # 分别在 x, y, z 方向上给出采样点个数 Nx, Ny, Nz
-        space = self.space
-        box = space.box  # box.shape: (GD, 2),
-        GD = space.GD
-        if (type(box) is np.ndarray) & (len(box) == GD):
-            L = np.abs(box[:, 1] - box[:, 0])  # L.shape: (GD,), 用来存储 x, y, z 方向上的区间长度
-        elif type(box) is list:
-            L = np.array(box[1::GD])-np.array(box[::GD])
-        else:
-            L = multipleN
-        h = L / multipleN  # 用来存储 x, y, z 方向上的网格尺寸
-        normalization = 2*np.pi / L  # normalization.shape: (GD,), 在 x, y, z 方向上, 将 [a, b] 映射到 [0, 2*pi]
-
-        normalK = []
-        for i in range(GD):
-            # Wavenumbers (with ordering suitable for Numpy's FFT)
-            basicK = 1j*np.concatenate([np.arange(0, multipleN[i]/2+1), np.arange(-multipleN[i]/2+1, 0)])
-            normalK.append(basicK * normalization[i])
-
-        # if GD == 2:
-        #     Kx, Ky = np.meshgrid(normalK[0]**m, normalK[1]**m)
-        #     print(np.allclose(rr, [Kx, Ky]))
-        #     return Kx, Ky
-        # elif GD == 3:
-        #     Kx, Ky, Kz = np.meshgrid(normalK[0]**m, normalK[1]**m, normalK[2]**m)
-        #     return Kx, Ky, Kz
-        # else:
-        #     raise ValueError("The dimension of space is false")
-
-        meshgridK = np.meshgrid(*normalK)
-        return list(map(lambda x: x**m, meshgridK))
-
     def DFTLaplace(self, phi):
         pass
 
