@@ -130,4 +130,22 @@ class FourierSpace:
             normalK.append(basicK * normalization[i])
 
         meshgridK = np.meshgrid(*normalK)
-        return list(map(lambda x: x**m, meshgridK))
+        return list(map(lambda x: x**m, meshgridK))  # list, (GD,)
+
+    def DFTLaplace(self, uh):
+        """
+        Discrete-Fourier-Transform the \Delta uh
+        :param uh: The discrete uh on the mesh grid: (Nx,Ny)
+        :return:
+        """
+        Dlaplace = np.sum(self.FourierDiffCoeff(2), axis=0)  # (Nx,Ny)
+        fft_uh = self.fftn(uh)
+        return np.real(self.ifftn(Dlaplace * fft_uh))
+
+
+
+
+
+
+
+
