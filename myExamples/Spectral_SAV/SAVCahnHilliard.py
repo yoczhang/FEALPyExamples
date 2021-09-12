@@ -25,15 +25,15 @@ dt = 0.01
 T = 1
 
 box = np.array([[0, 1], [0, 1]])  # the domain
-pde = FourierPDE(N, dt, T)
+pde = FourierPDE(N, 0, T)
 
 pdePars = {'epsilon': 0.1, 'gamma': 0.01, 'beta': 0.1, 'alpha': 1}  # value of parameters
 pde.setPDEParameters(pdePars)
 
 # # Solve the problem by SAV
-ch = SAVCHModel(pde, box)
+ch = SAVCHModel(pde, box, dt)
 # ch.solve()
-rr = ch.FourierDiffCoeff(2)
+rr = ch.space.FourierDiffCoeff(2)
 
 # ---
 print('End of the file')

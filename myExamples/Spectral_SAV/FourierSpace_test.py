@@ -22,9 +22,10 @@ import pyfftw
 
 class FourierSpace:
     def __init__(self, box, N, dft=None):
-        self.box = self.reset_box(box)
+        self.box, self.L = self.reset_box(box)
         self.N = N
         self.GD = len(N)
+        self.h = self.L / np.array(N)
 
         self.ftype = np.float
         self.itype = np.int32
@@ -58,7 +59,8 @@ class FourierSpace:
             newbox = box.flatten()
         else:
             newbox = box  # 即 box 为一维数组的情况
-        return newbox
+        L = newbox[1::self.GD] - newbox[::self.GD]
+        return newbox, L
 
     def number_of_dofs(self):
         return np.prod(np.array(self.N))
@@ -110,13 +112,15 @@ class FourierSpace:
         multipleN = np.array(self.N)  # 分别在 x, y, z 方向上给出采样点个数 Nx, Ny, Nz
         box = self.box  # box.shape: (GD, 2),
         GD = self.GD
-        if (type(box) is np.ndarray) & (len(box) == GD):
-            L = np.abs(box[:, 1] - box[:, 0])  # L.shape: (GD,), 用来存储 x, y, z 方向上的区间长度
-        elif type(box) is list:
-            L = np.array(box[1::GD])-np.array(box[::GD])
-        else:
-            L = multipleN
-        h = L / multipleN  # 用来存储 x, y, z 方向上的网格尺寸
+        # if (type(box) is np.ndarray) & (len(box) == GD):
+        #     L = np.abs(box[:, 1] - box[:, 0])  # L.shape: (GD,), 用来存储 x, y, z 方向上的区间长度
+        # elif type(box) is list:
+        #     L = np.array(box[1::GD])-np.array(box[::GD])
+        # else:
+        #     L = multipleN
+        # L = np.array(box[1::GD]) - np.array(box[::GD])
+        # h = L / multipleN  # 用来存储 x, y, z 方向上的网格尺寸
+        L = self.L
         normalization = 2*np.pi / L  # normalization.shape: (GD,), 在 x, y, z 方向上, 将 [a, b] 映射到 [0, 2*pi]
 
         normalK = []

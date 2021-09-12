@@ -31,15 +31,20 @@ import numpy as np
         
 
 class FourierPDE:
-    def __init__(self, N, dt, T):
+    def __init__(self, N, t0, T):
         self.N = N
-        self.dt = dt
+        self.t0 = t0
         self.T = T
 
     def setPDEParameters(self, parameters):
         for k, v in parameters.items():
             self.__dict__[k] = v
         return None
+
+    def time_mesh(self, dt):
+        n = int(np.ceil((self.T - self.t0) / dt))
+        dt = (self.T - self.t0) / n
+        return np.linspace(self.t0, self.T, num=n + 1), dt
 
 
 

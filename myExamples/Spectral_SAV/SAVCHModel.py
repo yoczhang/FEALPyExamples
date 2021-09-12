@@ -17,34 +17,36 @@ import pyfftw as pw
 
 
 class SAVCHModel:
-    def __init__(self, PDE, box):
-        self.space = FourierSpace(box, PDE.N)
+    def __init__(self, pde, box, dt):
+        self.space = FourierSpace(box, pde.N)
         self.GD = self.space.GD
-        self.PDE = PDE
-        self.N = PDE.N
-        self.T = PDE.T
-        self.dt = PDE.dt
+        self.pde = pde
+        self.N = pde.N
+        self.T = pde.T
+        self.timemesh, self.dt = self.pde.time_mesh(dt)
 
     def solve(self):
-        PDE = self.PDE
+        pde = self.pde
+        space = self.space
 
-        N = PDE.N
-        h = PDE.h
-        T = PDE.T
-        dt = PDE.dt
+        N = pde.N
+        h = space.h
+        T = pde.T
+        dt = self.dt
+        timemesh = self.timemesh
 
-        epsilon = PDE.epsilon
-        gamma = PDE.gamma
-        beta = PDE.beta
-        alpha = PDE.alpha
+        epsilon = pde.epsilon
+        gamma = pde.gamma
+        beta = pde.beta
+        alpha = pde.alpha
 
         # # Initial value u0 (t = 0)
-        uin = 0.05 * (2 * np.random.rand(N, N) - 1)
-        uaver = np.sum(uin) / N ** 2
+        uin = 0.05 * (2 * np.random.rand(*N) - 1)
+        uaver = np.sum(uin) / np.prod(N)
         u0 = uin - uaver
 
         # # setting the initial something
-        NT = int(T/dt)
+        NT = len(timemesh)
         U = 1. / epsilon ** 2 * u0 * (u0 ** 2 - 1 - beta)
         E = 1. / (4 * epsilon ** 2) * h.prod() * np.sum((u0 ** 2 - 1 - beta) ** 2)
 
