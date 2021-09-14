@@ -142,6 +142,16 @@ class FourierSpace:
         fft_uh = self.fftn(uh)
         return np.real(self.ifftn(Dlaplace * fft_uh))
 
+    def DFIntegral(self, uh, vh, mesh_measure=None):
+        h = mesh_measure if mesh_measure is not None else self.h
+        temp = uh * vh
+        GD = self.GD
+
+        for i in range(GD):
+            temp = np.sum(h[i]*temp, axis=0)
+        return temp
+
+
 
 
 

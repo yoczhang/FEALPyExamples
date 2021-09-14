@@ -25,7 +25,7 @@ class SAVCHModel:
         self.T = pde.T
         self.timemesh, self.dt = self.pde.time_mesh(dt)
 
-    def solve(self):
+    def SAVSolver(self):
         pde = self.pde
         space = self.space
 
@@ -47,8 +47,8 @@ class SAVCHModel:
 
         # # setting the initial something
         NT = len(timemesh)
-        U = 1. / epsilon ** 2 * u0 * (u0 ** 2 - 1 - beta)
-        E = 1. / (4 * epsilon ** 2) * h.prod() * np.sum((u0 ** 2 - 1 - beta) ** 2)
+        U = 1./epsilon**2 * u0 * (u0**2 - 1)
+        E = 1. / (4 * epsilon ** 2) * space.DFIntegral(u0**2 - 1, u0**2 - 1)
 
         # # the temporary variable
         rn = np.sqrt(E)
@@ -57,8 +57,8 @@ class SAVCHModel:
         timeCount = np.zeros((NT,))
         storeEnergy = np.zeros((NT,))
 
-    def DFTLaplace(self, phi):
-        pass
+
+
 
 
 
