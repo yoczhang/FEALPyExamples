@@ -60,8 +60,11 @@ class SAVCHModel:
         DFT_G = Dlaplace
         DFT_L = - Dlaplace
 
+        DFT_M = DFT_I - dt*DFT_G*DFT_L
+        Gbx = space.ifftn(space.fftn(Gbn) / DFT_M)  # (Nx,Ny)
+        gamma = - space.DFIntegral(bn, Gbx)
 
-
+        cx = space.ifftn(space.fftn(cn) / DFT_M)
 
         timeCount = np.zeros((NT,))
         storeEnergy = np.zeros((NT,))
