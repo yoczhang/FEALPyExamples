@@ -48,11 +48,20 @@ class SAVCHModel:
         # # setting the initial something
         NT = len(timemesh)
         U = 1./epsilon**2 * u0 * (u0**2 - 1)
-        E = 1. / (4 * epsilon ** 2) * space.DFIntegral(u0**2 - 1, u0**2 - 1)
+        E1 = 1. / (4 * epsilon ** 2) * space.DFIntegral(u0**2 - 1, u0**2 - 1)
 
         # # the temporary variable
-        rn = np.sqrt(E)
+        rn = np.sqrt(E1)
         bn = U/rn
+        Gbn = space.DFTLaplace(bn)
+        cn = u0 + dt*rn*Gbn - dt/2*space.DFIntegral(bn, u0)*Gbn
+        Dlaplace = np.sum(space.FourierDiffCoeff(2), axis=0)  # (Nx,Ny)
+        DFT_I = np.ones(*N)
+        DFT_G = Dlaplace
+        DFT_L = - Dlaplace
+
+
+
 
         timeCount = np.zeros((NT,))
         storeEnergy = np.zeros((NT,))
