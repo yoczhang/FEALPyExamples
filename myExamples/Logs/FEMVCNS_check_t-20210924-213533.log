@@ -1,0 +1,160 @@
+run boxmesh2d with time: 0.007487841999999967
+dt = 1.000000e-03
+nu = 1.000000e-02
+domain box =  [0, 1, 0, 1]
+mesh subdivision =  64
+run serial_construct_matrix with time: 0.5634903889999999
+run serial_construct_matrix with time: 0.1273741479999999
+run serial_construct_matrix with time: 1.2372508459999998
+# ------------ logging the circle info ------------ #
+current t =  0.0
+p_l2err = 5.708978e-04,  u0_l2err = 7.502660e-03,  u1_l2err = 7.719789e-03
+# ------------------------------------------------- # 
+
+# ------------ logging the circle info ------------ #
+current t =  0.2
+p_l2err = 6.499410e-04,  u0_l2err = 8.735653e-03,  u1_l2err = 1.170252e-03
+# ------------------------------------------------- # 
+
+# ------------ logging the circle info ------------ #
+current t =  0.4
+p_l2err = 5.169363e-04,  u0_l2err = 8.311210e-03,  u1_l2err = 4.008620e-04
+# ------------------------------------------------- # 
+
+# ------------ logging the circle info ------------ #
+current t =  0.6000000000000001
+p_l2err = 4.045437e-04,  u0_l2err = 8.069690e-03,  u1_l2err = 2.865148e-04
+# ------------------------------------------------- # 
+
+# ------------ logging the circle info ------------ #
+current t =  0.8
+p_l2err = 3.251587e-04,  u0_l2err = 7.063586e-03,  u1_l2err = 2.155339e-04
+# ------------------------------------------------- # 
+
+# ------------ the end error ------------ #
+u_l2err = 2.891641e-04,  u_h1err = 6.280973e-03,  p_l2err = 1.810200e-04
+run NS_VC_Solver_T2ndOrder with time: 67.062320341
+run serial_construct_matrix with time: 0.5463986480000074
+run serial_construct_matrix with time: 0.12710986199999752
+run serial_construct_matrix with time: 1.217604449999996
+# ------------ logging the circle info ------------ #
+current t =  0.0
+p_l2err = 1.584559e-04,  u0_l2err = 2.453403e-03,  u1_l2err = 4.038854e-03
+# ------------------------------------------------- # 
+
+# ------------ logging the circle info ------------ #
+current t =  0.2
+p_l2err = 1.682896e-04,  u0_l2err = 2.201787e-03,  u1_l2err = 1.245904e-04
+# ------------------------------------------------- # 
+
+# ------------ logging the circle info ------------ #
+current t =  0.4
+p_l2err = 1.247357e-04,  u0_l2err = 1.891402e-03,  u1_l2err = 1.043762e-04
+# ------------------------------------------------- # 
+
+# ------------ logging the circle info ------------ #
+current t =  0.6000000000000001
+p_l2err = 9.676934e-05,  u0_l2err = 1.642694e-03,  u1_l2err = 7.153087e-05
+# ------------------------------------------------- # 
+
+# ------------ logging the circle info ------------ #
+current t =  0.8
+p_l2err = 7.588471e-05,  u0_l2err = 1.035172e-03,  u1_l2err = 4.929186e-05
+# ------------------------------------------------- # 
+
+# ------------ the end error ------------ #
+u_l2err = 6.396026e-05,  u_h1err = 6.604223e-04,  p_l2err = 3.801499e-05
+run NS_VC_Solver_T2ndOrder with time: 128.292166195
+run serial_construct_matrix with time: 0.5500142230000051
+run serial_construct_matrix with time: 0.1159099690000005
+run serial_construct_matrix with time: 1.2039029599999935
+# ------------ logging the circle info ------------ #
+current t =  0.0
+p_l2err = 4.236760e-05,  u0_l2err = 7.753084e-04,  u1_l2err = 2.066318e-03
+# ------------------------------------------------- # 
+
+# ------------ logging the circle info ------------ #
+current t =  0.2
+p_l2err = 4.198646e-05,  u0_l2err = 4.507029e-04,  u1_l2err = 3.557738e-05
+# ------------------------------------------------- # 
+
+# ------------ logging the circle info ------------ #
+current t =  0.4
+p_l2err = 3.108832e-05,  u0_l2err = 3.019488e-04,  u1_l2err = 2.459606e-05
+# ------------------------------------------------- # 
+
+# ------------ logging the circle info ------------ #
+current t =  0.6000000000000001
+p_l2err = 2.407185e-05,  u0_l2err = 2.198648e-04,  u1_l2err = 1.728750e-05
+# ------------------------------------------------- # 
+
+# ------------ logging the circle info ------------ #
+current t =  0.8
+p_l2err = 1.909787e-05,  u0_l2err = 1.696508e-04,  u1_l2err = 1.223166e-05
+# ------------------------------------------------- # 
+
+# ------------ the end error ------------ #
+u_l2err = 1.579261e-05,  u_h1err = 1.383675e-04,  p_l2err = 9.125414e-06
+run NS_VC_Solver_T2ndOrder with time: 247.390744436
+run serial_construct_matrix with time: 0.538078118000044
+run serial_construct_matrix with time: 0.1176333280000108
+run serial_construct_matrix with time: 1.205217996999977
+# ------------ logging the circle info ------------ #
+current t =  0.0
+p_l2err = 1.106946e-05,  u0_l2err = 2.399018e-04,  u1_l2err = 1.045163e-03
+# ------------------------------------------------- # 
+
+# ------------ logging the circle info ------------ #
+current t =  0.2
+p_l2err = 1.058004e-05,  u0_l2err = 1.091641e-04,  u1_l2err = 8.681908e-06
+# ------------------------------------------------- # 
+
+# ------------ logging the circle info ------------ #
+current t =  0.4
+p_l2err = 7.847602e-06,  u0_l2err = 7.465467e-05,  u1_l2err = 6.208449e-06
+# ------------------------------------------------- # 
+
+# ------------ logging the circle info ------------ #
+current t =  0.6000000000000001
+p_l2err = 6.077878e-06,  u0_l2err = 5.551413e-05,  u1_l2err = 4.370970e-06
+# ------------------------------------------------- # 
+
+# ------------ logging the circle info ------------ #
+current t =  0.8
+p_l2err = 4.821927e-06,  u0_l2err = 4.292803e-05,  u1_l2err = 3.092358e-06
+# ------------------------------------------------- # 
+
+# ------------ the end error ------------ #
+u_l2err = 3.934964e-06,  u_h1err = 3.451698e-05,  p_l2err = 2.258699e-06
+run NS_VC_Solver_T2ndOrder with time: 490.175179361
+run serial_construct_matrix with time: 0.5422785599999997
+run serial_construct_matrix with time: 0.11870114299995294
+run serial_construct_matrix with time: 1.2025817520000146
+# ------------ logging the circle info ------------ #
+current t =  0.0
+p_l2err = 2.850120e-06,  u0_l2err = 7.325067e-05,  u1_l2err = 5.256180e-04
+# ------------------------------------------------- # 
+
+# ------------ logging the circle info ------------ #
+current t =  0.2
+p_l2err = 2.660199e-06,  u0_l2err = 2.747648e-05,  u1_l2err = 2.183608e-06
+# ------------------------------------------------- # 
+
+# ------------ logging the circle info ------------ #
+current t =  0.4
+p_l2err = 1.973104e-06,  u0_l2err = 1.879693e-05,  u1_l2err = 1.561864e-06
+# ------------------------------------------------- # 
+
+# ------------ logging the circle info ------------ #
+current t =  0.6000000000000001
+p_l2err = 1.527971e-06,  u0_l2err = 1.397403e-05,  u1_l2err = 1.099337e-06
+# ------------------------------------------------- # 
+
+# ------------ logging the circle info ------------ #
+current t =  0.8
+p_l2err = 1.212162e-06,  u0_l2err = 1.080311e-05,  u1_l2err = 7.774983e-07
+# ------------------------------------------------- # 
+
+# ------------ the end error ------------ #
+u_l2err = 9.826776e-07,  u_h1err = 8.624483e-06,  p_l2err = 5.618924e-07
+run NS_VC_Solver_T2ndOrder with time: 962.454229041
