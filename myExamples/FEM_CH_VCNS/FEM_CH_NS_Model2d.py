@@ -305,6 +305,9 @@ class FEM_CH_NS_Model2d:
         np.add.at(orig_rv, self.face2dof[self.NeuEdgeIdx_CH, :], orig_rhs_f)
         uh[:] = spsolve(self.StiffMatrix - self.alpha * self.MassMatrix, orig_rv)
 
+    def decoupled_CH_Solver_T2ndOrder(self, uh, last_uh, vel_star_0, vel_star_1, next_t):
+        pass
+
     def decoupled_NS_Solver_T1stOrder(self, vel0, vel1, ph, uh, next_t):
         """
         The decoupled-Navier-Stokes-solver for the all system.
