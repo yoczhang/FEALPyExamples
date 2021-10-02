@@ -305,8 +305,102 @@ class FEM_CH_NS_Model2d:
         np.add.at(orig_rv, self.face2dof[self.NeuEdgeIdx_CH, :], orig_rhs_f)
         uh[:] = spsolve(self.StiffMatrix - self.alpha * self.MassMatrix, orig_rv)
 
-    def decoupled_CH_Solver_T2ndOrder(self, uh, last_uh, vel_star_0, vel_star_1, next_t):
-        pass
+    def decoupled_CH_Solver_T2ndOrder(self, uh, uh_star, vel_star_0, vel_star_1, next_t):
+        """
+        The decoupled-Cahn-Hilliard-solver for the all system.
+        :param uh: The value of the solution 'phi' of Cahn-Hilliard equation: stored the n-th(time) value, and to update the (n+1)-th value.
+        :param uh_star: 2*uh - last_uh
+        :param vel_star_0: 2*vel0 - last_vel0, where vel0 is the fist-component of NS's velocity (the n-th(time) value),
+                           last_vel0 is the (n-1)-th(time) value.
+        :param vel_star_1: 2*vel1 - last_vel1, where vel0 is the second-component of NS's velocity (the n-th(time) value),
+                           last_vel1 is the (n-1)-th(time) value.
+        :param next_t: Next time.
+        :return: Updated uh, wh.
+        """
+
+        grad_free_energy_c = self.pde.epsilon / self.pde.eta ** 2 * self.grad_free_energy_at_cells(uh_star, self.c_bcs)  # (NQ,NC,2)
+        grad_free_energy_f = self.pde.epsilon / self.pde.eta ** 2 * \
+                             self.grad_free_energy_at_faces(uh_star, self.f_bcs, self.NeuEdgeIdx_CH, self.NeuCellIdx_CH,
+                                                            self.NeuLocalIdx_CH)  # (NQ,NE,2)
+        last_uh = 2 * uh - uh_star
+        uh_hat = 2 * uh - 0.5 * last_uh
+        uh_hat_val = self.space.value(uh_hat, self.c_bcs)  # (NQ,NC)
+        uh_star_val = self.space.value(uh_star, self.c_bcs)  # (NQ,NC)
+        guh_star_val_c = self.space.grad_value(uh_star, self.c_bcs)  # (NQ,NC,2)
+        guh_star_val_f = self.uh_grad_value_at_faces(uh_star, self.f_bcs, self.NeuCellIdx_CH, self.NeuLocalIdx_CH)  # (NQ,NNeu,2)
+
+        Neumann = self.pde.neumann_CH(self.f_pp_Neu_CH, next_t, self.nNeu_CH)  # (NQ,NE)
+        LaplaceNeumann = self.pde.laplace_neumann_CH(self.f_pp_Neu_CH, next_t, self.nNeu_CH)  # (NQ,NE)
+        f_val_CH = self.pde.source_CH(self.c_pp, next_t, self.pde.m, self.pde.epsilon, self.pde.eta)  # (NQ,NC)
+
+        # # get the auxiliary equation Right-hand-side-Vector
+        aux_rv = np.zeros((self.dof.number_of_global_dofs(),), dtype=self.ftype)  # (Ndof,)
+
+        # # aux_rhs_c_0:  -1. / (epsilon * m * dt) * (uh_hat_val + g^{n+1} ,phi)_\Omega
+        aux_rhs_c_0 = -1. / (self.pde.epsilon * self.pde.m) * \
+                      (1 / self.dt * np.einsum('i, ij, ijk, j->jk', self.c_ws, uh_hat_val, self.phi_c, self.cellmeasure)
+                       + np.einsum('i, ij, ijk, j->jk', self.c_ws, f_val_CH, self.phi_c, self.cellmeasure))  # (NC,cldof)
+
+        # # aux_rhs_c_1: -s / epsilon * (\nabla uh^n, \nabla phi)_\Omega
+        aux_rhs_c_1 = -self.s / self.pde.epsilon * (
+                np.einsum('i, ij, ijk, j->jk', self.c_ws, guh_star_val_c[..., 0], self.gphi_c[..., 0], self.cellmeasure)
+                + np.einsum('i, ij, ijk, j->jk', self.c_ws, guh_star_val_c[..., 1], self.gphi_c[..., 1],
+                            self.cellmeasure))  # (NC,cldof)
+
+        # # aux_rhs_c_2: 1 / epsilon * (\nabla h(uh^n), \nabla phi)_\Omega
+        aux_rhs_c_2 = 1. / self.pde.epsilon * (
+                np.einsum('i, ij, ijk, j->jk', self.c_ws, grad_free_energy_c[..., 0], self.gphi_c[..., 0], self.cellmeasure)
+                + np.einsum('i, ij, ijk, j->jk', self.c_ws, grad_free_energy_c[..., 1], self.gphi_c[..., 1],
+                            self.cellmeasure))  # (NC,cldof)
+
+        # # aux_rhs_f_0: (\nabla wh^{n+1}\cdot n, phi)_\Gamma, wh is the solution of auxiliary equation
+        aux_rhs_f_0 = self.alpha * np.einsum('i, ij, ijn, j->jn', self.f_ws, Neumann, self.phi_f, self.NeuEdgeMeasure_CH) \
+                      + np.einsum('i, ij, ijn, j->jn', self.f_ws, LaplaceNeumann, self.phi_f,
+                                  self.NeuEdgeMeasure_CH)  # (Nneu,fldof)
+
+        # # aux_rhs_f_1: s / epsilon * (\nabla uh^n \cdot n, phi)_\Gamma
+        aux_rhs_f_1 = self.s / self.pde.epsilon * np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, guh_star_val_f, self.nNeu_CH,
+                                                            self.phi_f, self.NeuEdgeMeasure_CH)  # (Nneu,fldof)
+
+        # # aux_rhs_f_2: -1 / epsilon * (\nabla h(uh^n) \cdot n, phi)_\Gamma
+        aux_rhs_f_2 = -1. / self.pde.epsilon * np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, grad_free_energy_f, self.nNeu_CH,
+                                                         self.phi_f, self.NeuEdgeMeasure_CH)  # (Nneu,fldof)
+
+        # # --- now, we add the NS term
+        vel0_star_val_c = self.vspace.value(vel_star_0, self.c_bcs)  # (NQ,NC)
+        vel1_star_val_c = self.vspace.value(vel_star_1, self.c_bcs)  # (NQ,NC)
+        vel0_star_val_f = self.vspace.value(vel_star_0, self.f_bcs)[..., self.bdIndx]  # (NQ,NBE)
+        vel1_star_val_f = self.vspace.value(vel_star_1, self.f_bcs)[..., self.bdIndx]  # (NQ,NBE)
+
+        uh_star_val_f = self.space.value(uh_star, self.f_bcs)[..., self.bdIndx]  # (NQ,NBE)
+        uh_vel_val_f = np.concatenate([(uh_star_val_f * vel0_star_val_f)[..., np.newaxis],
+                                       (uh_star_val_f * vel1_star_val_f)[..., np.newaxis]], axis=2)
+
+        aux_rhs_c_3 = -1. / (self.pde.epsilon * self.pde.m) * \
+                      (np.einsum('i, ij, ijk, j->jk', self.c_ws, uh_star_val * vel0_star_val_c, self.gphi_c[..., 0], self.cellmeasure)
+                       + np.einsum('i, ij, ijk, j->jk', self.c_ws, uh_star_val * vel1_star_val_c, self.gphi_c[..., 1],
+                                   self.cellmeasure))  # (NC,cldof)
+        aux_rhs_f_3 = 1. / (self.pde.epsilon * self.pde.m) * \
+                      np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, uh_vel_val_f, self.nNeu_CH, self.phi_f,
+                                self.bdEdgeMeasure)  # (Nneu,fldof)
+
+        # # --- assemble the CH's aux equation
+        np.add.at(aux_rv, self.cell2dof, aux_rhs_c_0 + aux_rhs_c_1 + aux_rhs_c_2 + aux_rhs_c_3)
+        np.add.at(aux_rv, self.face2dof[self.NeuEdgeIdx_CH, :], aux_rhs_f_0 + aux_rhs_f_1 + aux_rhs_f_2)
+        np.add.at(aux_rv, self.face2dof[self.bdIndx, :], aux_rhs_f_3)
+
+        # # update the solution of auxiliary equation
+        wh = self.space.function()
+        wh[:] = spsolve(self.StiffMatrix + (self.alpha + self.s / self.pde.epsilon) * self.MassMatrix, aux_rv)
+
+        # # update the original CH solution uh, we do not need to change the code
+        orig_rv = np.zeros((self.dof.number_of_global_dofs(),), dtype=self.ftype)  # (Ndof,)
+        wh_val = self.space.value(wh, self.c_bcs)  # (NQ,NC)
+        orig_rhs_c = - np.einsum('i, ij, ijk, j->jk', self.c_ws, wh_val, self.phi_c, self.cellmeasure)  # (NC,cldof)
+        orig_rhs_f = np.einsum('i, ij, ijn, j->jn', self.f_ws, Neumann, self.phi_f, self.NeuEdgeMeasure_CH)
+        np.add.at(orig_rv, self.cell2dof, orig_rhs_c)
+        np.add.at(orig_rv, self.face2dof[self.NeuEdgeIdx_CH, :], orig_rhs_f)
+        uh[:] = spsolve(self.StiffMatrix - self.alpha * self.MassMatrix, orig_rv)
 
     def decoupled_NS_Solver_T1stOrder(self, vel0, vel1, ph, uh, next_t):
         """
