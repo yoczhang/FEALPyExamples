@@ -392,9 +392,9 @@ class FEMNavierStokesModel2d:
             urv0 = np.zeros((vdof.number_of_global_dofs(),), dtype=self.ftype)  # (Nvdof,)
             urv0_c = np.einsum('i, ij, ijk, j->jk', c_ws, u_val0 / dt - grad_ph[..., 0] - nolinear_val0
                                + f_val[..., 0], u_phi, cell_measure)  # (NC,clodf)
-            urv0_f = self.pde.nu * np.einsum('i, ij, ijn, j->jn', f_ws, Neumann_0, u_phi_f, neu_face_measure)
             np.add.at(urv0, ucell2dof, urv0_c)
-            # np.add.at(urv0, Neu_face2dof, urv0_f)
+            # # urv0_f = self.pde.nu * np.einsum('i, ij, ijn, j->jn', f_ws, Neumann_0, u_phi_f, neu_face_measure)
+            # # np.add.at(urv0, Neu_face2dof, urv0_f)
             u0_bc = DirichletBC(vspace, dir_u0, threshold=idxDirEdge)
             ulm0, urv0 = u0_bc.apply(ulm0, urv0)
             uh0[:] = spsolve(ulm0, urv0).reshape(-1)

@@ -305,14 +305,14 @@ class FEM_CH_NS_Model2d:
         np.add.at(orig_rv, self.face2dof[self.NeuEdgeIdx_CH, :], orig_rhs_f)
         uh[:] = spsolve(self.StiffMatrix - self.alpha * self.MassMatrix, orig_rv)
 
-    def decoupled_CH_Solver_T2ndOrder(self, uh, uh_star, vel_star_0, vel_star_1, next_t):
+    def decoupled_CH_Solver_T2ndOrder(self, uh, uh_star, vel0_star, vel1_star, next_t):
         """
         The decoupled-Cahn-Hilliard-solver for the all system.
         :param uh: The value of the solution 'phi' of Cahn-Hilliard equation: stored the n-th(time) value, and to update the (n+1)-th value.
         :param uh_star: 2*uh - last_uh
-        :param vel_star_0: 2*vel0 - last_vel0, where vel0 is the fist-component of NS's velocity (the n-th(time) value),
+        :param vel0_star: 2*vel0 - last_vel0, where vel0 is the fist-component of NS's velocity (the n-th(time) value),
                            last_vel0 is the (n-1)-th(time) value.
-        :param vel_star_1: 2*vel1 - last_vel1, where vel0 is the second-component of NS's velocity (the n-th(time) value),
+        :param vel1_star: 2*vel1 - last_vel1, where vel1 is the second-component of NS's velocity (the n-th(time) value),
                            last_vel1 is the (n-1)-th(time) value.
         :param next_t: Next time.
         :return: Updated uh, wh.
@@ -322,8 +322,9 @@ class FEM_CH_NS_Model2d:
         grad_free_energy_f = self.pde.epsilon / self.pde.eta ** 2 * \
                              self.grad_free_energy_at_faces(uh_star, self.f_bcs, self.NeuEdgeIdx_CH, self.NeuCellIdx_CH,
                                                             self.NeuLocalIdx_CH)  # (NQ,NE,2)
-        last_uh = 2 * uh - uh_star
-        uh_hat = 2 * uh - 0.5 * last_uh
+        # # last_uh = 2 * uh - uh_star
+        # # uh_hat = 2 * uh - 0.5 * last_uh
+        uh_hat = uh + 0.5 * uh_star
         uh_hat_val = self.space.value(uh_hat, self.c_bcs)  # (NQ,NC)
         uh_star_val = self.space.value(uh_star, self.c_bcs)  # (NQ,NC)
         guh_star_val_c = self.space.grad_value(uh_star, self.c_bcs)  # (NQ,NC,2)
@@ -367,10 +368,10 @@ class FEM_CH_NS_Model2d:
                                                          self.phi_f, self.NeuEdgeMeasure_CH)  # (Nneu,fldof)
 
         # # --- now, we add the NS term
-        vel0_star_val_c = self.vspace.value(vel_star_0, self.c_bcs)  # (NQ,NC)
-        vel1_star_val_c = self.vspace.value(vel_star_1, self.c_bcs)  # (NQ,NC)
-        vel0_star_val_f = self.vspace.value(vel_star_0, self.f_bcs)[..., self.bdIndx]  # (NQ,NBE)
-        vel1_star_val_f = self.vspace.value(vel_star_1, self.f_bcs)[..., self.bdIndx]  # (NQ,NBE)
+        vel0_star_val_c = self.vspace.value(vel0_star, self.c_bcs)  # (NQ,NC)
+        vel1_star_val_c = self.vspace.value(vel1_star, self.c_bcs)  # (NQ,NC)
+        vel0_star_val_f = self.vspace.value(vel0_star, self.f_bcs)[..., self.bdIndx]  # (NQ,NBE)
+        vel1_star_val_f = self.vspace.value(vel1_star, self.f_bcs)[..., self.bdIndx]  # (NQ,NBE)
 
         uh_star_val_f = self.space.value(uh_star, self.f_bcs)[..., self.bdIndx]  # (NQ,NBE)
         uh_vel_val_f = np.concatenate([(uh_star_val_f * vel0_star_val_f)[..., np.newaxis],
@@ -507,9 +508,9 @@ class FEM_CH_NS_Model2d:
         vrv0 = np.zeros((self.vdof.number_of_global_dofs(),), dtype=self.ftype)  # (Nvdof,)
         vrv0_c = np.einsum('i, ij, ijk, j->jk', self.c_ws, vel0_val / self.dt - grad_ph[..., 0] - nolinear_val0
                            + f_val_NS[..., 0] - CH_term_val0, self.vphi_c, self.cellmeasure)  # (NC,clodf)
-        vrv0_f = self.pde.nu * np.einsum('i, ij, ijn, j->jn', self.f_ws, Neumann_0, self.vphi_f, self.NeuEdgeMeasure_NS)
         np.add.at(vrv0, self.vcell2dof, vrv0_c)
-        # np.add.at(vrv0, self.vface2dof[self.NeuEdgeIdx_NS, :], vrv0_f)
+        # # vrv0_f = self.pde.nu * np.einsum('i, ij, ijn, j->jn', self.f_ws, Neumann_0, self.vphi_f, self.NeuEdgeMeasure_NS)
+        # # np.add.at(vrv0, self.vface2dof[self.NeuEdgeIdx_NS, :], vrv0_f)
         v0_bc = DirichletBC(self.vspace, dir_u0, threshold=self.DirEdgeIdx_NS)
         vlm0, vrv0 = v0_bc.apply(vlm0, vrv0)
         vel0[:] = spsolve(vlm0, vrv0).reshape(-1)
@@ -518,12 +519,151 @@ class FEM_CH_NS_Model2d:
         vrv1 = np.zeros((self.vdof.number_of_global_dofs(),), dtype=self.ftype)  # (Nvdof,)
         vrv1_c = np.einsum('i, ij, ijk, j->jk', self.c_ws, vel1_val / self.dt - grad_ph[..., 1] - nolinear_val1
                            + f_val_NS[..., 1] - CH_term_val1, self.vphi_c, self.cellmeasure)  # (NC,clodf)
-        vrv1_f = self.pde.nu * np.einsum('i, ij, ijn, j->jn', self.f_ws, Neumann_1, self.vphi_f, self.NeuEdgeMeasure_NS)
         np.add.at(vrv1, self.vcell2dof, vrv1_c)
-        # np.add.at(vrv1, self.vface2dof[self.NeuEdgeIdx_NS, :], vrv1_f)
+        # # vrv1_f = self.pde.nu * np.einsum('i, ij, ijn, j->jn', self.f_ws, Neumann_1, self.vphi_f, self.NeuEdgeMeasure_NS)
+        # # np.add.at(vrv1, self.vface2dof[self.NeuEdgeIdx_NS, :], vrv1_f)
         v1_bc = DirichletBC(self.vspace, dir_u1, threshold=self.DirEdgeIdx_NS)
         vlm1, vrv1 = v1_bc.apply(vlm1, vrv1)
         vel1[:] = spsolve(vlm1, vrv1).reshape(-1)
+
+    def decoupled_NS_Solver_T2ndOrder(self, coeff, vel0, vel1, ph, vel0_star, vel1_star, uh_star, next_t):
+        """
+        The decoupled-Navier-Stokes-solver for the all system.
+        :param coeff: the coeff is different in the 0-th step and the following steps.
+        :param vel0: The fist-component of velocity: stored the n-th(time) value, and to update the (n+1)-th value.
+        :param vel1: The second-component of velocity: stored the n-th(time) value, and to update the (n+1)-th value.
+        :param ph: The pressure: stored the n-th(time) value, and to update the (n+1)-th value.
+        :param vel0_star: vel0_star=2*vel0^{n}-vel0^{n-1}
+        :param vel1_star: vel1_star=2*vel1^{n}-vel1^{n-1}
+        :param uh_star: uh_star=2*uh^{n}-uh^{n-1}, the value of the solution of Cahn-Hilliard equation.
+        :param next_t: The next-time.
+        :return: Updated vel0, vel1, ph.
+        """
+
+        grad_vel0_star_f = self.uh_grad_value_at_faces(vel0_star, self.f_bcs, self.DirCellIdx_NS, self.DirLocalIdx_NS,
+                                                  space=self.vspace)  # grad_vel0: (NQ,NDir,GD)
+        grad_vel1_star_f = self.uh_grad_value_at_faces(vel1_star, self.f_bcs, self.DirCellIdx_NS, self.DirLocalIdx_NS,
+                                                  space=self.vspace)  # grad_vel1: (NQ,NDir,GD)
+
+        # for cell-integration
+        vel0_hat = vel0 + 0.5 * vel0_star
+        vel1_hat = vel1 + 0.5 * vel1_star
+        vel0_hat_val = self.vspace.value(vel0_hat, self.c_bcs)  # (NQ,NC)
+        vel1_hat_val = self.vspace.value(vel1_hat, self.c_bcs)  # (NQ,NC)
+        vel0_star_val = self.vspace.value(vel0_star, self.c_bcs)  # (NQ,NC)
+        vel1_star_val = self.vspace.value(vel1_star, self.c_bcs)
+
+        nolinear_val = self.NSNolinearTerm(vel0_star, vel1_star, self.c_bcs)  # last_nolinear_val.shape: (NQ,NC,GD)
+        nolinear_val0 = nolinear_val[..., 0]  # (NQ,NC)
+        nolinear_val1 = nolinear_val[..., 1]  # (NQ,NC)
+
+        velDir_val = self.pde.dirichlet_NS(self.f_pp_Dir_NS, next_t)  # (NQ,NDir,GD)
+        f_val_NS = self.pde.source_NS(self.c_pp, next_t, self.pde.nu, self.pde.epsilon, self.pde.eta)  # (NQ,NC,GD)
+        Neumann_0 = self.pde.neumann_0_NS(self.f_pp_Neu_NS, next_t, self.nNeu_NS)  # (NQ,NE)
+        Neumann_1 = self.pde.neumann_1_NS(self.f_pp_Neu_NS, next_t, self.nNeu_NS)  # (NQ,NE)
+
+        # # --- to update the pressure value --- # #
+        # # to get the Pressure's Right-hand Vector
+        prv = np.zeros((self.dof.number_of_global_dofs(),), dtype=self.ftype)  # (Npdof,)
+
+        # for Dirichlet faces integration
+        dir_int0 = -coeff / self.dt * np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, velDir_val, self.nDir_NS, self.phi_f,
+                                            self.DirEdgeMeasure_NS)  # (NDir,fldof)
+        dir_int1 = - self.pde.nu * (
+                    np.einsum('i, j, ij, jin, j->jn', self.f_ws, self.nDir_NS[:, 1], grad_vel1_star_f[..., 0]
+                              - grad_vel0_star_f[..., 1], self.gphi_f[..., 0], self.DirEdgeMeasure_NS)
+                    + np.einsum('i, j, ij, jin, j->jn', self.f_ws, -self.nDir_NS[:, 0], grad_vel1_star_f[..., 0]
+                                - grad_vel0_star_f[..., 1], self.gphi_f[..., 1], self.DirEdgeMeasure_NS))  # (NDir,cldof)
+        # for cell integration
+        cell_int0 = 1 / self.dt * (np.einsum('i, ij, ijk, j->jk', self.c_ws, vel0_hat_val, self.gphi_c[..., 0], self.cellmeasure)
+                                   + np.einsum('i, ij, ijk, j->jk', self.c_ws, vel1_hat_val, self.gphi_c[..., 1],
+                                               self.cellmeasure))  # (NC,cldof)
+        cell_int1 = -(np.einsum('i, ij, ijk, j->jk', self.c_ws, nolinear_val0, self.gphi_c[..., 0], self.cellmeasure)
+                      + np.einsum('i, ij, ijk, j->jk', self.c_ws, nolinear_val1, self.gphi_c[..., 1],
+                                  self.cellmeasure))  # (NC,cldof)
+        cell_int2 = (np.einsum('i, ij, ijk, j->jk', self.c_ws, f_val_NS[..., 0], self.gphi_c[..., 0], self.cellmeasure)
+                     + np.einsum('i, ij, ijk, j->jk', self.c_ws, f_val_NS[..., 1], self.gphi_c[..., 1],
+                                 self.cellmeasure))  # (NC,cldof)
+
+        # # --- now, we add the CH term
+        uh_star_val = self.space.value(uh_star, self.c_bcs)  # (NQ,NC)
+        grad_free_energy_c = self.pde.epsilon / self.pde.eta ** 2 * self.grad_free_energy_at_cells(uh_star, self.c_bcs)  # (NQ,NC,2)
+        if self.p < 3:
+            CH_term_val0 = uh_star_val * grad_free_energy_c[..., 0]  # (NQ,NC)
+            CH_term_val1 = uh_star_val * grad_free_energy_c[..., 1]  # (NQ,NC)
+        elif self.p == 3:
+            phi_xxx, phi_yyy, phi_yxx, phi_xyy = self.cb.get_highorder_diff(self.c_bcs, order='3rd-order')  # (NQ,NC,ldof)
+            grad_x_laplace_uh = -self.pde.epsilon * np.einsum('ijk, jk->ij', phi_xxx + phi_xyy, uh_star[self.cell2dof])  # (NQ,NC)
+            grad_y_laplace_uh = -self.pde.epsilon * np.einsum('ijk, jk->ij', phi_yxx + phi_yyy, uh_star[self.cell2dof])  # (NQ,NC)
+            CH_term_val0 = uh_star_val * (grad_x_laplace_uh + grad_free_energy_c[..., 0])  # (NQ,NC)
+            CH_term_val1 = uh_star_val * (grad_y_laplace_uh + grad_free_energy_c[..., 1])  # (NQ,NC)
+        else:
+            raise ValueError("The polynomial order p should be <= 3.")
+
+        cell_int3 = - (np.einsum('i, ij, ijk, j->jk', self.c_ws, CH_term_val0, self.gphi_c[..., 0], self.cellmeasure)
+                       + np.einsum('i, ij, ijk, j->jk', self.c_ws, CH_term_val1, self.gphi_c[..., 1],
+                                   self.cellmeasure))  # (NC,ldof)
+
+        # # --- 1. assemble the NS's pressure equation
+        np.add.at(prv, self.face2dof[self.DirEdgeIdx_NS, :], dir_int0)
+        np.add.at(prv, self.cell2dof[self.DirCellIdx_NS, :], dir_int1)
+        np.add.at(prv, self.cell2dof, cell_int0 + cell_int1 + cell_int2 + cell_int3)
+
+        # # --- 2. solve the NS's pressure equation
+        plsm = self.StiffMatrix
+
+        # # Method I: The following code is right! Pressure satisfies \int_\Omega p = 0
+        basis_int = self.space.integral_basis()
+        plsm_temp = bmat([[plsm, basis_int.reshape(-1, 1)], [basis_int, None]], format='csr')
+        prv = np.r_[prv, 0]
+        ph[:] = spsolve(plsm_temp, prv)[:-1]  # we have added one addtional dof
+        # ph[:] = spsolve(plsm, prv)
+
+        # # Method II: Using the Dirichlet boundary of pressure
+        # def dir_pressure(p):
+        #     return self.pde.pressure_NS(p, next_t)
+        # bc = DirichletBC(self.space, dir_pressure)
+        # plsm_temp, prv = bc.apply(plsm.copy(), prv)
+        # ph[:] = spsolve(plsm_temp, prv).reshape(-1)
+
+        # # ------------------------------------ # #
+        # # --- to update the velocity value --- # #
+        # # ------------------------------------ # #
+        grad_ph = self.space.grad_value(ph, self.c_bcs)  # (NQ,NC,2)
+
+        # # the Velocity-Left-Matrix
+        vlm0 = coeff / self.dt * self.vel_MM + self.pde.nu * self.vel_SM
+        vlm1 = vlm0.copy()
+
+        # # to get the u's Right-hand Vector
+        def dir_u0(p):
+            return self.pde.dirichlet_NS(p, next_t)[..., 0]
+
+        def dir_u1(p):
+            return self.pde.dirichlet_NS(p, next_t)[..., 1]
+
+        # # --- assemble the first-component of Velocity-Right-Vector
+        vrv0 = np.zeros((self.vdof.number_of_global_dofs(),), dtype=self.ftype)  # (Nvdof,)
+        vrv0_c = np.einsum('i, ij, ijk, j->jk', self.c_ws, vel0_hat_val / self.dt - grad_ph[..., 0] - nolinear_val0
+                           + f_val_NS[..., 0] - CH_term_val0, self.vphi_c, self.cellmeasure)  # (NC,clodf)
+        np.add.at(vrv0, self.vcell2dof, vrv0_c)
+        # # vrv0_f = self.pde.nu * np.einsum('i, ij, ijn, j->jn', self.f_ws, Neumann_0, self.vphi_f, self.NeuEdgeMeasure_NS)
+        # # np.add.at(vrv0, self.vface2dof[self.NeuEdgeIdx_NS, :], vrv0_f)
+        v0_bc = DirichletBC(self.vspace, dir_u0, threshold=self.DirEdgeIdx_NS)
+        vlm0, vrv0 = v0_bc.apply(vlm0, vrv0)
+        vel0[:] = spsolve(vlm0, vrv0).reshape(-1)
+
+        # # --- assemble the second-component of Velocity-Right-Vector
+        vrv1 = np.zeros((self.vdof.number_of_global_dofs(),), dtype=self.ftype)  # (Nvdof,)
+        vrv1_c = np.einsum('i, ij, ijk, j->jk', self.c_ws, vel1_hat_val / self.dt - grad_ph[..., 1] - nolinear_val1
+                           + f_val_NS[..., 1] - CH_term_val1, self.vphi_c, self.cellmeasure)  # (NC,clodf)
+        np.add.at(vrv1, self.vcell2dof, vrv1_c)
+        # # vrv1_f = self.pde.nu * np.einsum('i, ij, ijn, j->jn', self.f_ws, Neumann_1, self.vphi_f, self.NeuEdgeMeasure_NS)
+        # # np.add.at(vrv1, self.vface2dof[self.NeuEdgeIdx_NS, :], vrv1_f)
+        v1_bc = DirichletBC(self.vspace, dir_u1, threshold=self.DirEdgeIdx_NS)
+        vlm1, vrv1 = v1_bc.apply(vlm1, vrv1)
+        vel1[:] = spsolve(vlm1, vrv1).reshape(-1)
+
 
     def NSNolinearTerm(self, uh0, uh1, bcs):
         vspace = self.vspace
