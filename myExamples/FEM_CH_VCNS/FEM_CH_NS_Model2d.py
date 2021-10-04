@@ -219,6 +219,103 @@ class FEM_CH_NS_Model2d:
 
         return uh_l2err, uh_h1err, vel_l2err, vel_h1err, ph_l2err
 
+    def CH_NS_Solver_T2ndOrder(self):
+        pde = self.pde
+        timemesh = self.timemesh
+        NT = len(timemesh)
+        dt = self.dt
+        uh = self.uh
+        wh = self.wh
+        vel0 = self.vel0
+        vel1 = self.vel1
+        ph = self.ph
+
+        print('    # #################################### #')
+        print('      Time 2nd-order scheme')
+        print('    # #################################### #')
+
+        print('    # ------------ parameters ------------ #')
+        print('    s = %.4e,  alpha = %.4e,  m = %.4e,  epsilon = %.4e,  eta = %.4e' % (self.s, self.alpha, self.pde.m,
+                                                                                        self.pde.epsilon, self.pde.eta))
+        print('    t0 = %.4e,  T = %.4e, dt = %.4e' % (timemesh[0], timemesh[-1], dt))
+        print(' ')
+
+        if pde.haveTrueSolution:
+            def init_solution_CH(p):
+                return pde.solution_CH(p, 0)
+            uh[:] = self.space.interpolation(init_solution_CH)
+
+            def init_velocity0(p):
+                return pde.velocity_NS(p, 0)[..., 0]
+            vel0[:] = self.vspace.interpolation(init_velocity0)
+
+            def init_velocity1(p):
+                return pde.velocity_NS(p, 0)[..., 1]
+            vel1[:] = self.vspace.interpolation(init_velocity1)
+
+            def init_pressure(p):
+                return pde.pressure_NS(p, 0)
+            ph[:] = self.space.interpolation(init_pressure)
+
+        # # time-looping
+        print('    # ------------ begin the time-looping ------------ #')
+        uh_star = self.space.function()
+        vel0_star = self.vspace.function()
+        vel1_star = self.vspace.function()
+        last_uh = self.space.function()
+        last_vel0 = self.vspace.function()
+        last_vel1 = self.vspace.function()
+        for nt in range(NT - 1):
+            currt_t = timemesh[nt]
+            next_t = currt_t + dt
+
+            if nt == 0:
+                coeff = 1.0
+                self.pde.timeScheme = 1
+                self.s, self.alpha = self.set_CH_Coeff(dt_minimum=self.dt_min)
+                last_uh[:] = uh[:]
+                last_vel0[:] = vel0[:]
+                last_vel1[:] = vel1[:]
+
+                uh_star[:] = last_uh[:]
+                vel0_star[:] = last_vel0[:]
+                vel1_star[:] = last_vel1[:]
+            else:
+                coeff = 3./2
+                self.pde.timeScheme = 2
+                self.s, self.alpha = self.set_CH_Coeff(dt_minimum=self.dt_min)
+                uh_star[:] = 2 * uh[:] - last_uh[:]
+                vel0_star[:] = 2 * vel0[:] - last_vel0[:]
+                vel1_star[:] = 2 * vel1[:] - last_vel1[:]
+
+                last_uh[:] = uh[:]
+                last_vel0[:] = vel0[:]
+                last_vel1[:] = vel1[:]
+
+            # # --- decoupled solvers, updated the discrete-solutions to the next-time
+            # print('        |___ decoupled Cahn-Hilliard Solver(Time-1st-order): ')
+            self.decoupled_CH_Solver_T2ndOrder(uh, uh_star, vel0_star, vel1_star, nt, next_t)
+            # print('        -----------------------------------------------')
+            # print('        |___ decoupled Navier-Stokes Solver(Time-1st-order): ')
+            self.decoupled_NS_Solver_T2ndOrder(coeff, vel0, vel1, ph, vel0_star, vel1_star, uh_star, nt, next_t)
+            # print('    end of one-looping')
+
+            if nt % max([int(NT / 5), 1]) == 0:
+                print('    currt_t = %.4e' % currt_t)
+                uh_l2err, uh_h1err, vel_l2err, vel_h1err, ph_l2err = self.currt_error(uh, vel0, vel1, ph, timemesh[nt])
+                if np.isnan(uh_l2err) | np.isnan(uh_h1err) | np.isnan(vel_l2err) | np.isnan(vel_h1err) | np.isnan(ph_l2err):
+                    print('Some error is nan: breaking the program')
+                    break
+        print('    # ------------ end the time-looping ------------ #\n')
+
+        # # --- errors
+        uh_l2err, uh_h1err, vel_l2err, vel_h1err, ph_l2err = self.currt_error(uh, vel0, vel1, ph, timemesh[-1])
+        print('    # ------------ the last errors ------------ #')
+        print('    uh_l2err = %.4e, uh_h1err = %.4e' % (uh_l2err, uh_h1err))
+        print('    vel_l2err = %.4e, vel_h1err = %.4e, ph_l2err = %.4e' % (vel_l2err, vel_h1err, ph_l2err))
+
+        return uh_l2err, uh_h1err, vel_l2err, vel_h1err, ph_l2err
+
     def decoupled_CH_Solver_T1stOrder(self, uh, wh, vel0, vel1, next_t):
         """
         The decoupled-Cahn-Hilliard-solver for the all system.
@@ -305,7 +402,7 @@ class FEM_CH_NS_Model2d:
         np.add.at(orig_rv, self.face2dof[self.NeuEdgeIdx_CH, :], orig_rhs_f)
         uh[:] = spsolve(self.StiffMatrix - self.alpha * self.MassMatrix, orig_rv)
 
-    def decoupled_CH_Solver_T2ndOrder(self, uh, uh_star, vel0_star, vel1_star, next_t):
+    def decoupled_CH_Solver_T2ndOrder(self, uh, uh_star, vel0_star, vel1_star, nt, next_t):
         """
         The decoupled-Cahn-Hilliard-solver for the all system.
         :param uh: The value of the solution 'phi' of Cahn-Hilliard equation: stored the n-th(time) value, and to update the (n+1)-th value.
@@ -314,6 +411,7 @@ class FEM_CH_NS_Model2d:
                            last_vel0 is the (n-1)-th(time) value.
         :param vel1_star: 2*vel1 - last_vel1, where vel1 is the second-component of NS's velocity (the n-th(time) value),
                            last_vel1 is the (n-1)-th(time) value.
+        :param nt: The time-step.
         :param next_t: Next time.
         :return: Updated uh, wh.
         """
@@ -324,7 +422,10 @@ class FEM_CH_NS_Model2d:
                                                             self.NeuLocalIdx_CH)  # (NQ,NE,2)
         # # last_uh = 2 * uh - uh_star
         # # uh_hat = 2 * uh - 0.5 * last_uh
-        uh_hat = uh + 0.5 * uh_star
+        if nt == 0:
+            uh_hat = uh_star
+        else:
+            uh_hat = uh + 0.5 * uh_star
         uh_hat_val = self.space.value(uh_hat, self.c_bcs)  # (NQ,NC)
         uh_star_val = self.space.value(uh_star, self.c_bcs)  # (NQ,NC)
         guh_star_val_c = self.space.grad_value(uh_star, self.c_bcs)  # (NQ,NC,2)
@@ -526,7 +627,7 @@ class FEM_CH_NS_Model2d:
         vlm1, vrv1 = v1_bc.apply(vlm1, vrv1)
         vel1[:] = spsolve(vlm1, vrv1).reshape(-1)
 
-    def decoupled_NS_Solver_T2ndOrder(self, coeff, vel0, vel1, ph, vel0_star, vel1_star, uh_star, next_t):
+    def decoupled_NS_Solver_T2ndOrder(self, coeff, vel0, vel1, ph, vel0_star, vel1_star, uh_star, nt, next_t):
         """
         The decoupled-Navier-Stokes-solver for the all system.
         :param coeff: the coeff is different in the 0-th step and the following steps.
@@ -536,6 +637,7 @@ class FEM_CH_NS_Model2d:
         :param vel0_star: vel0_star=2*vel0^{n}-vel0^{n-1}
         :param vel1_star: vel1_star=2*vel1^{n}-vel1^{n-1}
         :param uh_star: uh_star=2*uh^{n}-uh^{n-1}, the value of the solution of Cahn-Hilliard equation.
+        :param nt: The time-step.
         :param next_t: The next-time.
         :return: Updated vel0, vel1, ph.
         """
@@ -546,14 +648,18 @@ class FEM_CH_NS_Model2d:
                                                   space=self.vspace)  # grad_vel1: (NQ,NDir,GD)
 
         # for cell-integration
-        vel0_hat = vel0 + 0.5 * vel0_star
-        vel1_hat = vel1 + 0.5 * vel1_star
+        if nt == 0:
+            vel0_hat = vel0_star
+            vel1_hat = vel1_star
+        else:
+            vel0_hat = vel0 + 0.5 * vel0_star
+            vel1_hat = vel1 + 0.5 * vel1_star
         vel0_hat_val = self.vspace.value(vel0_hat, self.c_bcs)  # (NQ,NC)
         vel1_hat_val = self.vspace.value(vel1_hat, self.c_bcs)  # (NQ,NC)
         vel0_star_val = self.vspace.value(vel0_star, self.c_bcs)  # (NQ,NC)
         vel1_star_val = self.vspace.value(vel1_star, self.c_bcs)
 
-        nolinear_val = self.NSNolinearTerm(vel0_star, vel1_star, self.c_bcs)  # last_nolinear_val.shape: (NQ,NC,GD)
+        nolinear_val = self.NSNolinearTerm(vel0_star, vel1_star, self.c_bcs)  # nolinear_val.shape: (NQ,NC,GD)
         nolinear_val0 = nolinear_val[..., 0]  # (NQ,NC)
         nolinear_val1 = nolinear_val[..., 1]  # (NQ,NC)
 
@@ -568,7 +674,7 @@ class FEM_CH_NS_Model2d:
 
         # for Dirichlet faces integration
         dir_int0 = -coeff / self.dt * np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, velDir_val, self.nDir_NS, self.phi_f,
-                                            self.DirEdgeMeasure_NS)  # (NDir,fldof)
+                                                self.DirEdgeMeasure_NS)  # (NDir,fldof)
         dir_int1 = - self.pde.nu * (
                     np.einsum('i, j, ij, jin, j->jn', self.f_ws, self.nDir_NS[:, 1], grad_vel1_star_f[..., 0]
                               - grad_vel0_star_f[..., 1], self.gphi_f[..., 0], self.DirEdgeMeasure_NS)
@@ -617,7 +723,6 @@ class FEM_CH_NS_Model2d:
         plsm_temp = bmat([[plsm, basis_int.reshape(-1, 1)], [basis_int, None]], format='csr')
         prv = np.r_[prv, 0]
         ph[:] = spsolve(plsm_temp, prv)[:-1]  # we have added one addtional dof
-        # ph[:] = spsolve(plsm, prv)
 
         # # Method II: Using the Dirichlet boundary of pressure
         # def dir_pressure(p):
@@ -663,7 +768,6 @@ class FEM_CH_NS_Model2d:
         v1_bc = DirichletBC(self.vspace, dir_u1, threshold=self.DirEdgeIdx_NS)
         vlm1, vrv1 = v1_bc.apply(vlm1, vrv1)
         vel1[:] = spsolve(vlm1, vrv1).reshape(-1)
-
 
     def NSNolinearTerm(self, uh0, uh1, bcs):
         vspace = self.vspace

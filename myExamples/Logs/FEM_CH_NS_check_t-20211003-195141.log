@@ -1,0 +1,117 @@
+
+# ------------ the initial parameters ------------ #
+p =  3
+t0 = 0.0000e+00
+dt_space =  [0.1     0.05    0.025   0.0125  0.00625]
+h_space =  [0.21544347 0.13572088 0.0854988  0.05386087 0.03393022]
+domain box =  [0, 1, 0, 1]
+# #
+
+# *********************************************************************** # 
+
+# ------------ in the time-mesh circle ------------ #
+i =  0
+# -------------------------------------------------- #
+run boxmesh2d with time: 0.0074306739999999705
+run serial_construct_matrix with time: 0.56384046
+run serial_construct_matrix with time: 0.06260602300000007
+run serial_construct_matrix with time: 1.2424434930000001
+run serial_construct_matrix with time: 0.117562065
+    # #################################### #
+      Time 2nd-order scheme
+    # #################################### #
+    # ------------ parameters ------------ #
+    s = 3.0984e+01,  alpha = -4.9193e+02,  m = 1.0000e-03,  epsilon = 1.0000e-03,  eta = 1.0000e-01
+    t0 = 0.0000e+00,  T = 1.0000e+00, dt = 1.0000e-01
+ 
+    # ------------ begin the time-looping ------------ #
+    currt_t = 0.0000e+00
+    currt_t = 2.0000e-01
+    currt_t = 4.0000e-01
+    currt_t = 6.0000e-01
+    currt_t = 8.0000e-01
+    # ------------ end the time-looping ------------ #
+
+    # ------------ the last errors ------------ #
+    uh_l2err = 2.5968e-02, uh_h1err = 1.2113e-01
+    vel_l2err = 3.1361e-04, vel_h1err = 7.0391e-03, ph_l2err = 1.2732e-03
+
+# *********************************************************************** # 
+
+# ------------ in the time-mesh circle ------------ #
+i =  1
+# -------------------------------------------------- #
+run boxmesh2d with time: 0.006631189000003701
+run serial_construct_matrix with time: 0.5476831750000031
+run serial_construct_matrix with time: 0.05615538499999673
+run serial_construct_matrix with time: 1.2011869309999952
+run serial_construct_matrix with time: 0.11525834199998997
+    # #################################### #
+      Time 2nd-order scheme
+    # #################################### #
+    # ------------ parameters ------------ #
+    s = 3.0984e+01,  alpha = -1.0006e+03,  m = 1.0000e-03,  epsilon = 1.0000e-03,  eta = 1.0000e-01
+    t0 = 0.0000e+00,  T = 1.0000e+00, dt = 5.0000e-02
+ 
+    # ------------ begin the time-looping ------------ #
+    currt_t = 0.0000e+00
+    currt_t = 2.0000e-01
+    currt_t = 4.0000e-01
+    currt_t = 6.0000e-01
+    currt_t = 8.0000e-01
+    # ------------ end the time-looping ------------ #
+
+    # ------------ the last errors ------------ #
+    uh_l2err = 1.2165e-02, uh_h1err = 5.7094e-02
+    vel_l2err = 8.7129e-05, vel_h1err = 1.7309e-03, ph_l2err = 7.6276e-04
+
+# *********************************************************************** # 
+
+# ------------ in the time-mesh circle ------------ #
+i =  2
+# -------------------------------------------------- #
+run boxmesh2d with time: 0.007033193999973264
+run serial_construct_matrix with time: 0.5449535469999773
+run serial_construct_matrix with time: 0.05553088400000661
+run serial_construct_matrix with time: 1.1913678320000258
+run serial_construct_matrix with time: 0.11199235399999452
+    # #################################### #
+      Time 2nd-order scheme
+    # #################################### #
+    # ------------ parameters ------------ #
+    s = 3.0984e+01,  alpha = -2.0755e+03,  m = 1.0000e-03,  epsilon = 1.0000e-03,  eta = 1.0000e-01
+    t0 = 0.0000e+00,  T = 1.0000e+00, dt = 2.5000e-02
+ 
+    # ------------ begin the time-looping ------------ #
+    currt_t = 0.0000e+00
+    currt_t = 2.0000e-01
+    currt_t = 4.0000e-01
+    currt_t = 6.0000e-01
+    currt_t = 8.0000e-01
+    # ------------ end the time-looping ------------ #
+
+    # ------------ the last errors ------------ #
+    uh_l2err = 5.8969e-03, uh_h1err = 2.6632e-02
+    vel_l2err = 2.4421e-05, vel_h1err = 4.2246e-04, ph_l2err = 2.8355e-04
+
+# *********************************************************************** # 
+
+# ------------ in the time-mesh circle ------------ #
+i =  3
+# -------------------------------------------------- #
+run boxmesh2d with time: 0.006553465999900254
+run serial_construct_matrix with time: 0.5406384060000846
+run serial_construct_matrix with time: 0.05715048199999728
+run serial_construct_matrix with time: 1.186288013999956
+run serial_construct_matrix with time: 0.12302535100002387
+    # #################################### #
+      Time 2nd-order scheme
+    # #################################### #
+    # ------------ parameters ------------ #
+    s = 3.0984e+01,  alpha = -4.5375e+03,  m = 1.0000e-03,  epsilon = 1.0000e-03,  eta = 1.0000e-01
+    t0 = 0.0000e+00,  T = 1.0000e+00, dt = 1.2500e-02
+ 
+    # ------------ begin the time-looping ------------ #
+    currt_t = 0.0000e+00
+    currt_t = 2.0000e-01
+    currt_t = 4.0000e-01

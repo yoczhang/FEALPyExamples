@@ -23,7 +23,7 @@ from PrintLogger import make_print_to_file
 from to_show import show_error_table
 
 # --- logging --- #
-# make_print_to_file(filename='FEM_CH_NS', setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
+make_print_to_file(filename='FEM_CH_NS_check_t', setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
 
 # --- begin setting --- #
 d = 2  # the dimension
@@ -42,7 +42,7 @@ N_T = stop - start + 1
 dt_space = 1e-1 * np.logspace(start, stop, N_T, base=1/2)
 dt_min = min(dt_space)
 
-time_scheme = 1  # 1 stands for 1st-order time-scheme; 2 is the 2nd-order time-scheme
+time_scheme = 2  # 1 stands for 1st-order time-scheme; 2 is the 2nd-order time-scheme
 h_space = dt_space ** (time_scheme/(p+0))
 
 pdePars = {'m': 1e-3, 's': 1, 'alpha': 1, 'epsilon': 1e-3, 'eta': 1e-1, 'dt_min': dt_min, 'timeScheme': '1stOrder',
@@ -73,13 +73,16 @@ for i in range(N_T):
     print('i = ', i)
     print('# -------------------------------------------------- #')
     # NN = int(1./h_space[i]) + 1
-    NN = 64
+    NN = 128
     mesh = MF.boxmesh2d(box, nx=NN, ny=NN, meshtype='tri')
-    ch = FEM_CH_NS_Model2d(pde, mesh, p, dt_space[i])
     if time_scheme == 1:
+        ch = FEM_CH_NS_Model2d(pde, mesh, p, dt_space[i])
         uh_l2err, uh_h1err, vel_l2err, vel_h1err, ph_l2err = ch.CH_NS_Solver_T1stOrder()
     else:
-        uh_l2err, uh_h1err, vel_l2err, vel_h1err, ph_l2err = ch.CH_NS_Solver_T1stOrder()
+        pdePars = {'timeScheme': '2ndOrder'}
+        pde.setPDEParameters(pdePars)
+        ch = FEM_CH_NS_Model2d(pde, mesh, p, dt_space[i])
+        uh_l2err, uh_h1err, vel_l2err, vel_h1err, ph_l2err = ch.CH_NS_Solver_T2ndOrder()
 
     Ndof[i] = ch.space.number_of_global_dofs()
     errorMatrix[0, i] = uh_l2err
