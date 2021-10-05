@@ -121,7 +121,7 @@ while ETA > tol:
         mesh.number_of_cells(), stokes.space.number_of_pressure_dofs()))
 
     # --- adaptive refine the mesh --- #
-    if (i < maxit - 1) & (ETA > tol):
+    if (i < maxit - 1) and (ETA > tol):
         # --- one way to refine
         # aopts = mesh.adaptive_options(method='max', theta=0.3, maxcoarsen=0.1, HB=True)
         # mesh.adaptive(eta, aopts)
