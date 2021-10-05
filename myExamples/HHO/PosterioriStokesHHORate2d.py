@@ -137,31 +137,31 @@ while ETA > tol:
     else:
         pass
 
-    # sc.showMesh(markCell=False, markEdge=False, markNode=False)
-    fig1 = plt.figure()
-    axes = fig1.gca()
-    mesh.add_plot(axes)
-    outPath_1 = outPath + str(i) + '-mesh.png'
-    plt.savefig(outPath_1)
-    plt.close()
+    # # sc.showMesh(markCell=False, markEdge=False, markNode=False)
+    # fig1 = plt.figure()
+    # axes = fig1.gca()
+    # mesh.add_plot(axes)
+    # outPath_1 = outPath + str(i) + '-mesh.png'
+    # plt.savefig(outPath_1)
+    # plt.close()
     print('  |___ after refine: number of cells: ', mesh.number_of_cells())
 
 # --- plot solution --- #
 # stokes.showSolution(sc)
 
 # --- save mesh --- #
-saveMeshName = outPath + '_p=' + str(p) + '_mesh_final.mat'
-mIO.save2MatlabMesh(mesh, filename=saveMeshName)
+# saveMeshName = outPath + '_p=' + str(p) + '_mesh_final.mat'
+# mIO.save2MatlabMesh(mesh, filename=saveMeshName)
 
 # --- save uh --- #
-saveUhName = outPath + '_p=' + str(p) + '_uh_final.mat'
-mIO.save2MatlabUh(uh, filename=saveUhName)
+# saveUhName = outPath + '_p=' + str(p) + '_uh_final.mat'
+# mIO.save2MatlabUh(uh, filename=saveUhName)
 
 # --- get the convergence rate --- #
 print('\n')
 print('# --------------------- table ------------------------- #')
-sc.show_error_table(out=outPath, Cidx=range(i+1), DofName='Velocity-Dof', tableType='dof-type')
-sc.showmultirate(i-7, Ridx=[1, 4], Cidx=range(i+1))
+sc.show_error_table(out=outPath, Cidx=range(i+1), DofName='Velocity-Dof', tableType='dof-type', outFlag=False)
+sc.showmultirate(i-7, Ridx=[1, 4], Cidx=range(i+1), outFlag=False)
 plt.show()
 
 # ---
