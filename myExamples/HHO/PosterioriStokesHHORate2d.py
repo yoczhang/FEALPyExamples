@@ -150,7 +150,7 @@ while ETA > tol:
 # stokes.showSolution(sc)
 
 # --- save mesh --- #
-saveMeshName = outPath + '_p=' + str(p) + '_final.mat'
+saveMeshName = outPath + '_p=' + str(p) + '_mesh_final.mat'
 mIO.save2MatlabMesh(mesh, filename=saveMeshName)
 
 # --- save uh --- #
