@@ -29,7 +29,7 @@ import datetime
 
 # --- begin setting --- #
 d = 2  # the dimension
-p = 4  # the polynomial order
+p = 1  # the polynomial order
 n = 4  # the number of refine mesh
 maxit = 45  # the max iteration of the mesh
 
