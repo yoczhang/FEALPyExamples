@@ -228,8 +228,11 @@ class ShowCls:
         fig = plt.figure()
         fig.set_facecolor('white')
         axes = fig.gca()
+        plt.autoscale(True)
+        # plt.xlim(2e3, 1.2e5)
+        # plt.tick_params(labelsize=8)
         axes.set_xlabel('Number of unknowns')
-        axes.set_ylabel('Errors')
+        # axes.set_ylabel('Errors')
         plt.grid()
 
         if optionlist is None:

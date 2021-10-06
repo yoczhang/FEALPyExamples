@@ -29,9 +29,9 @@ from fealpy.mesh.mesh_tools import find_entity
 
 # --- begin setting --- #
 d = 2  # the dimension
-p = 1  # the polynomial order
+p = 4  # the polynomial order
 n = 4  # the number of refine mesh
-maxit = 4  # the max iteration of the mesh
+maxit = 2  # the max iteration of the mesh
 
 nu = 1.0e-0
 pde = StokesLshapeData(nu)  # create pde model
