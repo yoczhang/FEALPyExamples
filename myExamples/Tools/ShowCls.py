@@ -231,7 +231,8 @@ class ShowCls:
         plt.autoscale(True)
         # plt.xlim(2e3, 1.2e5)
         # plt.tick_params(labelsize=8)
-        axes.set_xlabel('Number of unknowns')
+        axes.set_xlabel('Number of unknowns of discrete velocity')
+        # axes.set_xlabel('$\\sharp$Dof$_{\\bf{u}}$')
         # axes.set_ylabel('Errors')
         plt.grid()
 

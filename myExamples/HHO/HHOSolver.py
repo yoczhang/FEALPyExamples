@@ -85,7 +85,8 @@ class HHOSolver:
         Rb = np.zeros((2*uFgNdof+pFgNdof+1, 1), dtype=np.float)
 
         # # the Lagrange multiplier vector (for the pressure condition: \int p = 0)
-        pphi = vSpace.basis  # (NQ,NC,pldof)
+        # # In HHO-Stokes equation, the velocity and pressure have the same order, here we just use the velocity space.
+        pphi = vSpace.basis
         intp = vSpace.integralalg.integral(pphi, celltype=True)  # (NC,pldof)
 
         LF = intp[:, 0][np.newaxis, :]  # (1,NC)

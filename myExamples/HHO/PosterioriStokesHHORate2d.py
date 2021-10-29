@@ -17,7 +17,7 @@ from Stokes2DData import Stokes2DData_0, Stokes2DData_1, Stokes2DData_2, Stokes2
 import numpy as np
 from ShowCls import ShowCls
 from StokesHHOModel2d import StokesHHOModel2d
-from fealpy.mesh import MeshFactory
+from fealpy.mesh import MeshFactory as mf
 from fealpy.mesh import HalfEdgeMesh2d
 from mesh_IO import mesh_IO
 import matplotlib.pyplot as plt
@@ -31,10 +31,10 @@ import datetime
 d = 2  # the dimension
 p = 1  # the polynomial order
 n = 4  # the number of refine mesh
-maxit = 45  # the max iteration of the mesh
+maxit = 5  # the max iteration of the mesh
 
 nu = 1.0e-0
-pde = StokesLshapeData(nu)  # create pde model
+pde = Stokes2DData_1(nu)  # create pde model
 
 # --- error settings --- #
 errorType = ['$|| u - u_h||_0$', '$||\\nabla u - \\nabla u_h||_0 + s(uh,uh)$', '$|| u - u_h||_{E}$', '|| p - p_h ||_0', 'eta0']
@@ -45,8 +45,7 @@ Ndof = np.zeros(maxit, dtype=np.int)  # the array to store the number of dofs
 mIO = mesh_IO()
 
 # --- mesh1 --- #
-# box = [0, 1, 0, 1]  # [0, 1]^2 domain
-# mf = MeshFactory()
+box = [0, 1, 0, 1]  # [0, 1]^2 domain
 # meshtype = 'quad'
 # mesh = mf.boxmesh2d(box, nx=n, ny=n, meshtype=meshtype)
 
@@ -55,11 +54,11 @@ mIO = mesh_IO()
 # mesh = mIO.loadMatlabMesh(filename=matfile)
 
 # --- mesh3 --- #
-# mesh = mf.triangle(box, 1./4)
+mesh = mf.triangle(box, 1./4)
 
 # --- mesh4: L-shape --- #
-matfile = '../Meshfiles/Lshape3_poly_64.mat'
-mesh = mIO.loadMatlabMesh(filename=matfile)
+# matfile = '../Meshfiles/Lshape3_poly_64.mat'
+# mesh = mIO.loadMatlabMesh(filename=matfile)
 
 # --- to halfedgemesh --- #
 mesh = HalfEdgeMesh2d.from_mesh(mesh)
@@ -93,8 +92,7 @@ print('nu = %e' % nu)
 i = 0
 ETA = 1.0
 uh = None
-# for i in range(maxit):  # range(maxit), [maxit-1]
-while ETA > tol:
+for i in range(maxit):  # range(maxit), [maxit-1]
     print('\n# --------------------- i = %d ------------------------- #' % i)
     stokes = StokesHHOModel2d(pde, mesh, p)
     sol = stokes.solve()
@@ -120,20 +118,18 @@ while ETA > tol:
     print('  |___ before refine: number of cells: %d, pressure dofs: %d ' % (
         mesh.number_of_cells(), stokes.space.number_of_pressure_dofs()))
 
-    # --- adaptive refine the mesh --- #
-    if (i < maxit - 1) and (ETA > tol):
+    # --- refine the mesh --- #
+    if i < maxit - 1:
         # --- one way to refine
         # aopts = mesh.adaptive_options(method='max', theta=0.3, maxcoarsen=0.1, HB=True)
         # mesh.adaptive(eta, aopts)
 
         # --- another way to refine
-        isMarkedCell = stokes.space.post_estimator_markcell(eta, theta=0.3)
-        mesh.refine_poly(isMarkedCell)
+        # isMarkedCell = stokes.space.post_estimator_markcell(eta, theta=0.3)
+        # mesh.refine_poly(isMarkedCell)
 
         # --- uniform refine the mesh --- #
-        # mesh.uniform_refine()
-
-        i += 1
+        mesh.uniform_refine()
     else:
         pass
 
@@ -161,8 +157,8 @@ while ETA > tol:
 print('\n')
 print('# --------------------- table ------------------------- #')
 sc.show_error_table(out=outPath, Cidx=range(i+1), DofName='Velocity-Dof', tableType='dof-type', outFlag=False)
-sc.showmultirate(i-7, Ridx=[1, 4], Cidx=range(i+1), outFlag=False)
-plt.show()
+# sc.showmultirate(i-7, Ridx=[1, 4], Cidx=range(i+1), outFlag=False)
+# plt.show()
 
 # ---
 print('end of the program')
