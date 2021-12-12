@@ -120,6 +120,7 @@ class FEM_CH_NS_Model2d:
         """
         1. Compute the grad of free energy at FACE Gauss-integration points (barycentric coordinates).
         2. In this function, the free energy has NO coefficients.
+        3. Grad of free energy (math-expression): 3*phi^2*\nabla phi - \nabla phi.
         -------
         :param uh:
         :param f_bcs: f_bcs.shape: (NQ,(GD-1)+1)
@@ -137,6 +138,7 @@ class FEM_CH_NS_Model2d:
         """
         1. Compute the grad of free energy at CELL Gauss-integration points (barycentric coordinates).
         2. In this function, the free energy has NO coefficients.
+        3. Grad of free energy (math-expression): 3*phi^2*\nabla phi - \nabla phi.
         -------
         :param uh:
         :param c_bcs: c_bcs.shape: (NQ,GD+1)
