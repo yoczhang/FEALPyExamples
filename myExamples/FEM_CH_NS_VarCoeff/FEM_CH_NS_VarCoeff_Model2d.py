@@ -29,6 +29,56 @@ class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
         super(FEM_CH_NS_VarCoeff_Model2d, self).__init__(pde, mesh, p, dt)
 
 
+    def decoupled_NS_Solver_T1stOrder(self, vel0, vel1, ph, uh, next_t):
+        """
+        The decoupled-Navier-Stokes-solver for the all system.
+        :param vel0: The fist-component of velocity: stored the n-th(time) value, and to update the (n+1)-th value.
+        :param vel1: The second-component of velocity: stored the n-th(time) value, and to update the (n+1)-th value.
+        :param ph: The pressure: stored the n-th(time) value, and to update the (n+1)-th value.
+        :param uh: The n-th(time) value of the solution of Cahn-Hilliard equation.
+        :param next_t: The next-time.
+        :return: Updated vel0, vel1, ph.
+        """
+
+        grad_vel0_f = self.uh_grad_value_at_faces(vel0, self.f_bcs, self.DirCellIdx_NS, self.DirLocalIdx_NS,
+                                                  space=self.vspace)  # grad_vel0: (NQ,NDir,GD)
+        grad_vel1_f = self.uh_grad_value_at_faces(vel1, self.f_bcs, self.DirCellIdx_NS, self.DirLocalIdx_NS,
+                                                  space=self.vspace)  # grad_vel1: (NQ,NDir,GD)
+
+        # for cell-integration
+        vel0_val = self.vspace.value(vel0, self.c_bcs)  # (NQ,NC)
+        vel1_val = self.vspace.value(vel1, self.c_bcs)
+
+        nolinear_val = self.NSNolinearTerm(vel0, vel1, self.c_bcs)  # last_nolinear_val.shape: (NQ,NC,GD)
+        nolinear_val0 = nolinear_val[..., 0]  # (NQ,NC)
+        nolinear_val1 = nolinear_val[..., 1]  # (NQ,NC)
+
+        velDir_val = self.pde.dirichlet_NS(self.f_pp_Dir_NS, next_t)  # (NQ,NDir,GD)
+        f_val_NS = self.pde.source_NS(self.c_pp, next_t, self.pde.nu, self.pde.epsilon, self.pde.eta)  # (NQ,NC,GD)
+        Neumann_0 = self.pde.neumann_0_NS(self.f_pp_Neu_NS, next_t, self.nNeu_NS)  # (NQ,NE)
+        Neumann_1 = self.pde.neumann_1_NS(self.f_pp_Neu_NS, next_t, self.nNeu_NS)  # (NQ,NE)
+
+        # --- the CH_term: -epsilon*\nabla\Delta uh_val + \nabla free_energy
+        uh_val = self.space.value(uh, self.c_bcs)  # (NQ,NC)
+        grad_free_energy_c = self.pde.epsilon / self.pde.eta ** 2 * self.grad_free_energy_at_cells(uh, self.c_bcs)  # (NQ,NC,2)
+        if self.p < 3:
+            CH_term_val0 = uh_val * grad_free_energy_c[..., 0]  # (NQ,NC)
+            CH_term_val1 = uh_val * grad_free_energy_c[..., 1]  # (NQ,NC)
+        elif self.p == 3:
+            phi_xxx, phi_yyy, phi_yxx, phi_xyy = self.cb.get_highorder_diff(self.c_bcs, order='3rd-order')  # (NQ,NC,ldof)
+            grad_x_laplace_uh = -self.pde.epsilon * np.einsum('ijk, jk->ij', phi_xxx + phi_xyy, uh[self.cell2dof])  # (NQ,NC)
+            grad_y_laplace_uh = -self.pde.epsilon * np.einsum('ijk, jk->ij', phi_yxx + phi_yyy, uh[self.cell2dof])  # (NQ,NC)
+            CH_term_val0 = uh_val * (grad_x_laplace_uh + grad_free_energy_c[..., 0])  # (NQ,NC)
+            CH_term_val1 = uh_val * (grad_y_laplace_uh + grad_free_energy_c[..., 1])  # (NQ,NC)
+        else:
+            raise ValueError("The polynomial order p should be <= 3.")
+
+        # --- the auxiliary variable: G_VC
+        
+
+
+
+
 
     def set_CH_Neumann_edge(self, idxNeuEdge=None):
         """
