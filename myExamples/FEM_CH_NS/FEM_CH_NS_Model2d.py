@@ -524,7 +524,7 @@ class FEM_CH_NS_Model2d:
         vel0_val = self.vspace.value(vel0, self.c_bcs)  # (NQ,NC)
         vel1_val = self.vspace.value(vel1, self.c_bcs)
 
-        nolinear_val = self.NSNolinearTerm(vel0, vel1, self.c_bcs)  # last_nolinear_val.shape: (NQ,NC,GD)
+        nolinear_val = self.NSNolinearTerm(vel0, vel1, self.c_bcs)  # nolinear_val.shape: (NQ,NC,GD)
         nolinear_val0 = nolinear_val[..., 0]  # (NQ,NC)
         nolinear_val1 = nolinear_val[..., 1]  # (NQ,NC)
 
@@ -783,6 +783,9 @@ class FEM_CH_NS_Model2d:
         NSNolinear[..., 0] = val0 * gval0[..., 0] + val1 * gval0[..., 1]
         NSNolinear[..., 1] = val0 * gval1[..., 0] + val1 * gval1[..., 1]
         return NSNolinear
+
+    def vector_divergece_matrix(self):
+        pass
 
     def currt_error(self, uh, vel0, vel1, ph, t):
         pde = self.pde

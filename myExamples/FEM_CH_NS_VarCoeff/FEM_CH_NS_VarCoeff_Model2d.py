@@ -28,7 +28,6 @@ class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
     def __init__(self, pde, mesh, p, dt):
         super(FEM_CH_NS_VarCoeff_Model2d, self).__init__(pde, mesh, p, dt)
 
-
     def decoupled_NS_Solver_T1stOrder(self, vel0, vel1, ph, uh, next_t):
         """
         The decoupled-Navier-Stokes-solver for the all system.
@@ -40,16 +39,34 @@ class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
         :return: Updated vel0, vel1, ph.
         """
 
+        pde = self.pde
+        # # variable coefficients settings
+        m = pde.m
+        rho0 = pde.rho0
+        rho1 = pde.rho1
+        nu0 = pde.nu0
+        nu1 = pde.nu1
+
+        rho_min = min(rho0, rho1)
+        ratio_max = max(nu0 / rho0, nu1 / rho1)
+        J0 = -1. / 2 * (rho0 - rho1) * m
+
+        # # the pre-settings
         grad_vel0_f = self.uh_grad_value_at_faces(vel0, self.f_bcs, self.DirCellIdx_NS, self.DirLocalIdx_NS,
                                                   space=self.vspace)  # grad_vel0: (NQ,NDir,GD)
         grad_vel1_f = self.uh_grad_value_at_faces(vel1, self.f_bcs, self.DirCellIdx_NS, self.DirLocalIdx_NS,
                                                   space=self.vspace)  # grad_vel1: (NQ,NDir,GD)
 
         # for cell-integration
+        grad_ph_val = self.space.grad_value(ph, self.c_bcs)  # (NQ,NC,GD)
+        uh_val = self.space.value(uh, self.c_bcs)  # (NQ,NC)
+        grad_uh_val = self.space.grad_value(uh, self.c_bcs)  # (NQ,NC,GD)
         vel0_val = self.vspace.value(vel0, self.c_bcs)  # (NQ,NC)
-        vel1_val = self.vspace.value(vel1, self.c_bcs)
+        vel1_val = self.vspace.value(vel1, self.c_bcs)  # (NQ,NC)
+        grad_vel0_val = self.vspace.grad_value(vel0, self.c_bcs)  # (NQ,NC,GD)
+        grad_vel1_val = self.vspace.grad_value(vel1, self.c_bcs)  # (NQ,NC,GD)
 
-        nolinear_val = self.NSNolinearTerm(vel0, vel1, self.c_bcs)  # last_nolinear_val.shape: (NQ,NC,GD)
+        nolinear_val = self.NSNolinearTerm(vel0, vel1, self.c_bcs)  # nolinear_val.shape: (NQ,NC,GD)
         nolinear_val0 = nolinear_val[..., 0]  # (NQ,NC)
         nolinear_val1 = nolinear_val[..., 1]  # (NQ,NC)
 
@@ -59,7 +76,6 @@ class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
         Neumann_1 = self.pde.neumann_1_NS(self.f_pp_Neu_NS, next_t, self.nNeu_NS)  # (NQ,NE)
 
         # --- the CH_term: -epsilon*\nabla\Delta uh_val + \nabla free_energy
-        uh_val = self.space.value(uh, self.c_bcs)  # (NQ,NC)
         grad_free_energy_c = self.pde.epsilon / self.pde.eta ** 2 * self.grad_free_energy_at_cells(uh, self.c_bcs)  # (NQ,NC,2)
         if self.p < 3:
             CH_term_val0 = uh_val * grad_free_energy_c[..., 0]  # (NQ,NC)
@@ -73,12 +89,40 @@ class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
         else:
             raise ValueError("The polynomial order p should be <= 3.")
 
+        # --- update the variable coefficients
+        rho_n = (rho0 + rho1) / 2. + (rho0 - rho1) / 2. * uh_val  # (NQ,NC)
+        nu_n = (nu0 + nu1) / 2. + (nu0 + nu1) / 2. * uh_val  # (NQ,NC)
+        J_n0 = J0 * CH_term_val0  # (NQ,NC)
+        J_n1 = J0 * CH_term_val1  # (NQ,NC)
+
         # --- the auxiliary variable: G_VC
-        
+        stress_mat = [[grad_vel0_val[..., 0], 0.5 * (grad_vel0_val[..., 1] + grad_vel1_val[..., 0])],
+                      [0.5 * (grad_vel0_val[..., 1] + grad_vel1_val[..., 0]), grad_vel1_val[..., 1]]]
+        grad_vel_mat = [[grad_vel0_val[..., 0], grad_vel0_val[..., 1]],
+                        [grad_vel1_val[..., 0], grad_vel1_val[..., 1]]]
+        G_VC = np.empty(nolinear_val.shape, dtype=self.ftype)  # G_VC.shape: (NQ,NC,2)
+        G_VC = -nolinear_val + (1. / rho0 - 1. / rho_n) * grad_ph_val \
+               + 1. / rho_n * self.vec_div_mat((nu0 - nu1) / 2. * grad_uh_val, stress_mat) \
+               - 1. / rho_n * np.array([CH_term_val0, CH_term_val1]).transpose((1, 2, 0)) \
+               - 1. / rho_n * self.vec_div_mat([J_n0, J_n1], grad_vel_mat) + 1. / rho_n * f_val_NS \
+               + 1./self.dt * np.array([vel0_val, vel1_val]).transpose((1, 2, 0))  # (NQ,NC,2)
+
+        ratio_n = nu_n / rho_n  # (NQ,NC)
+        ratio_nx = ((nu0 - nu1) / 2. * rho_n - (rho0 - rho1) / 2. * nu_n) * grad_uh_val[..., 0] / rho_n ** 2  # (NQ,NC)
+        ratio_ny = ((nu0 - nu1) / 2. * rho_n - (rho0 - rho1) / 2. * nu_n) * grad_uh_val[..., 1] / rho_n ** 2  # (NQ,NC)
 
 
 
 
+
+    def vec_div_mat(self, vector, matrix):
+
+        if type(vector) is np.ndarray:
+            vector = [vector[..., 0], vector[..., 1]]
+
+        val0 = vector[0] * matrix[0][0] + vector[1] * matrix[0][1]
+        val1 = vector[0] * matrix[1][0] + vector[1] * matrix[1][1]
+        return np.array([val0, val1]).transpose((1, 2, 0))  # (NQ,NC,2)
 
     def set_CH_Neumann_edge(self, idxNeuEdge=None):
         """
