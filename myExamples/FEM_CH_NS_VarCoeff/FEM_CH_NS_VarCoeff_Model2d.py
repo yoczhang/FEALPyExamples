@@ -110,6 +110,8 @@ class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
         ratio_n = nu_n / rho_n  # (NQ,NC)
         ratio_nx = ((nu0 - nu1) / 2. * rho_n - (rho0 - rho1) / 2. * nu_n) * grad_uh_val[..., 0] / rho_n ** 2  # (NQ,NC)
         ratio_ny = ((nu0 - nu1) / 2. * rho_n - (rho0 - rho1) / 2. * nu_n) * grad_uh_val[..., 1] / rho_n ** 2  # (NQ,NC)
+        curl_vel_f = grad_vel1_f[..., 0] - grad_vel0_f[..., 1]  # (NQ,NDir)
+        curl_vel = grad_vel1_val[..., 0] - grad_vel0_val[..., 1]  # (NQ,NC)
 
 
 
