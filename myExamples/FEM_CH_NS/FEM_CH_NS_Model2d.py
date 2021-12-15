@@ -517,8 +517,10 @@ class FEM_CH_NS_Model2d:
         :return: Updated vel0, vel1, ph.
         """
 
-        grad_vel0_f = self.uh_grad_value_at_faces(vel0, self.f_bcs, self.DirCellIdx_NS, self.DirLocalIdx_NS, space=self.vspace)  # grad_vel0: (NQ,NDir,GD)
-        grad_vel1_f = self.uh_grad_value_at_faces(vel1, self.f_bcs, self.DirCellIdx_NS, self.DirLocalIdx_NS, space=self.vspace)  # grad_vel1: (NQ,NDir,GD)
+        grad_vel0_f = self.uh_grad_value_at_faces(vel0, self.f_bcs, self.DirCellIdx_NS, self.DirLocalIdx_NS,
+                                                  space=self.vspace)  # grad_vel0: (NQ,NDir,GD)
+        grad_vel1_f = self.uh_grad_value_at_faces(vel1, self.f_bcs, self.DirCellIdx_NS, self.DirLocalIdx_NS,
+                                                  space=self.vspace)  # grad_vel1: (NQ,NDir,GD)
 
         # for cell-integration
         vel0_val = self.vspace.value(vel0, self.c_bcs)  # (NQ,NC)

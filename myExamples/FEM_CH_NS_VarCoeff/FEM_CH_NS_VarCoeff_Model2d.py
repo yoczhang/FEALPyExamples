@@ -51,6 +51,8 @@ class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
         ratio_max = max(nu0 / rho0, nu1 / rho1)
         J0 = -1. / 2 * (rho0 - rho1) * m
 
+        nDir_NS = self.nDir_NS  # (NDir,GD), here, the GD is 2
+
         # # the pre-settings
         grad_vel0_f = self.uh_grad_value_at_faces(vel0, self.f_bcs, self.DirCellIdx_NS, self.DirLocalIdx_NS,
                                                   space=self.vspace)  # grad_vel0: (NQ,NDir,GD)
@@ -100,11 +102,12 @@ class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
                       [0.5 * (grad_vel0_val[..., 1] + grad_vel1_val[..., 0]), grad_vel1_val[..., 1]]]
         grad_vel_mat = [[grad_vel0_val[..., 0], grad_vel0_val[..., 1]],
                         [grad_vel1_val[..., 0], grad_vel1_val[..., 1]]]
-        G_VC = np.empty(nolinear_val.shape, dtype=self.ftype)  # G_VC.shape: (NQ,NC,2)
-        G_VC = -nolinear_val + (1. / rho0 - 1. / rho_n) * grad_ph_val \
-               + 1. / rho_n * self.vec_div_mat((nu0 - nu1) / 2. * grad_uh_val, stress_mat) \
-               - 1. / rho_n * np.array([CH_term_val0, CH_term_val1]).transpose((1, 2, 0)) \
-               - 1. / rho_n * self.vec_div_mat([J_n0, J_n1], grad_vel_mat) + 1. / rho_n * f_val_NS \
+        # G_VC = np.empty(nolinear_val.shape, dtype=self.ftype)  # G_VC.shape: (NQ,NC,2)
+        rho_n_axis = rho_n[..., np.newaxis]
+        G_VC = -nolinear_val + (1. / rho0 - 1. / rho_n_axis) * grad_ph_val \
+               + 1. / rho_n_axis * self.vec_div_mat((nu0 - nu1) / 2. * grad_uh_val, stress_mat) \
+               - 1. / rho_n_axis * np.array([CH_term_val0, CH_term_val1]).transpose((1, 2, 0)) \
+               - 1. / rho_n_axis * self.vec_div_mat([J_n0, J_n1], grad_vel_mat) + 1. / rho_n_axis * f_val_NS \
                + 1./self.dt * np.array([vel0_val, vel1_val]).transpose((1, 2, 0))  # (NQ,NC,2)
 
         ratio_n = nu_n / rho_n  # (NQ,NC)
@@ -112,8 +115,11 @@ class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
         ratio_ny = ((nu0 - nu1) / 2. * rho_n - (rho0 - rho1) / 2. * nu_n) * grad_uh_val[..., 1] / rho_n ** 2  # (NQ,NC)
         curl_vel_f = grad_vel1_f[..., 0] - grad_vel0_f[..., 1]  # (NQ,NDir)
         curl_vel = grad_vel1_val[..., 0] - grad_vel0_val[..., 1]  # (NQ,NC)
+        n_curl_curl_vel_f = np.array([nDir_NS[:, 1]*curl_vel_f, -nDir_NS[:, 0]*curl_vel_f]).transpose((1, 2, 0))  # (NQ,NDir,GD)
 
-
+        # for Dirichlet faces integration
+        dir_int0 = -1 / self.dt * np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, velDir_val, self.nDir_NS, self.phi_f,
+                                            self.DirEdgeMeasure_NS)  # (NDir,fldof)
 
 
 
