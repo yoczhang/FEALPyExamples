@@ -91,6 +91,7 @@ class FEM_CH_NS_Model2d:
         self.phi_f = self.space.face_basis(self.f_bcs)  # (NQ,1,fldof) 实际上这里可以直接用 pspace.basis(f_bcs), 两个函数的代码是相同的
         self.phi_c = self.space.basis(self.c_bcs)  # (NQ,NC,cldof)
         self.vphi_c = self.vspace.basis(self.c_bcs)  # (NQ,NC,vcldof)
+        self.vgphi_c = self.vspace.grad_basis(self.c_bcs)  # (NQ,NC,vcldof,GD)
         self.vphi_f = self.vspace.face_basis(self.f_bcs)  # (NQ,NC,vcldof)
         self.gphi_f = self.space.edge_grad_basis(self.f_bcs, self.DirCellIdx_NS, self.DirLocalIdx_NS)  # (NDir,NQ,cldof,GD)
         self.gphi_c = self.space.grad_basis(self.c_bcs)  # (NQ,NC,cldof,GD)

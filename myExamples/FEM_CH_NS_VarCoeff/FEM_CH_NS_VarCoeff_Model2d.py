@@ -120,24 +120,85 @@ class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
         curl_vel_f = grad_vel1_f[..., 0] - grad_vel0_f[..., 1]  # (NQ,NDir)
         curl_vel = grad_vel1_val[..., 0] - grad_vel0_val[..., 1]  # (NQ,NC)
         # n_curl_curl_vel_f = np.array([nDir_NS[:, 1]*curl_vel_f, -nDir_NS[:, 0]*curl_vel_f]).transpose((1, 2, 0))  # (NQ,NDir,GD)
-        grad_ratio_curl_curl_vel =
+        grad_ratio_curl_curl_vel = 1
 
         # for Dirichlet faces integration
         dir_int0 = -1 / self.dt * np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, velDir_val, self.nDir_NS, self.phi_f,
                                             self.DirEdgeMeasure_NS)  # (NDir,fldof)
-        dir_int1 = -(
-                    np.einsum('i, j, ij, jin, j->jn', self.f_ws, self.nDir_NS[:, 1], ratio_n_f*curl_vel_f, self.gphi_f[..., 0],
-                              self.DirEdgeMeasure_NS)
-                    + np.einsum('i, j, ij, jin, j->jn', self.f_ws, -self.nDir_NS[:, 0], ratio_n_f*curl_vel_f, self.gphi_f[..., 1],
-                                self.DirEdgeMeasure_NS))  # (NDir,cldof)
+        dir_int1 = -(np.einsum('i, j, ij, jin, j->jn', self.f_ws, self.nDir_NS[:, 1], ratio_n_f*curl_vel_f, self.gphi_f[..., 0],
+                               self.DirEdgeMeasure_NS)
+                     + np.einsum('i, j, ij, jin, j->jn', self.f_ws, -self.nDir_NS[:, 0], ratio_n_f*curl_vel_f, self.gphi_f[..., 1],
+                                 self.DirEdgeMeasure_NS))  # (NDir,cldof)
+
         # for cell integration
         cell_int0 = np.einsum('i, ijs, ijks, j->jk', self.c_ws, G_VC, self.gphi_c, self.cellmeasure)  # (NC,cldof)
-        cell_int1 = np.einsum()
+        cell_int1 = (np.einsum('i, ij, ijk, j->jk', self.c_ws, ratio_ny * curl_vel, self.gphi_c[..., 0], self.cellmeasure)
+                     + np.einsum('i, ij, ijk, j->jk', self.c_ws, -ratio_nx * curl_vel, self.gphi_c[..., 1], self.cellmeasure))  # (NC,cldof)
 
+        # # --- 1. assemble the NS's pressure equation
+        prv = np.zeros((self.dof.number_of_global_dofs(),), dtype=self.ftype)  # (Npdof,) the Pressure's Right-hand Vector
+        np.add.at(prv, self.face2dof[self.DirEdgeIdx_NS, :], dir_int0)
+        np.add.at(prv, self.cell2dof[self.DirCellIdx_NS, :], dir_int1)
+        np.add.at(prv, self.cell2dof, cell_int0 + cell_int1)
 
+        # # --- 2. solve the NS's pressure equation
+        plsm = 1. / rho_min * self.StiffMatrix
+
+        # # Method I: The following code is right! Pressure satisfies \int_\Omega p = 0
+        # basis_int = self.space.integral_basis()
+        # plsm_temp = bmat([[plsm, basis_int.reshape(-1, 1)], [basis_int, None]], format='csr')
+        # prv = np.r_[prv, 0]
+        # ph[:] = spsolve(plsm_temp, prv)[:-1]  # we have added one addtional dof
+        # # ph[:] = spsolve(plsm, prv)
+
+        # # Method II: Using the Dirichlet boundary of pressure
+        def dir_pressure(p):
+            return self.pde.pressure_NS(p, next_t)
+        bc = DirichletBC(self.space, dir_pressure)
+        plsm_temp, prv = bc.apply(plsm.copy(), prv)
+        ph[:] = spsolve(plsm_temp, prv).reshape(-1)
+
+        # # ------------------------------------ # #
+        # # --- to update the velocity value --- # #
+        # # ------------------------------------ # #
+        grad_ph = self.space.grad_value(ph, self.c_bcs)  # (NQ,NC,2)
+
+        # # the Velocity-Left-Matrix
+        vlm0 = 1 / self.dt * self.vel_MM + ratio_max * self.vel_SM
+        vlm1 = vlm0.copy()
+
+        # # to get the u's Right-hand Vector
+        def dir_u0(p):
+            return self.pde.dirichlet_NS(p, next_t)[..., 0]
+
+        def dir_u1(p):
+            return self.pde.dirichlet_NS(p, next_t)[..., 1]
+
+        # # --- assemble the first-component of Velocity-Right-Vector
+        vrv0 = np.zeros((self.vdof.number_of_global_dofs(),), dtype=self.ftype)  # (Nvdof,)
+        vrv0_c_0 = np.einsum('i, ij, ijk, j->jk', self.c_ws, - 1. / rho_min * grad_ph[..., 0] + G_VC[..., 0], self.vphi_c,
+                             self.cellmeasure)  # (NC,clodf)
+        vrv0_c_1 = (np.einsum('i, ij, ijk, j->jk', self.c_ws, (ratio_n - ratio_max) * curl_vel, self.vgphi_c[..., 1], self.cellmeasure)
+                    + np.einsum('i, ij, ijk, j->jk', self.c_ws, ratio_ny * curl_vel, self.vphi_c, self.cellmeasure))  # (NC,clodf)
+        np.add.at(vrv0, self.vcell2dof, vrv0_c_0 + vrv0_c_1)
+
+        v0_bc = DirichletBC(self.vspace, dir_u0, threshold=self.DirEdgeIdx_NS)
+        vlm0, vrv0 = v0_bc.apply(vlm0, vrv0)
+        vel0[:] = spsolve(vlm0, vrv0).reshape(-1)
+
+        # # --- assemble the second-component of Velocity-Right-Vector
+        vrv1 = np.zeros((self.vdof.number_of_global_dofs(),), dtype=self.ftype)  # (Nvdof,)
+        vrv1_c_0 = np.einsum('i, ij, ijk, j->jk', self.c_ws, - 1. / rho_min * grad_ph[..., 1] + G_VC[..., 1], self.vphi_c,
+                             self.cellmeasure)  # (NC,clodf)
+        vrv1_c_1 = (np.einsum('i, ij, ijk, j->jk', self.c_ws, (ratio_n - ratio_max) * curl_vel, -self.vgphi_c[..., 0], self.cellmeasure)
+                    + np.einsum('i, ij, ijk, j->jk', self.c_ws, - ratio_nx * curl_vel, self.vphi_c, self.cellmeasure))  # (NC,clodf)
+        np.add.at(vrv1, self.vcell2dof, vrv1_c_0 + vrv1_c_1)
+
+        v1_bc = DirichletBC(self.vspace, dir_u1, threshold=self.DirEdgeIdx_NS)
+        vlm1, vrv0 = v1_bc.apply(vlm1, vrv1)
+        vel1[:] = spsolve(vlm1, vrv1).reshape(-1)
 
     def vec_div_mat(self, vector, matrix):
-
         if type(vector) is np.ndarray:
             vector = [vector[..., 0], vector[..., 1]]
 
