@@ -70,15 +70,15 @@ class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
         grad_vel1_val = self.vspace.grad_value(vel1, self.c_bcs)  # (NQ,NC,GD)
 
         nolinear_val = self.NSNolinearTerm(vel0, vel1, self.c_bcs)  # nolinear_val.shape: (NQ,NC,GD)
-        nolinear_val0 = nolinear_val[..., 0]  # (NQ,NC)
-        nolinear_val1 = nolinear_val[..., 1]  # (NQ,NC)
+        # nolinear_val0 = nolinear_val[..., 0]  # (NQ,NC)
+        # nolinear_val1 = nolinear_val[..., 1]  # (NQ,NC)
 
         velDir_val = self.pde.dirichlet_NS(self.f_pp_Dir_NS, next_t)  # (NQ,NDir,GD)
         f_val_NS = self.pde.source_NS(self.c_pp, next_t, self.pde.nu, self.pde.epsilon, self.pde.eta)  # (NQ,NC,GD)
-        Neumann_0 = self.pde.neumann_0_NS(self.f_pp_Neu_NS, next_t, self.nNeu_NS)  # (NQ,NE)
-        Neumann_1 = self.pde.neumann_1_NS(self.f_pp_Neu_NS, next_t, self.nNeu_NS)  # (NQ,NE)
+        # Neumann_0 = self.pde.neumann_0_NS(self.f_pp_Neu_NS, next_t, self.nNeu_NS)  # (NQ,NE)
+        # Neumann_1 = self.pde.neumann_1_NS(self.f_pp_Neu_NS, next_t, self.nNeu_NS)  # (NQ,NE)
 
-        # --- the CH_term: -epsilon*\nabla\Delta uh_val + \nabla free_energy
+        # --- the CH_term: uh_val * (-epsilon*\nabla\Delta uh_val + \nabla free_energy)
         grad_free_energy_c = self.pde.epsilon / self.pde.eta ** 2 * self.grad_free_energy_at_cells(uh, self.c_bcs)  # (NQ,NC,2)
         if self.p < 3:
             CH_term_val0 = uh_val * grad_free_energy_c[..., 0]  # (NQ,NC)
@@ -95,39 +95,38 @@ class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
         # --- update the variable coefficients
         rho_n = (rho0 + rho1) / 2. + (rho0 - rho1) / 2. * uh_val  # (NQ,NC)
         rho_n_f = (rho0 + rho1) / 2. + (rho0 - rho1) / 2. * uh_val_f  # (NQ,NDir)
-        nu_n = (nu0 + nu1) / 2. + (nu0 + nu1) / 2. * uh_val  # (NQ,NC)
-        nu_n_f = (nu0 + nu1) / 2. + (nu0 + nu1) / 2. * uh_val_f  # (NQ,NDir)
+        nu_n = (nu0 + nu1) / 2. + (nu0 - nu1) / 2. * uh_val  # (NQ,NC)
+        nu_n_f = (nu0 + nu1) / 2. + (nu0 - nu1) / 2. * uh_val_f  # (NQ,NDir)
         J_n0 = J0 * CH_term_val0  # (NQ,NC)
         J_n1 = J0 * CH_term_val1  # (NQ,NC)
 
         # --- the auxiliary variable: G_VC
-        stress_mat = [[grad_vel0_val[..., 0], 0.5 * (grad_vel0_val[..., 1] + grad_vel1_val[..., 0])],
-                      [0.5 * (grad_vel0_val[..., 1] + grad_vel1_val[..., 0]), grad_vel1_val[..., 1]]]
-        grad_vel_mat = [[grad_vel0_val[..., 0], grad_vel0_val[..., 1]],
+        vel_stress_mat = [[grad_vel0_val[..., 0], 0.5 * (grad_vel0_val[..., 1] + grad_vel1_val[..., 0])],
+                          [0.5 * (grad_vel0_val[..., 1] + grad_vel1_val[..., 0]), grad_vel1_val[..., 1]]]
+        vel_grad_mat = [[grad_vel0_val[..., 0], grad_vel0_val[..., 1]],
                         [grad_vel1_val[..., 0], grad_vel1_val[..., 1]]]
-        # G_VC = np.empty(nolinear_val.shape, dtype=self.ftype)  # G_VC.shape: (NQ,NC,2)
         rho_n_axis = rho_n[..., np.newaxis]
-        G_VC = -nolinear_val + (1. / rho0 - 1. / rho_n_axis) * grad_ph_val \
-               + 1. / rho_n_axis * self.vec_div_mat((nu0 - nu1) / 2. * grad_uh_val, stress_mat) \
-               - 1. / rho_n_axis * np.array([CH_term_val0, CH_term_val1]).transpose((1, 2, 0)) \
-               - 1. / rho_n_axis * self.vec_div_mat([J_n0, J_n1], grad_vel_mat) + 1. / rho_n_axis * f_val_NS \
-               + 1./self.dt * np.array([vel0_val, vel1_val]).transpose((1, 2, 0))  # (NQ,NC,2)
+        G_VC = (-nolinear_val + (1. / rho0 - 1. / rho_n_axis) * grad_ph_val
+                + 1. / rho_n_axis * self.vec_div_mat((nu0 - nu1) / 2. * grad_uh_val, vel_stress_mat)
+                - 1. / rho_n_axis * np.array([CH_term_val0, CH_term_val1]).transpose((1, 2, 0))
+                - 1. / rho_n_axis * self.vec_div_mat([J_n0, J_n1], vel_grad_mat) + 1. / rho_n_axis * f_val_NS
+                + 1./self.dt * np.array([vel0_val, vel1_val]).transpose((1, 2, 0)))  # (NQ,NC,2)
 
         ratio_n = nu_n / rho_n  # (NQ,NC)
         ratio_n_f = nu_n_f / rho_n_f  # (NQ,NDir)
         ratio_nx = ((nu0 - nu1) / 2. * rho_n - (rho0 - rho1) / 2. * nu_n) * grad_uh_val[..., 0] / rho_n ** 2  # (NQ,NC)
         ratio_ny = ((nu0 - nu1) / 2. * rho_n - (rho0 - rho1) / 2. * nu_n) * grad_uh_val[..., 1] / rho_n ** 2  # (NQ,NC)
-        curl_vel_f = grad_vel1_f[..., 0] - grad_vel0_f[..., 1]  # (NQ,NDir)
         curl_vel = grad_vel1_val[..., 0] - grad_vel0_val[..., 1]  # (NQ,NC)
+        curl_vel_f = grad_vel1_f[..., 0] - grad_vel0_f[..., 1]  # (NQ,NDir)
         # n_curl_curl_vel_f = np.array([nDir_NS[:, 1]*curl_vel_f, -nDir_NS[:, 0]*curl_vel_f]).transpose((1, 2, 0))  # (NQ,NDir,GD)
-        grad_ratio_curl_curl_vel = 1
+        # grad_ratio_curl_curl_vel = 1
 
         # for Dirichlet faces integration
-        dir_int0 = -1 / self.dt * np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, velDir_val, self.nDir_NS, self.phi_f,
+        dir_int0 = -1 / self.dt * np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, velDir_val, nDir_NS, self.phi_f,
                                             self.DirEdgeMeasure_NS)  # (NDir,fldof)
-        dir_int1 = -(np.einsum('i, j, ij, jin, j->jn', self.f_ws, self.nDir_NS[:, 1], ratio_n_f*curl_vel_f, self.gphi_f[..., 0],
+        dir_int1 = -(np.einsum('i, j, ij, jin, j->jn', self.f_ws, nDir_NS[:, 1], ratio_n_f*curl_vel_f, self.gphi_f[..., 0],
                                self.DirEdgeMeasure_NS)
-                     + np.einsum('i, j, ij, jin, j->jn', self.f_ws, -self.nDir_NS[:, 0], ratio_n_f*curl_vel_f, self.gphi_f[..., 1],
+                     + np.einsum('i, j, ij, jin, j->jn', self.f_ws, -nDir_NS[:, 0], ratio_n_f*curl_vel_f, self.gphi_f[..., 1],
                                  self.DirEdgeMeasure_NS))  # (NDir,cldof)
 
         # for cell integration
