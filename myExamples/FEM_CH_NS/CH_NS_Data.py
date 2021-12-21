@@ -200,29 +200,29 @@ class CH_NS_Data_truesolution:
         val = (x * y - 1 / 4) * np.exp(-t)
         return val
 
-    @cartesian
-    def NS_nolinearTerm_0_NS(self, p, t):
-        # x = p[..., 0]
-        # y = p[..., 1]
-        u0 = self.velocity_NS(p, t)[..., 0]
-        u1 = self.velocity_NS(p, t)[..., 1]
-        u0x = self.grad_velocity0_NS(p, t)[..., 0]
-        u0y = self.grad_velocity0_NS(p, t)[..., 1]
-        u1x = self.grad_velocity1_NS(p, t)[..., 0]
-        u1y = self.grad_velocity1_NS(p, t)[..., 1]
-        return u0 * u0x + u1 * u0y
+    # @cartesian
+    # def NS_nolinearTerm_0_NS(self, p, t):
+    #     # x = p[..., 0]
+    #     # y = p[..., 1]
+    #     u0 = self.velocity_NS(p, t)[..., 0]
+    #     u1 = self.velocity_NS(p, t)[..., 1]
+    #     u0x = self.grad_velocity0_NS(p, t)[..., 0]
+    #     u0y = self.grad_velocity0_NS(p, t)[..., 1]
+    #     u1x = self.grad_velocity1_NS(p, t)[..., 0]
+    #     u1y = self.grad_velocity1_NS(p, t)[..., 1]
+    #     return u0 * u0x + u1 * u0y
 
-    @cartesian
-    def NS_nolinearTerm_1_NS(self, p, t):
-        # x = p[..., 0]
-        # y = p[..., 1]
-        u0 = self.velocity_NS(p, t)[..., 0]
-        u1 = self.velocity_NS(p, t)[..., 1]
-        u0x = self.grad_velocity0_NS(p, t)[..., 0]
-        u0y = self.grad_velocity0_NS(p, t)[..., 1]
-        u1x = self.grad_velocity1_NS(p, t)[..., 0]
-        u1y = self.grad_velocity1_NS(p, t)[..., 1]
-        return u0 * u1x + u1 * u1y
+    # @cartesian
+    # def NS_nolinearTerm_1_NS(self, p, t):
+    #     # x = p[..., 0]
+    #     # y = p[..., 1]
+    #     u0 = self.velocity_NS(p, t)[..., 0]
+    #     u1 = self.velocity_NS(p, t)[..., 1]
+    #     u0x = self.grad_velocity0_NS(p, t)[..., 0]
+    #     u0y = self.grad_velocity0_NS(p, t)[..., 1]
+    #     u1x = self.grad_velocity1_NS(p, t)[..., 0]
+    #     u1y = self.grad_velocity1_NS(p, t)[..., 1]
+    #     return u0 * u1x + u1 * u1y
 
     # # 这是原来的 单独 CH 方程中的原项
     # @cartesian

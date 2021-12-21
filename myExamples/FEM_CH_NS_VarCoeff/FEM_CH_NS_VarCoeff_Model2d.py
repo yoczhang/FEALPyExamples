@@ -48,7 +48,7 @@ class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
         nu1 = pde.nu1
 
         rho_min = min(rho0, rho1)
-        ratio_max = max(nu0 / rho0, nu1 / rho1)
+        eta_max = max(nu0 / rho0, nu1 / rho1)
         J0 = -1. / 2 * (rho0 - rho1) * m
 
         nDir_NS = self.nDir_NS  # (NDir,GD), here, the GD is 2
@@ -74,13 +74,15 @@ class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
         # nolinear_val1 = nolinear_val[..., 1]  # (NQ,NC)
 
         velDir_val = self.pde.dirichlet_NS(self.f_pp_Dir_NS, next_t)  # (NQ,NDir,GD)
-        f_val_NS = self.pde.source_NS(self.c_pp, next_t, self.pde.nu, self.pde.epsilon, self.pde.eta)  # (NQ,NC,GD)
+        f_val_NS = self.pde.source_NS(self.c_pp, next_t, self.pde.epsilon, self.pde.eta, m, rho0, rho1, nu0, nu1)  # (NQ,NC,GD)
         # Neumann_0 = self.pde.neumann_0_NS(self.f_pp_Neu_NS, next_t, self.nNeu_NS)  # (NQ,NE)
         # Neumann_1 = self.pde.neumann_1_NS(self.f_pp_Neu_NS, next_t, self.nNeu_NS)  # (NQ,NE)
 
         # --- the CH_term: uh_val * (-epsilon*\nabla\Delta uh_val + \nabla free_energy)
         grad_free_energy_c = self.pde.epsilon / self.pde.eta ** 2 * self.grad_free_energy_at_cells(uh, self.c_bcs)  # (NQ,NC,2)
         if self.p < 3:
+            grad_x_laplace_uh = np.zeros(grad_free_energy_c[..., 0].shape)
+            grad_y_laplace_uh = np.zeros(grad_free_energy_c[..., 0].shape)
             CH_term_val0 = uh_val * grad_free_energy_c[..., 0]  # (NQ,NC)
             CH_term_val1 = uh_val * grad_free_energy_c[..., 1]  # (NQ,NC)
         elif self.p == 3:
@@ -97,8 +99,8 @@ class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
         rho_n_f = (rho0 + rho1) / 2. + (rho0 - rho1) / 2. * uh_val_f  # (NQ,NDir)
         nu_n = (nu0 + nu1) / 2. + (nu0 - nu1) / 2. * uh_val  # (NQ,NC)
         nu_n_f = (nu0 + nu1) / 2. + (nu0 - nu1) / 2. * uh_val_f  # (NQ,NDir)
-        J_n0 = J0 * CH_term_val0  # (NQ,NC)
-        J_n1 = J0 * CH_term_val1  # (NQ,NC)
+        J_n0 = J0 * (grad_x_laplace_uh + grad_free_energy_c[..., 0])  # (NQ,NC)
+        J_n1 = J0 * (grad_y_laplace_uh + grad_free_energy_c[..., 1])  # (NQ,NC)
 
         # --- the auxiliary variable: G_VC
         vel_stress_mat = [[grad_vel0_val[..., 0], 0.5 * (grad_vel0_val[..., 1] + grad_vel1_val[..., 0])],
@@ -112,10 +114,10 @@ class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
                 - 1. / rho_n_axis * self.vec_div_mat([J_n0, J_n1], vel_grad_mat) + 1. / rho_n_axis * f_val_NS
                 + 1./self.dt * np.array([vel0_val, vel1_val]).transpose((1, 2, 0)))  # (NQ,NC,2)
 
-        ratio_n = nu_n / rho_n  # (NQ,NC)
-        ratio_n_f = nu_n_f / rho_n_f  # (NQ,NDir)
-        ratio_nx = ((nu0 - nu1) / 2. * rho_n - (rho0 - rho1) / 2. * nu_n) * grad_uh_val[..., 0] / rho_n ** 2  # (NQ,NC)
-        ratio_ny = ((nu0 - nu1) / 2. * rho_n - (rho0 - rho1) / 2. * nu_n) * grad_uh_val[..., 1] / rho_n ** 2  # (NQ,NC)
+        eta_n = nu_n / rho_n  # (NQ,NC)
+        eta_n_f = nu_n_f / rho_n_f  # (NQ,NDir)
+        eta_nx = ((nu0 - nu1) / 2. * rho_n - (rho0 - rho1) / 2. * nu_n) * grad_uh_val[..., 0] / rho_n ** 2  # (NQ,NC)
+        eta_ny = ((nu0 - nu1) / 2. * rho_n - (rho0 - rho1) / 2. * nu_n) * grad_uh_val[..., 1] / rho_n ** 2  # (NQ,NC)
         curl_vel = grad_vel1_val[..., 0] - grad_vel0_val[..., 1]  # (NQ,NC)
         curl_vel_f = grad_vel1_f[..., 0] - grad_vel0_f[..., 1]  # (NQ,NDir)
         # n_curl_curl_vel_f = np.array([nDir_NS[:, 1]*curl_vel_f, -nDir_NS[:, 0]*curl_vel_f]).transpose((1, 2, 0))  # (NQ,NDir,GD)
@@ -124,15 +126,15 @@ class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
         # for Dirichlet faces integration
         dir_int0 = -1 / self.dt * np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, velDir_val, nDir_NS, self.phi_f,
                                             self.DirEdgeMeasure_NS)  # (NDir,fldof)
-        dir_int1 = -(np.einsum('i, j, ij, jin, j->jn', self.f_ws, nDir_NS[:, 1], ratio_n_f*curl_vel_f, self.gphi_f[..., 0],
+        dir_int1 = -(np.einsum('i, j, ij, jin, j->jn', self.f_ws, nDir_NS[:, 1], eta_n_f*curl_vel_f, self.gphi_f[..., 0],
                                self.DirEdgeMeasure_NS)
-                     + np.einsum('i, j, ij, jin, j->jn', self.f_ws, -nDir_NS[:, 0], ratio_n_f*curl_vel_f, self.gphi_f[..., 1],
+                     + np.einsum('i, j, ij, jin, j->jn', self.f_ws, -nDir_NS[:, 0], eta_n_f*curl_vel_f, self.gphi_f[..., 1],
                                  self.DirEdgeMeasure_NS))  # (NDir,cldof)
 
         # for cell integration
         cell_int0 = np.einsum('i, ijs, ijks, j->jk', self.c_ws, G_VC, self.gphi_c, self.cellmeasure)  # (NC,cldof)
-        cell_int1 = (np.einsum('i, ij, ijk, j->jk', self.c_ws, ratio_ny * curl_vel, self.gphi_c[..., 0], self.cellmeasure)
-                     + np.einsum('i, ij, ijk, j->jk', self.c_ws, -ratio_nx * curl_vel, self.gphi_c[..., 1], self.cellmeasure))  # (NC,cldof)
+        cell_int1 = (np.einsum('i, ij, ijk, j->jk', self.c_ws, eta_ny * curl_vel, self.gphi_c[..., 0], self.cellmeasure)
+                     + np.einsum('i, ij, ijk, j->jk', self.c_ws, -eta_nx * curl_vel, self.gphi_c[..., 1], self.cellmeasure))  # (NC,cldof)
 
         # # --- 1. assemble the NS's pressure equation
         prv = np.zeros((self.dof.number_of_global_dofs(),), dtype=self.ftype)  # (Npdof,) the Pressure's Right-hand Vector
@@ -144,18 +146,18 @@ class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
         plsm = 1. / rho_min * self.StiffMatrix
 
         # # Method I: The following code is right! Pressure satisfies \int_\Omega p = 0
-        # basis_int = self.space.integral_basis()
-        # plsm_temp = bmat([[plsm, basis_int.reshape(-1, 1)], [basis_int, None]], format='csr')
-        # prv = np.r_[prv, 0]
-        # ph[:] = spsolve(plsm_temp, prv)[:-1]  # we have added one addtional dof
-        # # ph[:] = spsolve(plsm, prv)
+        basis_int = self.space.integral_basis()
+        plsm_temp = bmat([[plsm, basis_int.reshape(-1, 1)], [basis_int, None]], format='csr')
+        prv = np.r_[prv, 0]
+        ph[:] = spsolve(plsm_temp, prv)[:-1]  # we have added one addtional dof
+        # ph[:] = spsolve(plsm, prv)
 
         # # Method II: Using the Dirichlet boundary of pressure
-        def dir_pressure(p):
-            return self.pde.pressure_NS(p, next_t)
-        bc = DirichletBC(self.space, dir_pressure)
-        plsm_temp, prv = bc.apply(plsm.copy(), prv)
-        ph[:] = spsolve(plsm_temp, prv).reshape(-1)
+        # def dir_pressure(p):
+        #     return self.pde.pressure_NS(p, next_t)
+        # bc = DirichletBC(self.space, dir_pressure)
+        # plsm_temp, prv = bc.apply(plsm.copy(), prv)
+        # ph[:] = spsolve(plsm_temp, prv).reshape(-1)
 
         # # ------------------------------------ # #
         # # --- to update the velocity value --- # #
@@ -163,7 +165,7 @@ class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
         grad_ph = self.space.grad_value(ph, self.c_bcs)  # (NQ,NC,2)
 
         # # the Velocity-Left-Matrix
-        vlm0 = 1 / self.dt * self.vel_MM + ratio_max * self.vel_SM
+        vlm0 = 1 / self.dt * self.vel_MM + eta_max * self.vel_SM
         vlm1 = vlm0.copy()
 
         # # to get the u's Right-hand Vector
@@ -177,8 +179,8 @@ class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
         vrv0 = np.zeros((self.vdof.number_of_global_dofs(),), dtype=self.ftype)  # (Nvdof,)
         vrv0_c_0 = np.einsum('i, ij, ijk, j->jk', self.c_ws, - 1. / rho_min * grad_ph[..., 0] + G_VC[..., 0], self.vphi_c,
                              self.cellmeasure)  # (NC,clodf)
-        vrv0_c_1 = (np.einsum('i, ij, ijk, j->jk', self.c_ws, (ratio_n - ratio_max) * curl_vel, self.vgphi_c[..., 1], self.cellmeasure)
-                    + np.einsum('i, ij, ijk, j->jk', self.c_ws, ratio_ny * curl_vel, self.vphi_c, self.cellmeasure))  # (NC,clodf)
+        vrv0_c_1 = (np.einsum('i, ij, ijk, j->jk', self.c_ws, (eta_n - eta_max) * curl_vel, self.vgphi_c[..., 1], self.cellmeasure)
+                    + np.einsum('i, ij, ijk, j->jk', self.c_ws, eta_ny * curl_vel, self.vphi_c, self.cellmeasure))  # (NC,clodf)
         np.add.at(vrv0, self.vcell2dof, vrv0_c_0 + vrv0_c_1)
 
         v0_bc = DirichletBC(self.vspace, dir_u0, threshold=self.DirEdgeIdx_NS)
@@ -189,8 +191,8 @@ class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
         vrv1 = np.zeros((self.vdof.number_of_global_dofs(),), dtype=self.ftype)  # (Nvdof,)
         vrv1_c_0 = np.einsum('i, ij, ijk, j->jk', self.c_ws, - 1. / rho_min * grad_ph[..., 1] + G_VC[..., 1], self.vphi_c,
                              self.cellmeasure)  # (NC,clodf)
-        vrv1_c_1 = (np.einsum('i, ij, ijk, j->jk', self.c_ws, (ratio_n - ratio_max) * curl_vel, -self.vgphi_c[..., 0], self.cellmeasure)
-                    + np.einsum('i, ij, ijk, j->jk', self.c_ws, - ratio_nx * curl_vel, self.vphi_c, self.cellmeasure))  # (NC,clodf)
+        vrv1_c_1 = (np.einsum('i, ij, ijk, j->jk', self.c_ws, (eta_n - eta_max) * curl_vel, -self.vgphi_c[..., 0], self.cellmeasure)
+                    + np.einsum('i, ij, ijk, j->jk', self.c_ws, - eta_nx * curl_vel, self.vphi_c, self.cellmeasure))  # (NC,clodf)
         np.add.at(vrv1, self.vcell2dof, vrv1_c_0 + vrv1_c_1)
 
         v1_bc = DirichletBC(self.vspace, dir_u1, threshold=self.DirEdgeIdx_NS)
@@ -237,5 +239,4 @@ class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
 
         isDirEdge = isBdEdge  # here, we set all the boundary edges are Dir edges
         idxDirEdge, = np.nonzero(isDirEdge)  # (NE_Dir,)
-
         return idxDirEdge

@@ -75,12 +75,16 @@ p_y = diff(p, y)
 g_CH = u_t - m*laplace_c + diff(u*vel0, x) + diff(u*vel1, y)
 
 # # 2. coupled NS: source term
-g_NS_0 = rho * vel0_t - (diff(nu*vel_stress00, x) + diff(nu*vel_stress01, y)) + rho * (vel0*vel0_x + vel1*vel0_y) + p_x + u * c_x
-g_NS_1 = rho * vel1_t - (diff(nu*vel_stress10, x) + diff(nu*vel_stress11, y)) + rho * (vel0*vel1_x + vel1*vel1_y) + p_y + u * c_y
+g_NS_0 = rho * vel0_t + rho * (vel0*vel0_x + vel1*vel0_y) + (J_0*vel0_x + J_1*vel0_y) - (diff(nu*vel_stress00, x) + diff(nu*vel_stress01, y)) + p_x + u * c_x
+g_NS_1 = rho * vel1_t + rho * (vel0*vel1_x + vel1*vel1_y) + (J_0*vel1_x + J_1*vel1_y) - (diff(nu*vel_stress10, x) + diff(nu*vel_stress11, y)) + p_y + u * c_y
 
 print('u = ', u)
 print('laplace_x = ', laplace_x)
 print('laplace_y = ', laplace_y)
+print('vel0_x = ', vel0_x)
+print('vel0_y = ', vel0_y)
+print('vel1_x = ', vel1_x)
+print('vel1_y = ', vel1_y)
 print('g_CH = ', g_CH)
 print('g_NS_0 = ', g_NS_0)
 print('g_NS_1 = ', g_NS_1)

@@ -23,11 +23,11 @@ from PrintLogger import make_print_to_file
 from to_show import show_error_table
 
 # --- logging --- #
-make_print_to_file(filename='FEM_CH_NS_check_t', setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
+# make_print_to_file(filename='FEM_CH_NS_check_t', setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
 
 # --- begin setting --- #
 d = 2  # the dimension
-p = 3  # the polynomial order
+p = 1  # the polynomial order
 n = 2  # the number of refine mesh
 maxit = 5  # the max iteration of the mesh
 
@@ -42,7 +42,7 @@ N_T = stop - start + 1
 dt_space = 1e-1 * np.logspace(start, stop, N_T, base=1/2)
 dt_min = min(dt_space)
 
-time_scheme = 2  # 1 stands for 1st-order time-scheme; 2 is the 2nd-order time-scheme
+time_scheme = 1  # 1 stands for 1st-order time-scheme; 2 is the 2nd-order time-scheme
 h_space = dt_space ** (time_scheme/(p+0))
 
 pdePars = {'m': 1e-3, 's': 1, 'alpha': 1, 'epsilon': 1e-3, 'eta': 1e-1, 'dt_min': dt_min, 'timeScheme': '1stOrder',

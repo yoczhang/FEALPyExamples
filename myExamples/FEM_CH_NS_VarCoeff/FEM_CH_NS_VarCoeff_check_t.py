@@ -16,7 +16,7 @@ The fealpy-FEM program for Variable-Coefficient coupled Cahn-Hilliard-Navier-Sto
 
 import numpy as np
 import matplotlib.pyplot as plt
-from CH_NS_Data import CH_NS_Data_truesolution
+from CH_NS_VarCoeff_Data import CH_NS_VarCoeff_truesolution
 # from FEM_CH_NS_Model2d import FEM_CH_NS_Model2d
 from FEM_CH_NS_VarCoeff_Model2d import FEM_CH_NS_VarCoeff_Model2d
 from fealpy.mesh import MeshFactory as MF
@@ -47,10 +47,10 @@ dt_min = min(dt_space)
 time_scheme = 1  # 1 stands for 1st-order time-scheme; 2 is the 2nd-order time-scheme
 h_space = dt_space ** (time_scheme/(p+0))
 
-pdePars = {'m': 1e-3, 's': 1, 'alpha': 1, 'epsilon': 1e-3, 'eta': 1e-1, 'dt_min': dt_min, 'timeScheme': '1stOrder',
-           'nu': 1.0e-2}  # value of parameters
-VarCoeff = {'rho0': 1e-0, 'rho1': 1e-1, 'nu0': 1e-1, 'nu1': 1e-2}
-pde = CH_NS_Data_truesolution(t0, T)  # create pde model
+pdePars = {'m': 1e-3, 's': 1, 'alpha': 1, 'epsilon': 1e-3, 'eta': 1e-1, 'dt_min': dt_min, 'timeScheme': '1stOrder'
+           }  # value of parameters
+VarCoeff = {'rho0': 1e-0, 'rho1': 3e-0, 'nu0': 1e-2, 'nu1': 2e-2}
+pde = CH_NS_VarCoeff_truesolution(t0, T)  # create pde model
 pde.setPDEParameters(pdePars)
 pde.setPDEParameters(VarCoeff)
 
