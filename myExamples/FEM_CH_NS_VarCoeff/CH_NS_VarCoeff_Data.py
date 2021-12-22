@@ -20,6 +20,11 @@ from CH_NS_Data import CH_NS_Data_truesolution
 class CH_NS_VarCoeff_truesolution(CH_NS_Data_truesolution):
     def __init__(self, t0, T):
         super(CH_NS_VarCoeff_truesolution, self).__init__(t0, T)
+        self.box = self.box_settings()
+
+    def box_settings(self):
+        box = [0, 2, -1, 1]
+        return box
 
     # # --- the Cahn-Hilliard data
     @cartesian

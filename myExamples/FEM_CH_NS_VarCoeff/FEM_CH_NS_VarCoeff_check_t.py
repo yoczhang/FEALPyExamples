@@ -70,7 +70,7 @@ errorMatrix = np.zeros((len(errorType), N_T), dtype=np.float)
 Ndof = np.zeros(N_T, dtype=np.int)  # the array to store the number of dofs
 
 # --- start for-loop --- #
-
+box = pde.box if hasattr(pde, 'box') else box
 for i in range(N_T):
     print('\n# *********************************************************************** # \n')
     print('# ------------ in the time-mesh circle ------------ #')
