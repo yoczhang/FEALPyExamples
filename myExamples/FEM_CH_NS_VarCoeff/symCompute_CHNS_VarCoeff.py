@@ -49,6 +49,7 @@ nu = (nu0 + nu1)/2 + (nu0 - nu1)/2 * u
 
 vel0 = sin(pi*x)*cos(pi*y)*sin(t)
 vel1 = -cos(pi*x)*sin(pi*y)*sin(t)
+p = sin(pi*x)*sin(pi*y)*cos(t)
 
 vel0_t = diff(vel0, t)
 vel0_x = diff(vel0, x)
@@ -67,7 +68,6 @@ vel_stress01 = 0.5*(vel0_y + vel1_x)
 vel_stress10 = 0.5*(vel0_y + vel1_x)
 vel_stress11 = vel1_y
 
-p = sin(pi*x)*sin(pi*y)*cos(t)
 p_x = diff(p, x)
 p_y = diff(p, y)
 

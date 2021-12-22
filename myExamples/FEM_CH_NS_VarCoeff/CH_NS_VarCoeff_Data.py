@@ -21,6 +21,14 @@ class CH_NS_VarCoeff_truesolution(CH_NS_Data_truesolution):
     def __init__(self, t0, T):
         super(CH_NS_VarCoeff_truesolution, self).__init__(t0, T)
 
+    # # --- the Cahn-Hilliard data
+    @cartesian
+    def source_CH(self, p, t, m, epsilon, eta):
+        x = p[..., 0]
+        y = p[..., 1]
+        val = -m*(-4*epsilon*pi**4*sin(t)*cos(pi*x)*cos(pi*y) - 2*epsilon*pi**2*(sin(t)**2*cos(pi*x)**2*cos(pi*y)**2 - 1)*sin(t)*cos(pi*x)*cos(pi*y)/eta**2 + 6*epsilon*pi**2*sin(t)**3*sin(pi*x)**2*cos(pi*x)*cos(pi*y)**3/eta**2 + 6*epsilon*pi**2*sin(t)**3*sin(pi*y)**2*cos(pi*x)**3*cos(pi*y)/eta**2 - 4*epsilon*pi**2*sin(t)**3*cos(pi*x)**3*cos(pi*y)**3/eta**2) - pi*sin(t)**2*sin(pi*x)**2*cos(pi*y)**2 + pi*sin(t)**2*sin(pi*y)**2*cos(pi*x)**2 + cos(t)*cos(pi*x)*cos(pi*y)
+        return val
+
     # # --- the Navier-Stokes data
     @cartesian
     def velocity_NS(self, p, t):

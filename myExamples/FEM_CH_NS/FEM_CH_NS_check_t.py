@@ -15,7 +15,7 @@ The fealpy-FEM program for coupled Cahn-Hilliard-Navier-Stokes equation.
 
 import numpy as np
 import matplotlib.pyplot as plt
-from CH_NS_Data import CH_NS_Data_truesolution
+from CH_NS_Data import CH_NS_Data_truesolution1
 from FEM_CH_NS_Model2d import FEM_CH_NS_Model2d
 from fealpy.mesh import MeshFactory as MF
 from PrintLogger import make_print_to_file
@@ -23,16 +23,16 @@ from PrintLogger import make_print_to_file
 from to_show import show_error_table
 
 # --- logging --- #
-# make_print_to_file(filename='FEM_CH_NS_check_t', setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
+make_print_to_file(filename='FEM_CH_NS_check_t', setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
 
 # --- begin setting --- #
 d = 2  # the dimension
-p = 1  # the polynomial order
+p = 2  # the polynomial order
 n = 2  # the number of refine mesh
 maxit = 5  # the max iteration of the mesh
 
 t0 = 0.
-T = 1
+T = 0.5
 box = [0, 1, 0, 1]
 # mesh = MF.boxmesh2d(box, nx=NN, ny=NN, meshtype='tri')
 
@@ -47,7 +47,7 @@ h_space = dt_space ** (time_scheme/(p+0))
 
 pdePars = {'m': 1e-3, 's': 1, 'alpha': 1, 'epsilon': 1e-3, 'eta': 1e-1, 'dt_min': dt_min, 'timeScheme': '1stOrder',
            'nu': 1.0e-2}  # value of parameters
-pde = CH_NS_Data_truesolution(t0, T)  # create pde model
+pde = CH_NS_Data_truesolution1(t0, T)  # create pde model
 pde.setPDEParameters(pdePars)
 
 # # print some basic info
@@ -66,7 +66,7 @@ errorMatrix = np.zeros((len(errorType), N_T), dtype=np.float)
 Ndof = np.zeros(N_T, dtype=np.int)  # the array to store the number of dofs
 
 # --- start for-loop --- #
-
+box = pde.box if hasattr(pde, 'box') else box
 for i in range(N_T):
     print('\n# *********************************************************************** # \n')
     print('# ------------ in the time-mesh circle ------------ #')

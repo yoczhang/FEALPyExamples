@@ -39,8 +39,12 @@ c_yy = diff(c_y, y)
 laplace_c = c_xx + c_yy
 
 # # the NS equation:
-vel0 = x * x * y * exp(-t)
-vel1 = -x * y * y * exp(-t)
+# vel0 = x * x * y * exp(-t)
+# vel1 = -x * y * y * exp(-t)
+# p = (x * y - 1 / 4) * exp(-t)
+vel0 = sin(pi*x)*cos(pi*y)*sin(t)
+vel1 = -cos(pi*x)*sin(pi*y)*sin(t)
+p = sin(pi*x)*sin(pi*y)*cos(t)
 
 vel0_t = diff(vel0, t)
 vel0_x = diff(vel0, x)
@@ -54,7 +58,7 @@ vel1_xx = diff(vel1_x, x)
 vel1_y = diff(vel1, y)
 vel1_yy = diff(vel1_y, y)
 
-p = (x * y - 1 / 4) * exp(-t)
+
 p_x = diff(p, x)
 p_y = diff(p, y)
 
@@ -68,6 +72,10 @@ g_NS_1 = vel1_t - nu * (vel1_xx + vel1_yy) + (vel0*vel1_x + vel1*vel1_y) + p_y +
 print('u = ', u)
 print('laplace_x = ', laplace_x)
 print('laplace_y = ', laplace_y)
+print('vel0_x = ', vel0_x)
+print('vel0_y = ', vel0_y)
+print('vel1_x = ', vel1_x)
+print('vel1_y = ', vel1_y)
 print('g_CH = ', g_CH)
 print('g_NS_0 = ', g_NS_0)
 print('g_NS_1 = ', g_NS_1)
