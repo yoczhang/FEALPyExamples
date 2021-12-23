@@ -108,7 +108,7 @@ class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
         vel_grad_mat = [[grad_vel0_val[..., 0], grad_vel0_val[..., 1]],
                         [grad_vel1_val[..., 0], grad_vel1_val[..., 1]]]
         rho_n_axis = rho_n[..., np.newaxis]
-        G_VC = (-nolinear_val + (1. / rho0 - 1. / rho_n_axis) * grad_ph_val
+        G_VC = (-nolinear_val + (1. / rho_min - 1. / rho_n_axis) * grad_ph_val
                 + 1. / rho_n_axis * self.vec_div_mat((nu0 - nu1) / 2. * grad_uh_val, vel_stress_mat)
                 - 1. / rho_n_axis * np.array([CH_term_val0, CH_term_val1]).transpose((1, 2, 0))
                 - 1. / rho_n_axis * self.vec_div_mat([J_n0, J_n1], vel_grad_mat) + 1. / rho_n_axis * f_val_NS

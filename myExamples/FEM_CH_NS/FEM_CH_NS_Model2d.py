@@ -549,6 +549,10 @@ class FEM_CH_NS_Model2d:
         # for cell integration
         cell_int0 = 1 / self.dt * (np.einsum('i, ij, ijk, j->jk', self.c_ws, vel0_val, self.gphi_c[..., 0], self.cellmeasure)
                                    + np.einsum('i, ij, ijk, j->jk', self.c_ws, vel1_val, self.gphi_c[..., 1], self.cellmeasure))  # (NC,cldof)
+        # --- test ---
+        # velocity = 1./self.dt * np.array([vel0_val, vel1_val]).transpose((1, 2, 0))  # (NQ,NC,2)
+        # cell_int0_test = np.einsum('i, ijs, ijks, j->jk', self.c_ws, velocity, self.gphi_c, self.cellmeasure)
+        # --- test ---
         cell_int1 = -(np.einsum('i, ij, ijk, j->jk', self.c_ws, nolinear_val0, self.gphi_c[..., 0], self.cellmeasure)
                       + np.einsum('i, ij, ijk, j->jk', self.c_ws, nolinear_val1, self.gphi_c[..., 1], self.cellmeasure))  # (NC,cldof)
         cell_int2 = (np.einsum('i, ij, ijk, j->jk', self.c_ws, f_val_NS[..., 0], self.gphi_c[..., 0], self.cellmeasure)
