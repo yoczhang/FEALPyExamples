@@ -63,9 +63,9 @@ vel1_xx = diff(vel1_x, x)
 vel1_y = diff(vel1, y)
 vel1_yy = diff(vel1_y, y)
 
-vel_stress00 = vel0_x
-vel_stress01 = 0.5*(vel0_y + vel1_x)
-vel_stress10 = 0.5*(vel0_y + vel1_x)
+vel_stress00 = 2*vel0_x
+vel_stress01 = 2*0.5*(vel0_y + vel1_x)
+vel_stress10 = 2*0.5*(vel0_y + vel1_x)
 vel_stress11 = vel1_y
 
 p_x = diff(p, x)
