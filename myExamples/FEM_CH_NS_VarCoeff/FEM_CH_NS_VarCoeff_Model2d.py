@@ -103,8 +103,8 @@ class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
         J_n1 = J0 * (grad_y_laplace_uh + grad_free_energy_c[..., 1])  # (NQ,NC)
 
         # --- the auxiliary variable: G_VC
-        vel_stress_mat = [[2*grad_vel0_val[..., 0], 2*0.5 * (grad_vel0_val[..., 1] + grad_vel1_val[..., 0])],
-                          [2*0.5 * (grad_vel0_val[..., 1] + grad_vel1_val[..., 0]), 2*grad_vel1_val[..., 1]]]
+        vel_stress_mat = [[grad_vel0_val[..., 0], 0.5 * (grad_vel0_val[..., 1] + grad_vel1_val[..., 0])],
+                          [0.5 * (grad_vel0_val[..., 1] + grad_vel1_val[..., 0]), grad_vel1_val[..., 1]]]
         vel_grad_mat = [[grad_vel0_val[..., 0], grad_vel0_val[..., 1]],
                         [grad_vel1_val[..., 0], grad_vel1_val[..., 1]]]
         rho_n_axis = rho_n[..., np.newaxis]
