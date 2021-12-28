@@ -17,7 +17,6 @@ The fealpy-FEM program for Variable-Coefficient coupled Cahn-Hilliard-Navier-Sto
 import numpy as np
 import matplotlib.pyplot as plt
 from CH_NS_VarCoeff_Data import CH_NS_VarCoeff_truesolution
-# from FEM_CH_NS_Model2d import FEM_CH_NS_Model2d
 from FEM_CH_NS_VarCoeff_Model2d import FEM_CH_NS_VarCoeff_Model2d
 from fealpy.mesh import MeshFactory as MF
 from PrintLogger import make_print_to_file
@@ -83,10 +82,7 @@ for i in range(N_T):
         ch = FEM_CH_NS_VarCoeff_Model2d(pde, mesh, p, dt_space[i])
         uh_l2err, uh_h1err, vel_l2err, vel_h1err, ph_l2err = ch.CH_NS_Solver_T1stOrder()
     else:
-        pdePars = {'timeScheme': '2ndOrder'}
-        pde.setPDEParameters(pdePars)
-        ch = FEM_CH_NS_VarCoeff_Model2d(pde, mesh, p, dt_space[i])
-        uh_l2err, uh_h1err, vel_l2err, vel_h1err, ph_l2err = ch.CH_NS_Solver_T2ndOrder()
+        raise ValueError("There has no other time-scheme")
 
     Ndof[i] = ch.space.number_of_global_dofs()
     errorMatrix[0, i] = uh_l2err
