@@ -1,0 +1,176 @@
+
+# ------------ the initial parameters ------------ #
+p =  2
+t0 = 0.0000e+00
+dt_space =  [0.1     0.05    0.025   0.0125  0.00625]
+h_space =  [0.31622777 0.2236068  0.15811388 0.1118034  0.07905694]
+domain box =  [0, 1, 0, 1]
+# #
+
+# *********************************************************************** # 
+
+# ------------ in the time-mesh circle ------------ #
+i =  0
+# -------------------------------------------------- #
+run serial_construct_matrix with time: 0.9200514270000001
+run serial_construct_matrix with time: 0.1175050940000002
+run serial_construct_matrix with time: 2.261685279
+run serial_construct_matrix with time: 0.25192893000000005
+    # #################################### #
+      Time 1st-order scheme
+    # #################################### #
+    # ------------ parameters ------------ #
+    s = 2.5298e+01,  alpha = -4.0166e+02,  m = 1.0000e-03,  epsilon = 1.0000e-03,  eta = 1.0000e-01
+    t0 = 0.0000e+00,  T = 1.0000e+00, dt = 1.0000e-01
+ 
+    # ------------ begin the time-looping ------------ #
+    currt_t = 0.0000e+00
+    currt_t = 2.0000e-01
+    currt_t = 4.0000e-01
+    currt_t = 6.0000e-01
+    currt_t = 8.0000e-01
+    # ------------ end the time-looping ------------ #
+
+    # ------------ the last errors ------------ #
+    uh_l2err = 2.4322e-01, uh_h1err = 1.6279e+00
+    vel_l2err = 8.2367e-02, vel_h1err = 5.9674e-01, ph_l2err = 1.6695e-01
+
+# *********************************************************************** # 
+
+# ------------ in the time-mesh circle ------------ #
+i =  1
+# -------------------------------------------------- #
+run serial_construct_matrix with time: 0.8997196810000219
+run serial_construct_matrix with time: 0.09726799300000266
+run serial_construct_matrix with time: 2.1437243039999885
+run serial_construct_matrix with time: 0.2258238219999953
+    # #################################### #
+      Time 1st-order scheme
+    # #################################### #
+    # ------------ parameters ------------ #
+    s = 2.5298e+01,  alpha = -8.1695e+02,  m = 1.0000e-03,  epsilon = 1.0000e-03,  eta = 1.0000e-01
+    t0 = 0.0000e+00,  T = 1.0000e+00, dt = 5.0000e-02
+ 
+    # ------------ begin the time-looping ------------ #
+    currt_t = 0.0000e+00
+    currt_t = 2.0000e-01
+    currt_t = 4.0000e-01
+    currt_t = 6.0000e-01
+    currt_t = 8.0000e-01
+    # ------------ end the time-looping ------------ #
+
+    # ------------ the last errors ------------ #
+    uh_l2err = 1.3254e-01, uh_h1err = 9.1334e-01
+    vel_l2err = 6.1920e-02, vel_h1err = 4.4266e-01, ph_l2err = 1.0873e-01
+
+# *********************************************************************** # 
+
+# ------------ in the time-mesh circle ------------ #
+i =  2
+# -------------------------------------------------- #
+run serial_construct_matrix with time: 0.8765182420000883
+run serial_construct_matrix with time: 0.09597251899992898
+run serial_construct_matrix with time: 2.1276070549999986
+run serial_construct_matrix with time: 0.2176209630000585
+    # #################################### #
+      Time 1st-order scheme
+    # #################################### #
+    # ------------ parameters ------------ #
+    s = 2.5298e+01,  alpha = -1.6947e+03,  m = 1.0000e-03,  epsilon = 1.0000e-03,  eta = 1.0000e-01
+    t0 = 0.0000e+00,  T = 1.0000e+00, dt = 2.5000e-02
+ 
+    # ------------ begin the time-looping ------------ #
+    currt_t = 0.0000e+00
+    currt_t = 2.0000e-01
+    currt_t = 4.0000e-01
+    currt_t = 6.0000e-01
+    currt_t = 8.0000e-01
+    # ------------ end the time-looping ------------ #
+
+    # ------------ the last errors ------------ #
+    uh_l2err = 7.5837e-02, uh_h1err = 5.3097e-01
+    vel_l2err = 5.1691e-02, vel_h1err = 3.6336e-01, ph_l2err = 7.7708e-02
+
+# *********************************************************************** # 
+
+# ------------ in the time-mesh circle ------------ #
+i =  3
+# -------------------------------------------------- #
+run serial_construct_matrix with time: 0.8664287319998039
+run serial_construct_matrix with time: 0.09934357399970395
+run serial_construct_matrix with time: 2.1419632679999268
+run serial_construct_matrix with time: 0.2259378429998833
+    # #################################### #
+      Time 1st-order scheme
+    # #################################### #
+    # ------------ parameters ------------ #
+    s = 2.5298e+01,  alpha = -3.7048e+03,  m = 1.0000e-03,  epsilon = 1.0000e-03,  eta = 1.0000e-01
+    t0 = 0.0000e+00,  T = 1.0000e+00, dt = 1.2500e-02
+ 
+    # ------------ begin the time-looping ------------ #
+    currt_t = 0.0000e+00
+    currt_t = 2.0000e-01
+    currt_t = 4.0000e-01
+    currt_t = 6.0000e-01
+    currt_t = 8.0000e-01
+    # ------------ end the time-looping ------------ #
+
+    # ------------ the last errors ------------ #
+    uh_l2err = 4.7445e-02, uh_h1err = 3.3426e-01
+    vel_l2err = 4.6675e-02, vel_h1err = 3.2467e-01, ph_l2err = 6.2389e-02
+
+# *********************************************************************** # 
+
+# ------------ in the time-mesh circle ------------ #
+i =  4
+# -------------------------------------------------- #
+run serial_construct_matrix with time: 0.8708642450001207
+run serial_construct_matrix with time: 0.09651717100041424
+run serial_construct_matrix with time: 2.138864306999494
+run serial_construct_matrix with time: 0.21850093900047796
+    # #################################### #
+      Time 1st-order scheme
+    # #################################### #
+    # ------------ parameters ------------ #
+    s = 2.5298e+01,  alpha = -1.2649e+04,  m = 1.0000e-03,  epsilon = 1.0000e-03,  eta = 1.0000e-01
+    t0 = 0.0000e+00,  T = 1.0000e+00, dt = 6.2500e-03
+ 
+    # ------------ begin the time-looping ------------ #
+    currt_t = 0.0000e+00
+    currt_t = 2.0000e-01
+    currt_t = 4.0000e-01
+    currt_t = 6.0000e-01
+    currt_t = 8.0000e-01
+    # ------------ end the time-looping ------------ #
+
+    # ------------ the last errors ------------ #
+    uh_l2err = 3.3334e-02, uh_h1err = 2.3657e-01
+    vel_l2err = 4.4217e-02, vel_h1err = 3.0602e-01, ph_l2err = 5.4979e-02
+# ------------ the error-table ------------ #
+\begin{table}[!htdp]
+\begin{tabular}[c]{|c|c|c|c|c|c|}\hline
+dt & 0.1     & 0.05    & 0.025   & 0.0125  & 0.00625
+\\\hline
+$|| u - u_h||_0$ & 2.4322e-01 & 1.3254e-01 & 7.5837e-02 & 4.7445e-02 & 3.3334e-02
+\\\hline
+Order & -- & 0.88 & 0.81 & 0.68 & 0.51
+\\\hline
+$||\nabla u - \nabla u_h||_0$ & 1.6279e+00 & 9.1334e-01 & 5.3097e-01 & 3.3426e-01 & 2.3657e-01
+\\\hline
+Order & -- & 0.83 & 0.78 & 0.67 & 0.5 
+\\\hline
+$|| vel - vel_h||_0$ & 8.2367e-02 & 6.1920e-02 & 5.1691e-02 & 4.6675e-02 & 4.4217e-02
+\\\hline
+Order & -- & 0.41 & 0.26 & 0.15 & 0.08
+\\\hline
+$||\nabla vel - \nabla vel_h||_0$ & 5.9674e-01 & 4.4266e-01 & 3.6336e-01 & 3.2467e-01 & 3.0602e-01
+\\\hline
+Order & -- & 0.43 & 0.28 & 0.16 & 0.09
+\\\hline
+|| p - p_h ||_0 & 1.6695e-01 & 1.0873e-01 & 7.7708e-02 & 6.2389e-02 & 5.4979e-02
+\\\hline
+Order & -- & 0.62 & 0.48 & 0.32 & 0.18
+\\\hline
+\end{tabular}
+\end{table}
+# ------------ end of the file ------------ #
