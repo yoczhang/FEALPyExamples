@@ -48,7 +48,7 @@ h_space = dt_space ** (time_scheme/(p+0))
 
 pdePars = {'m': 1e-3, 's': 1, 'alpha': 1, 'epsilon': 1e-3, 'eta': 1e-1, 'dt_min': dt_min, 'timeScheme': '1stOrder'
            }  # value of parameters
-VarCoeff = {'rho0': 1e-0, 'rho1': 3e-0, 'nu0': 1e-2, 'nu1': 2e-2}
+VarCoeff = {'rho0': 1e-0, 'rho1': 3e-0, 'nu0': 1e-2/2, 'nu1': 2e-2/2}
 pde = CH_NS_VarCoeff_truesolution(t0, T)  # create pde model
 pde.setPDEParameters(pdePars)
 pde.setPDEParameters(VarCoeff)
