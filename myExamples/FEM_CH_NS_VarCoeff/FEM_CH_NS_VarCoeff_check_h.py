@@ -91,7 +91,7 @@ for i in range(N_T):
 
 # --- get the convergence rate --- #
 print('# ------------ the error-table ------------ #')
-show_error_table(dt_space, errorType, errorMatrix, table_scheme='dt')
+show_error_table(Ndof, errorType, errorMatrix, table_scheme='h')
 
 # # plot the rate
 # showmultirate(plt, 0, Ndof, errorMatrix, errorType)
