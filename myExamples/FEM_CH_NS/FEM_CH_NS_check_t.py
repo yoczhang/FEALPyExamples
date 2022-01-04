@@ -72,7 +72,7 @@ for i in range(N_T):
     print('# ------------ in the time-mesh circle ------------ #')
     print('i = ', i)
     print('# -------------------------------------------------- #')
-    # NN = int(1./h_space[i]) + 1
+    # NN = int((box[1] - box[0])/h_space[i])  # TODO: NN = int(1./h_space[i]) + 1 ??
     NN = 128
     mesh = MF.boxmesh2d(box, nx=NN, ny=NN, meshtype='tri')
     if time_scheme == 1:

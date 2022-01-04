@@ -74,7 +74,7 @@ for i in range(N_T):
     print('# ------------ in the time-mesh circle ------------ #')
     print('i = ', i)
     print('# -------------------------------------------------- #')
-    NN = int(1./h_space[i])
+    NN = int((box[1] - box[0])/h_space[i])
     mesh = MF.boxmesh2d(box, nx=NN, ny=NN, meshtype='tri')
     if time_scheme == 1:
         ch = FEM_CH_NS_VarCoeff_Model2d(pde, mesh, p, dt_space)
