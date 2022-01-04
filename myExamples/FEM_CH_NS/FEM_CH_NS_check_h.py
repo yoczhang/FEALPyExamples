@@ -82,7 +82,7 @@ for i in range(N_T):
         ch = FEM_CH_NS_Model2d(pde, mesh, p, dt_space)
         uh_l2err, uh_h1err, vel_l2err, vel_h1err, ph_l2err = ch.CH_NS_Solver_T2ndOrder()
 
-    Ndof[i] = ch.space.number_of_global_dofs()
+    Ndof[i] = ch.number_of_global_dofs()
     errorMatrix[0, i] = uh_l2err
     errorMatrix[1, i] = uh_h1err
     errorMatrix[2, i] = vel_l2err

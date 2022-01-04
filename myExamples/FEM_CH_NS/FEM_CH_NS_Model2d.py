@@ -96,6 +96,15 @@ class FEM_CH_NS_Model2d:
         self.gphi_f = self.space.edge_grad_basis(self.f_bcs, self.DirCellIdx_NS, self.DirLocalIdx_NS)  # (NDir,NQ,cldof,GD)
         self.gphi_c = self.space.grad_basis(self.c_bcs)  # (NQ,NC,cldof,GD)
 
+    def number_of_global_dofs(self):
+        """
+        1. uh and ph have the same space.
+        2. velocity has two components in 2D.
+        :return: the all variables' dofs
+        """
+        val = 2 * self.space.number_of_global_dofs() + 2 * self.vspace.number_of_global_dofs()
+        return val
+
     def set_CH_Coeff(self, dt_minimum=None):
         pde = self.pde
         dt_min = self.dt if dt_minimum is None else dt_minimum
