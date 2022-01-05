@@ -17,6 +17,8 @@ import numpy as np
 t, x, y, pi = symbols('t x y pi')
 epsilon, eta, m = symbols('epsilon eta m')
 rho0, rho1, nu0, nu1 = symbols('rho0 rho1 nu0 nu1')
+stressC = symbols('stressC')
+
 
 # # ------------------- ex0 ------------------- # #
 # # the CH equation:
@@ -63,10 +65,10 @@ vel1_xx = diff(vel1_x, x)
 vel1_y = diff(vel1, y)
 vel1_yy = diff(vel1_y, y)
 
-vel_stress00 = 2*vel0_x
-vel_stress01 = 2*0.5*(vel0_y + vel1_x)
-vel_stress10 = 2*0.5*(vel0_y + vel1_x)
-vel_stress11 = 2*vel1_y
+vel_stress00 = stressC*vel0_x
+vel_stress01 = stressC*0.5*(vel0_y + vel1_x)
+vel_stress10 = stressC*0.5*(vel0_y + vel1_x)
+vel_stress11 = stressC*vel1_y
 
 p_x = diff(p, x)
 p_y = diff(p, y)

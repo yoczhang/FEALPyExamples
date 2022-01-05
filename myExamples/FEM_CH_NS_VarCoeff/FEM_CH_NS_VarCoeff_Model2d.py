@@ -27,6 +27,7 @@ from FEM_CH_NS_Model2d import FEM_CH_NS_Model2d
 class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
     def __init__(self, pde, mesh, p, dt):
         super(FEM_CH_NS_VarCoeff_Model2d, self).__init__(pde, mesh, p, dt)
+        self.stressC = 1.
 
     def decoupled_NS_Solver_T1stOrder(self, vel0, vel1, ph, uh, next_t):
         """
@@ -74,7 +75,7 @@ class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
         # nolinear_val1 = nolinear_val[..., 1]  # (NQ,NC)
 
         velDir_val = self.pde.dirichlet_NS(self.f_pp_Dir_NS, next_t)  # (NQ,NDir,GD)
-        f_val_NS = self.pde.source_NS(self.c_pp, next_t, self.pde.epsilon, self.pde.eta, m, rho0, rho1, nu0, nu1)  # (NQ,NC,GD)
+        f_val_NS = self.pde.source_NS(self.c_pp, next_t, self.pde.epsilon, self.pde.eta, m, rho0, rho1, nu0, nu1, self.stressC)  # (NQ,NC,GD)
         # Neumann_0 = self.pde.neumann_0_NS(self.f_pp_Neu_NS, next_t, self.nNeu_NS)  # (NQ,NE)
         # Neumann_1 = self.pde.neumann_1_NS(self.f_pp_Neu_NS, next_t, self.nNeu_NS)  # (NQ,NE)
 
@@ -103,8 +104,9 @@ class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
         J_n1 = J0 * (grad_y_laplace_uh + grad_free_energy_c[..., 1])  # (NQ,NC)
 
         # --- the auxiliary variable: G_VC
-        vel_stress_mat = [[2*grad_vel0_val[..., 0], 2*0.5 * (grad_vel0_val[..., 1] + grad_vel1_val[..., 0])],
-                          [2*0.5 * (grad_vel0_val[..., 1] + grad_vel1_val[..., 0]), 2*grad_vel1_val[..., 1]]]
+        stressC = self.stressC
+        vel_stress_mat = [[stressC*grad_vel0_val[..., 0], stressC*0.5 * (grad_vel0_val[..., 1] + grad_vel1_val[..., 0])],
+                          [stressC*0.5 * (grad_vel0_val[..., 1] + grad_vel1_val[..., 0]), stressC*grad_vel1_val[..., 1]]]
         vel_grad_mat = [[grad_vel0_val[..., 0], grad_vel0_val[..., 1]],
                         [grad_vel1_val[..., 0], grad_vel1_val[..., 1]]]
         rho_n_axis = rho_n[..., np.newaxis]
