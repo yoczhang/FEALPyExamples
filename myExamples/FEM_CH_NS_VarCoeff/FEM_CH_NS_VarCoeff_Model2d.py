@@ -27,7 +27,7 @@ from FEM_CH_NS_Model2d import FEM_CH_NS_Model2d
 class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
     def __init__(self, pde, mesh, p, dt):
         super(FEM_CH_NS_VarCoeff_Model2d, self).__init__(pde, mesh, p, dt)
-        self.stressC = 1.
+        self.stressC = 2.
 
     def decoupled_NS_Solver_T1stOrder(self, vel0, vel1, ph, uh, next_t):
         """
