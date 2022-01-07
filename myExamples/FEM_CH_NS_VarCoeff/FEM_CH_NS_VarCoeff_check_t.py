@@ -24,7 +24,7 @@ from PrintLogger import make_print_to_file
 from to_show import show_error_table
 
 # --- logging --- #
-make_print_to_file(filename='FEM_CH_NS_VarCoeff_check_t_stressC=2', setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
+make_print_to_file(filename='FEM_CH_NS_VarCoeff_check_t_stressC=1', setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
 
 # --- begin setting --- #
 d = 2  # the dimension
@@ -33,7 +33,7 @@ n = 2  # the number of refine mesh
 maxit = 5  # the max iteration of the mesh
 
 t0 = 0.
-T = 1
+T = 0.5
 box = [0, 1, 0, 1]
 # mesh = MF.boxmesh2d(box, nx=NN, ny=NN, meshtype='tri')
 
