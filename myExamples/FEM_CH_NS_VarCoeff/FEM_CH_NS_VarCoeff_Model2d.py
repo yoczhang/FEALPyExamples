@@ -27,7 +27,7 @@ from FEM_CH_NS_Model2d import FEM_CH_NS_Model2d
 class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
     def __init__(self, pde, mesh, p, dt):
         super(FEM_CH_NS_VarCoeff_Model2d, self).__init__(pde, mesh, p, dt)
-        self.stressC = 2.
+        self.stressC = 3.
 
     def decoupled_NS_Solver_T1stOrder(self, vel0, vel1, ph, uh, next_t):
         """
@@ -115,6 +115,36 @@ class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
                 - 1. / rho_n_axis * np.array([CH_term_val0, CH_term_val1]).transpose((1, 2, 0))
                 - 1. / rho_n_axis * self.vec_div_mat([J_n0, J_n1], vel_grad_mat) + 1. / rho_n_axis * f_val_NS
                 + 1./self.dt * np.array([vel0_val, vel1_val]).transpose((1, 2, 0)))  # (NQ,NC,2)
+
+        # # >>>>>>> test1 >>>>>>>
+        # tt0 = self.vec_div_mat((nu0 - nu1) / 2. * grad_uh_val, vel_stress_mat)
+        #
+        # stressC_1 = 1.
+        # vel_stress_mat_1 = [
+        #     [stressC_1 * grad_vel0_val[..., 0], stressC_1 * 0.5 * (grad_vel0_val[..., 1] + grad_vel1_val[..., 0])],
+        #     [stressC_1 * 0.5 * (grad_vel0_val[..., 1] + grad_vel1_val[..., 0]), stressC_1 * grad_vel1_val[..., 1]]]
+        # tt1 = 2.*self.vec_div_mat((nu0 - nu1) / 2. * grad_uh_val, vel_stress_mat_1)
+        # # <<<<<<< test1 <<<<<<<
+
+        # # >>>>>>> test2 >>>>>>>
+        stressC_1 = 1.
+        nu0 = 2.*nu0
+        nu1 = 2.*nu1
+        f_val_NS_1 = self.pde.source_NS(self.c_pp, next_t, self.pde.epsilon, self.pde.eta, m, rho0, rho1, nu0, nu1, stressC_1)  # (NQ,NC,GD)
+        vel_stress_mat_1 = [
+            [stressC_1 * grad_vel0_val[..., 0], stressC_1 * 0.5 * (grad_vel0_val[..., 1] + grad_vel1_val[..., 0])],
+            [stressC_1 * 0.5 * (grad_vel0_val[..., 1] + grad_vel1_val[..., 0]), stressC_1 * grad_vel1_val[..., 1]]]
+        G_VC_1 = (-nolinear_val + (1. / rho_min - 1. / rho_n_axis) * grad_ph_val
+                  + 1. / rho_n_axis * self.vec_div_mat((nu0 - nu1) / 2. * grad_uh_val, vel_stress_mat_1)
+                  - 1. / rho_n_axis * np.array([CH_term_val0, CH_term_val1]).transpose((1, 2, 0))
+                  - 1. / rho_n_axis * self.vec_div_mat([J_n0, J_n1], vel_grad_mat) + 1. / rho_n_axis * f_val_NS_1
+                  + 1. / self.dt * np.array([vel0_val, vel1_val]).transpose((1, 2, 0)))  # (NQ,NC,2)
+
+        if np.allclose(G_VC_1, G_VC):
+            print('G_VC_1 == G_VC\n')
+        else:
+            raise ValueError("G_VC_1 != G_VC")
+        # # <<<<<<< test2 <<<<<<<
 
         eta_n = nu_n / rho_n  # (NQ,NC)
         eta_n_f = nu_n_f / rho_n_f  # (NQ,NDir)

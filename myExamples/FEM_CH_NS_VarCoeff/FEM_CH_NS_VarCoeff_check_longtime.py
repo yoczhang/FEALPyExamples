@@ -10,7 +10,6 @@
 # @Time: Dec 28, 2021
 # ---
 
-
 __doc__ = """
 The fealpy-FEM program for Variable-Coefficient coupled Cahn-Hilliard-Navier-Stokes equation.
 """
