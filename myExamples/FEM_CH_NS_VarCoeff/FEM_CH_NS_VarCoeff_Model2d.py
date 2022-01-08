@@ -27,10 +27,11 @@ from FEM_CH_NS_Model2d import FEM_CH_NS_Model2d
 class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
     def __init__(self, pde, mesh, p, dt):
         super(FEM_CH_NS_VarCoeff_Model2d, self).__init__(pde, mesh, p, dt)
-        self.stressC = 0.5
+        self.stressC = 1.
         # # stressC may take 1 or 1/2
-        # # 1 means velocity-stress=(\nabla u)+(\nabla u)^T
-        # # 1/2 means velocity-stress=0.5*(\nabla u + (\nabla u)^T)
+        # # --- 1 means velocity-stress=(\nabla u)+(\nabla u)^T
+        # # --- 1/2 means velocity-stress=0.5*(\nabla u + (\nabla u)^T)
+        # # For safety, we should take stressC = 1 !!!
 
     def decoupled_NS_Solver_T1stOrder(self, vel0, vel1, ph, uh, next_t):
         """
@@ -41,6 +42,9 @@ class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
         :param uh: The n-th(time) value of the solution of Cahn-Hilliard equation.
         :param next_t: The next-time.
         :return: Updated vel0, vel1, ph.
+
+        注意:
+        该程序的数值格式本来就是按照 $D(u)=\nabla u + \nabla u^T$ 来写的, 所以为了确保程序的一致性, 应尽量避免使用 'self.stressC=0.5'.
         """
 
         pde = self.pde
@@ -168,7 +172,7 @@ class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
         grad_ph = self.space.grad_value(ph, self.c_bcs)  # (NQ,NC,2)
 
         # # the Velocity-Left-Matrix
-        vlm0 = 1 / self.dt * self.vel_MM + eta_max * self.vel_SM
+        vlm0 = 1 / self.dt * self.vel_MM + stressC * eta_max * self.vel_SM
         vlm1 = vlm0.copy()
 
         # # to get the u's Right-hand Vector
