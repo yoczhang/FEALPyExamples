@@ -15,7 +15,8 @@ The fealpy-FEM program for coupled Cahn-Hilliard-Navier-Stokes equation.
 
 import numpy as np
 import matplotlib.pyplot as plt
-from CH_NS_Data import CH_NS_Data_truesolution1
+from CH_NS_Data import CH_NS_Data_truesolution
+# from CH_NS_Data import CH_NS_Data_truesolution1
 from FEM_CH_NS_Model2d import FEM_CH_NS_Model2d
 from fealpy.mesh import MeshFactory as MF
 from PrintLogger import make_print_to_file
@@ -47,7 +48,7 @@ h_space = dt_space ** (time_scheme/(p+0))
 
 pdePars = {'m': 1e-3, 's': 1, 'alpha': 1, 'epsilon': 1e-3, 'eta': 1e-1, 'dt_min': dt_min, 'timeScheme': '1stOrder',
            'nu': 1.0e-2}  # value of parameters
-pde = CH_NS_Data_truesolution1(t0, T)  # create pde model
+pde = CH_NS_Data_truesolution(t0, T)  # create pde model
 pde.setPDEParameters(pdePars)
 
 # # print some basic info

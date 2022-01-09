@@ -55,11 +55,12 @@ class FEM_CH_NS_Model2d:
         self.vface2dof = self.vdof.face_to_dof()  # (NE,vfldof)
         self.vcell2dof = self.vdof.cell_to_dof()  # (NC,vcldof)
         self.bdIndx = self.mesh.ds.boundary_face_index()  # all the boundary edge index
-        self.bdEdgeMeasure = self.mesh.entity_measure('face', index=self.bdIndx)  # (Nneu,)
+        self.bdEdgeMeasure = self.mesh.entity_measure('face', index=self.bdIndx)  # (NBE,)
+        self.nbdEdge = self.mesh.face_unit_normal(index=self.bdIndx)  # (NBE,2)
 
         # # --- Cahn-Hilliard boundary settings
         self.NeuEdgeIdx_CH = self.set_CH_Neumann_edge()
-        self.nNeu_CH = self.mesh.face_unit_normal(index=self.NeuEdgeIdx_CH)  # (NBE,2)
+        self.nNeu_CH = self.mesh.face_unit_normal(index=self.NeuEdgeIdx_CH)  # (Nneu,2)
         self.NeuCellIdx_CH = self.mesh.ds.edge2cell[self.NeuEdgeIdx_CH, 0]
         self.NeuLocalIdx_CH = self.mesh.ds.edge2cell[self.NeuEdgeIdx_CH, 2]
         self.NeuEdgeMeasure_CH = self.mesh.entity_measure('face', index=self.NeuEdgeIdx_CH)  # (Nneu,)
@@ -202,6 +203,7 @@ class FEM_CH_NS_Model2d:
 
         # # time-looping
         print('    # ------------ begin the time-looping ------------ #')
+        uh_last = uh.copy()
         for nt in range(NT - 1):
             currt_t = timemesh[nt]
             next_t = currt_t + dt
@@ -212,7 +214,8 @@ class FEM_CH_NS_Model2d:
             self.decoupled_CH_Solver_T1stOrder(uh, wh, vel0, vel1, next_t)
             # print('        -----------------------------------------------')
             # print('        |___ decoupled Navier-Stokes Solver(Time-1st-order): ')
-            self.decoupled_NS_Solver_T1stOrder(vel0, vel1, ph, uh_currt, next_t)
+            self.decoupled_NS_Solver_T1stOrder(vel0, vel1, ph, uh_currt, uh_last, next_t)
+            uh_last[:] = uh_currt[:]
             # print('    end of one-looping')
 
             if nt % max([int(NT / 5), 1]) == 0:
@@ -355,9 +358,9 @@ class FEM_CH_NS_Model2d:
         aux_rv = np.zeros((self.dof.number_of_global_dofs(),), dtype=self.ftype)  # (Ndof,)
 
         # # aux_rhs_c_0:  -1. / (epsilon * m * dt) * (uh^n,phi)_\Omega
-        aux_rhs_c_0 = -1. / (self.pde.epsilon * self.pde.m) * \
-                      (1 / self.dt * np.einsum('i, ij, ijk, j->jk', self.c_ws, uh_val, self.phi_c, self.cellmeasure)
-                       + np.einsum('i, ij, ijk, j->jk', self.c_ws, f_val_CH, self.phi_c, self.cellmeasure))  # (NC,cldof)
+        aux_rhs_c_0 = (-1. / (self.pde.epsilon * self.pde.m) *
+                       (1 / self.dt * np.einsum('i, ij, ijk, j->jk', self.c_ws, uh_val, self.phi_c, self.cellmeasure)
+                        + np.einsum('i, ij, ijk, j->jk', self.c_ws, f_val_CH, self.phi_c, self.cellmeasure)))  # (NC,cldof)
 
         # # aux_rhs_c_1: -s / epsilon * (\nabla uh^n, \nabla phi)_\Omega
         aux_rhs_c_1 = -self.s / self.pde.epsilon * (
@@ -370,8 +373,8 @@ class FEM_CH_NS_Model2d:
                 + np.einsum('i, ij, ijk, j->jk', self.c_ws, grad_free_energy_c[..., 1], self.gphi_c[..., 1], self.cellmeasure))  # (NC,cldof)
 
         # # aux_rhs_f_0: (\nabla wh^{n+1}\cdot n, phi)_\Gamma, wh is the solution of auxiliary equation
-        aux_rhs_f_0 = self.alpha * np.einsum('i, ij, ijn, j->jn', self.f_ws, Neumann, self.phi_f, self.NeuEdgeMeasure_CH)\
-                      + np.einsum('i, ij, ijn, j->jn', self.f_ws, LaplaceNeumann, self.phi_f, self.NeuEdgeMeasure_CH)  # (Nneu,fldof)
+        aux_rhs_f_0 = np.einsum('i, ij, ijn, j->jn', self.f_ws, self.alpha * Neumann + LaplaceNeumann,
+                                self.phi_f, self.NeuEdgeMeasure_CH)  # (Nneu,fldof)
 
         # # aux_rhs_f_1: s / epsilon * (\nabla uh^n \cdot n, phi)_\Gamma
         aux_rhs_f_1 = self.s / self.pde.epsilon * np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, guh_val_f, self.nNeu_CH,
@@ -395,7 +398,7 @@ class FEM_CH_NS_Model2d:
                       (np.einsum('i, ij, ijk, j->jk', self.c_ws, uh_val * vel0_val_c, self.gphi_c[..., 0], self.cellmeasure)
                        + np.einsum('i, ij, ijk, j->jk', self.c_ws, uh_val * vel1_val_c, self.gphi_c[..., 1], self.cellmeasure))  # (NC,cldof)
         aux_rhs_f_3 = 1. / (self.pde.epsilon * self.pde.m) * \
-                      np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, uh_vel_val_f, self.nNeu_CH, self.phi_f, self.bdEdgeMeasure)  # (Nneu,fldof)
+                      np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, uh_vel_val_f, self.nbdEdge, self.phi_f, self.bdEdgeMeasure)  # (NBE,fldof)
 
         # # --- assemble the CH's aux equation
         np.add.at(aux_rv, self.cell2dof, aux_rhs_c_0 + aux_rhs_c_1 + aux_rhs_c_2 + aux_rhs_c_3)
@@ -516,13 +519,14 @@ class FEM_CH_NS_Model2d:
         np.add.at(orig_rv, self.face2dof[self.NeuEdgeIdx_CH, :], orig_rhs_f)
         uh[:] = spsolve(self.StiffMatrix - self.alpha * self.MassMatrix, orig_rv)
 
-    def decoupled_NS_Solver_T1stOrder(self, vel0, vel1, ph, uh, next_t):
+    def decoupled_NS_Solver_T1stOrder(self, vel0, vel1, ph, uh, uh_last, next_t):
         """
         The decoupled-Navier-Stokes-solver for the all system.
         :param vel0: The fist-component of velocity: stored the n-th(time) value, and to update the (n+1)-th value.
         :param vel1: The second-component of velocity: stored the n-th(time) value, and to update the (n+1)-th value.
         :param ph: The pressure: stored the n-th(time) value, and to update the (n+1)-th value.
         :param uh: The n-th(time) value of the solution of Cahn-Hilliard equation.
+        :param uh_last: The (n-1)-th(time) value of the solution of Cahn-Hilliard equation.
         :param next_t: The next-time.
         :return: Updated vel0, vel1, ph.
         """
@@ -569,7 +573,7 @@ class FEM_CH_NS_Model2d:
 
         # # --- now, we add the CH term
         uh_val = self.space.value(uh, self.c_bcs)  # (NQ,NC)
-        grad_free_energy_c = self.pde.epsilon / self.pde.eta ** 2 * self.grad_free_energy_at_cells(uh, self.c_bcs)  # (NQ,NC,2)
+        grad_free_energy_c = self.pde.epsilon / self.pde.eta ** 2 * self.grad_free_energy_at_cells(uh_last, self.c_bcs)  # (NQ,NC,2)
         if self.p < 3:
             CH_term_val0 = uh_val * grad_free_energy_c[..., 0]  # (NQ,NC)
             CH_term_val1 = uh_val * grad_free_energy_c[..., 1]  # (NQ,NC)

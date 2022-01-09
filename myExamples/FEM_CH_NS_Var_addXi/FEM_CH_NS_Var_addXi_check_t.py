@@ -89,5 +89,35 @@ if hasattr(pde, 'box'):
     box = pde.box
     print('PDE has new domain box = ', box)
 
+for i in range(N_T):
+    print('\n# *********************************************************************** # \n')
+    print('# ------------ in the time-mesh circle ------------ #')
+    print('i = ', i)
+    print('# -------------------------------------------------- #')
+    # NN = int(1./h_space[i]) + 1
+    NN = 32
+    mesh = MF.boxmesh2d(box, nx=NN, ny=NN, meshtype='tri')
+    if time_scheme == 1:
+        ch = FEM_CH_NS_VarCoeff_Model2d(pde, mesh, p, dt_space[i])
+        uh_l2err, uh_h1err, vel_l2err, vel_h1err, ph_l2err = ch.CH_NS_Solver_T1stOrder()
+    else:
+        raise ValueError("There has no other time-scheme")
+
+    Ndof[i] = ch.number_of_global_dofs()
+    errorMatrix[0, i] = uh_l2err
+    errorMatrix[1, i] = uh_h1err
+    errorMatrix[2, i] = vel_l2err
+    errorMatrix[3, i] = vel_h1err
+    errorMatrix[4, i] = ph_l2err
+
+# --- get the convergence rate --- #
+print('# ------------ the error-table ------------ #')
+show_error_table(dt_space, errorType, errorMatrix, table_scheme='dt')
+
+# # plot the rate
+# showmultirate(plt, 0, Ndof, errorMatrix, errorType)
+# plt.show()
+
+print('# ------------ end of the file ------------ #')
 
 

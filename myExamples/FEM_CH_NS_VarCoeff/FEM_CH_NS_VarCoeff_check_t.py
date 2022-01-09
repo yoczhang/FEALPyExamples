@@ -54,12 +54,14 @@ pde.setPDEParameters(pdePars)
 pde.setPDEParameters(VarCoeff)
 
 # # print some basic info
-print('\n# ------------ the initial parameters ------------ #')
+print('\n# ------------ in FEM_CH_NS_Var_addXi_check_t code ------------ #')
+print('# ------------ the initial parameters ------------ #')
 print('p = ', p)
-print('t0 = %.4e' % t0)
+print('t0 = %.4e,  T = %.4e' % (t0, T))
 print('dt_space = ', dt_space)
-print('h_space = ', h_space)
 print('domain box = ', box)
+print('rho0 = %.4e,  rho1 = %.4e' % (VarCoeff['rho0'], VarCoeff['rho1']))
+print('nu0 = %.4e,  nu1 = %.4e, ' % (VarCoeff['nu0'], VarCoeff['nu1']))
 print('# #')
 
 # # --- error settings
@@ -69,7 +71,10 @@ errorMatrix = np.zeros((len(errorType), N_T), dtype=np.float)
 Ndof = np.zeros(N_T, dtype=np.int)  # the array to store the number of dofs
 
 # --- start for-loop --- #
-box = pde.box if hasattr(pde, 'box') else box
+if hasattr(pde, 'box'):
+    box = pde.box
+    print('PDE has new domain box = ', box)
+
 for i in range(N_T):
     print('\n# *********************************************************************** # \n')
     print('# ------------ in the time-mesh circle ------------ #')

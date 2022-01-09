@@ -33,18 +33,22 @@ class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
         # # --- 1/2 means velocity-stress=0.5*(\nabla u + (\nabla u)^T)
         # # For safety, we should take stressC = 1 !!!
 
-    def decoupled_NS_Solver_T1stOrder(self, vel0, vel1, ph, uh, next_t):
+    def decoupled_NS_Solver_T1stOrder(self, vel0, vel1, ph, uh, uh_last, next_t):
         """
         The decoupled-Navier-Stokes-solver for the all system.
         :param vel0: The fist-component of velocity: stored the n-th(time) value, and to update the (n+1)-th value.
         :param vel1: The second-component of velocity: stored the n-th(time) value, and to update the (n+1)-th value.
         :param ph: The pressure: stored the n-th(time) value, and to update the (n+1)-th value.
         :param uh: The n-th(time) value of the solution of Cahn-Hilliard equation.
+        :param uh_last: The (n-1)-th(time) value of the solution of Cahn-Hilliard equation.
         :param next_t: The next-time.
         :return: Updated vel0, vel1, ph.
 
         注意:
-        该程序的数值格式本来就是按照 $D(u)=\nabla u + \nabla u^T$ 来写的, 所以为了确保程序的一致性, 应尽量避免使用 'self.stressC=0.5'.
+        本程序所参考的数值格式是按照 $D(u)=\nabla u + \nabla u^T$ 来写的,
+        如果要调整为 $D(u)=(\nabla u + \nabla u^T)/2$, 需要调整的地方太多了,
+        所以为了保证和数值格式的一致性, 应 `尽量避免` 使用 'self.stressC=0.5',
+        以保持程序也是严格按照 $D(u)=\nabla u + \nabla u^T$ 的形式给出.
         """
 
         pde = self.pde
@@ -87,7 +91,7 @@ class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
         # Neumann_1 = self.pde.neumann_1_NS(self.f_pp_Neu_NS, next_t, self.nNeu_NS)  # (NQ,NE)
 
         # --- the CH_term: uh_val * (-epsilon*\nabla\Delta uh_val + \nabla free_energy)
-        grad_free_energy_c = self.pde.epsilon / self.pde.eta ** 2 * self.grad_free_energy_at_cells(uh, self.c_bcs)  # (NQ,NC,2)
+        grad_free_energy_c = self.pde.epsilon / self.pde.eta ** 2 * self.grad_free_energy_at_cells(uh_last, self.c_bcs)  # (NQ,NC,2)
         if self.p < 3:
             grad_x_laplace_uh = np.zeros(grad_free_energy_c[..., 0].shape)
             grad_y_laplace_uh = np.zeros(grad_free_energy_c[..., 0].shape)
