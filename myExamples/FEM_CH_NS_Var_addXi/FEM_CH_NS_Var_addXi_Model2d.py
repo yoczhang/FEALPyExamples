@@ -208,3 +208,129 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         uh_part1 = spsolve(self.StiffMatrix - self.alpha * self.MassMatrix, orig_rv_part1)
 
         return uh_part0, uh_part1, wh_part0, wh_part1
+
+    def decoupled_NS_addXi_Solver_T1stOrder(self, vel0, vel1, ph, uh, uh_last, next_t):
+        """
+        The decoupled-Navier-Stokes-solver for the all system.
+        :param vel0: The fist-component of velocity: stored the n-th(time) value, and to update the (n+1)-th value.
+        :param vel1: The second-component of velocity: stored the n-th(time) value, and to update the (n+1)-th value.
+        :param ph: The pressure: stored the n-th(time) value, and to update the (n+1)-th value.
+        :param uh: The n-th(time) value of the solution of Cahn-Hilliard equation.
+        :param uh_last: The (n-1)-th(time) value of the solution of Cahn-Hilliard equation.
+        :param next_t: The next-time.
+        :return: Updated vel0, vel1, ph.
+
+        注意:
+            本程序所参考的数值格式是按照 $D(u)=\nabla u + \nabla u^T$ 来写的,
+            如果要调整为 $D(u)=(\nabla u + \nabla u^T)/2$, 需要调整的地方太多了,
+            所以为了保证和数值格式的一致性, 本程序也是严格按照 $D(u)=\nabla u + \nabla u^T$ 来编写的.
+        """
+
+        pde = self.pde
+        # # variable coefficients settings
+        m = pde.m
+        rho0 = pde.rho0
+        rho1 = pde.rho1
+        nu0 = pde.nu0
+        nu1 = pde.nu1
+
+        rho_min = min(rho0, rho1)
+        eta_max = max(nu0 / rho0, nu1 / rho1)
+        J0 = -1. / 2 * (rho0 - rho1) * m
+
+        nDir_NS = self.nDir_NS  # (NDir,GD), here, the GD is 2
+
+        # # the pre-settings
+        grad_vel0_f = self.uh_grad_value_at_faces(vel0, self.f_bcs, self.DirCellIdx_NS, self.DirLocalIdx_NS,
+                                                  space=self.vspace)  # grad_vel0: (NQ,NDir,GD)
+        grad_vel1_f = self.uh_grad_value_at_faces(vel1, self.f_bcs, self.DirCellIdx_NS, self.DirLocalIdx_NS,
+                                                  space=self.vspace)  # grad_vel1: (NQ,NDir,GD)
+
+        # for cell-integration
+        grad_ph_val = self.space.grad_value(ph, self.c_bcs)  # (NQ,NC,GD)
+        uh_val = self.space.value(uh, self.c_bcs)  # (NQ,NC)
+        uh_val_f = self.space.value(uh, self.f_bcs)[..., self.DirCellIdx_NS]  # (NQ,NDir)
+        grad_uh_val = self.space.grad_value(uh, self.c_bcs)  # (NQ,NC,GD)
+        vel0_val = self.vspace.value(vel0, self.c_bcs)  # (NQ,NC)
+        vel1_val = self.vspace.value(vel1, self.c_bcs)  # (NQ,NC)
+        grad_vel0_val = self.vspace.grad_value(vel0, self.c_bcs)  # (NQ,NC,GD)
+        grad_vel1_val = self.vspace.grad_value(vel1, self.c_bcs)  # (NQ,NC,GD)
+
+        nolinear_val = self.NSNolinearTerm(vel0, vel1, self.c_bcs)  # nolinear_val.shape: (NQ,NC,GD)
+        # nolinear_val0 = nolinear_val[..., 0]  # (NQ,NC)
+        # nolinear_val1 = nolinear_val[..., 1]  # (NQ,NC)
+
+        velDir_val = self.pde.dirichlet_NS(self.f_pp_Dir_NS, next_t)  # (NQ,NDir,GD)
+        f_val_NS = self.pde.source_NS(self.c_pp, next_t, self.pde.epsilon, self.pde.eta, m, rho0, rho1, nu0, nu1,
+                                      1.0)  # (NQ,NC,GD)
+        # Neumann_0 = self.pde.neumann_0_NS(self.f_pp_Neu_NS, next_t, self.nNeu_NS)  # (NQ,NE)
+        # Neumann_1 = self.pde.neumann_1_NS(self.f_pp_Neu_NS, next_t, self.nNeu_NS)  # (NQ,NE)
+
+        # --- the CH_term: uh_val * (-epsilon*\nabla\Delta uh_val + \nabla free_energy)
+        grad_free_energy_c = self.pde.epsilon / self.pde.eta ** 2 * self.grad_free_energy_at_cells(uh_last, self.c_bcs)  # (NQ,NC,2)
+        if self.p < 3:
+            grad_x_laplace_uh = np.zeros(grad_free_energy_c[..., 0].shape)
+            grad_y_laplace_uh = np.zeros(grad_free_energy_c[..., 0].shape)
+            CH_term_val0 = uh_val * grad_free_energy_c[..., 0]  # (NQ,NC)
+            CH_term_val1 = uh_val * grad_free_energy_c[..., 1]  # (NQ,NC)
+        elif self.p == 3:
+            phi_xxx, phi_yyy, phi_yxx, phi_xyy = self.cb.get_highorder_diff(self.c_bcs, order='3rd-order')  # (NQ,NC,ldof)
+            grad_x_laplace_uh = -self.pde.epsilon * np.einsum('ijk, jk->ij', phi_xxx + phi_xyy, uh[self.cell2dof])  # (NQ,NC)
+            grad_y_laplace_uh = -self.pde.epsilon * np.einsum('ijk, jk->ij', phi_yxx + phi_yyy, uh[self.cell2dof])  # (NQ,NC)
+            CH_term_val0 = uh_val * (grad_x_laplace_uh + grad_free_energy_c[..., 0])  # (NQ,NC)
+            CH_term_val1 = uh_val * (grad_y_laplace_uh + grad_free_energy_c[..., 1])  # (NQ,NC)
+        else:
+            raise ValueError("The polynomial order p should be <= 3.")
+
+        # --- update the variable coefficients
+        rho_n = (rho0 + rho1) / 2. + (rho0 - rho1) / 2. * uh_val  # (NQ,NC)
+        rho_n_f = (rho0 + rho1) / 2. + (rho0 - rho1) / 2. * uh_val_f  # (NQ,NDir)
+        nu_n = (nu0 + nu1) / 2. + (nu0 - nu1) / 2. * uh_val  # (NQ,NC)
+        nu_n_f = (nu0 + nu1) / 2. + (nu0 - nu1) / 2. * uh_val_f  # (NQ,NDir)
+        J_n0 = J0 * (grad_x_laplace_uh + grad_free_energy_c[..., 0])  # (NQ,NC)
+        J_n1 = J0 * (grad_y_laplace_uh + grad_free_energy_c[..., 1])  # (NQ,NC)
+
+        # --- the auxiliary variable: G_VC
+        vel_stress_mat = [[2 * grad_vel0_val[..., 0], (grad_vel0_val[..., 1] + grad_vel1_val[..., 0])],
+                          [(grad_vel0_val[..., 1] + grad_vel1_val[..., 0]), 2 * grad_vel1_val[..., 1]]]
+        vel_grad_mat = [[grad_vel0_val[..., 0], grad_vel0_val[..., 1]],
+                        [grad_vel1_val[..., 0], grad_vel1_val[..., 1]]]
+        rho_n_axis = rho_n[..., np.newaxis]
+        G_VC = (-nolinear_val + (1. / rho_min - 1. / rho_n_axis) * grad_ph_val
+                + 1. / rho_n_axis * self.vec_div_mat((nu0 - nu1) / 2. * grad_uh_val, vel_stress_mat)
+                - 1. / rho_n_axis * np.array([CH_term_val0, CH_term_val1]).transpose((1, 2, 0))
+                - 1. / rho_n_axis * self.vec_div_mat([J_n0, J_n1], vel_grad_mat) + 1. / rho_n_axis * f_val_NS
+                + 1. / self.dt * np.array([vel0_val, vel1_val]).transpose((1, 2, 0)))  # (NQ,NC,2)
+
+        eta_n = nu_n / rho_n  # (NQ,NC)
+        eta_n_f = nu_n_f / rho_n_f  # (NQ,NDir)
+        eta_nx = ((nu0 - nu1) / 2. * rho_n - (rho0 - rho1) / 2. * nu_n) * grad_uh_val[..., 0] / rho_n ** 2  # (NQ,NC)
+        eta_ny = ((nu0 - nu1) / 2. * rho_n - (rho0 - rho1) / 2. * nu_n) * grad_uh_val[..., 1] / rho_n ** 2  # (NQ,NC)
+        curl_vel = grad_vel1_val[..., 0] - grad_vel0_val[..., 1]  # (NQ,NC)
+        curl_vel_f = grad_vel1_f[..., 0] - grad_vel0_f[..., 1]  # (NQ,NDir)
+
+
+    def mu_parts_at_cells(self, uh_last, uh_part0, uh_part1, wh_part0, wh_part1, c_bcs):
+        """
+        Compute the discretization two parts of `mu = -epsilon*\Delta\phi + h(\phi)`.
+        ---
+        :param uh_last:
+        :param uh_part0:
+        :param uh_part1:
+        :param wh_part0:
+        :param wh_part1:
+        :param c_bcs:
+        :return:
+        """
+        phi_space = self.space
+        uh_last_val = phi_space.value(uh_last, c_bcs)  # (NQ,NC)
+        uh_part0_val = phi_space.value(uh_part0, c_bcs)
+        uh_part1_val = phi_space.value(uh_part1, c_bcs)
+        wh_part0_val = phi_space.value(wh_part0, c_bcs)
+        wh_part1_val = phi_space.value(wh_part1, c_bcs)
+
+        
+
+
+
+

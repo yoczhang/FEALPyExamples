@@ -163,6 +163,26 @@ class FEM_CH_NS_Model2d:
         guh_val[..., 1] = 3 * uh_val ** 2 * guh_val[..., 1] - guh_val[..., 1]
         return guh_val  # (NQ,NC,2)
 
+    def free_energy_at_cells(self, uh, c_bcs):
+        """
+        1. Compute the free energy at CELL Gauss-integration points (barycentric coordinates).
+        2. In this function, the free energy has NO coefficients.
+        3. Free energy (math-expression): (1-\phi^2)^2.
+        :param uh:
+        :param c_bcs:
+        :return:
+        """
+        uh_val = self.space.value(uh, c_bcs)  # (NQ,NC)
+        return (1 - uh_val**2)**2
+
+    def vec_div_mat(self, vector, matrix):
+        if type(vector) is np.ndarray:
+            vector = [vector[..., 0], vector[..., 1]]
+
+        val0 = vector[0] * matrix[0][0] + vector[1] * matrix[0][1]
+        val1 = vector[0] * matrix[1][0] + vector[1] * matrix[1][1]
+        return np.array([val0, val1]).transpose((1, 2, 0))  # (NQ,NC,2)
+
     def CH_NS_Solver_T1stOrder(self):
         pde = self.pde
         timemesh = self.timemesh

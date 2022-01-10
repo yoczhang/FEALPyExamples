@@ -210,14 +210,6 @@ class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
         vlm1, vrv0 = v1_bc.apply(vlm1, vrv1)
         vel1[:] = spsolve(vlm1, vrv1).reshape(-1)
 
-    def vec_div_mat(self, vector, matrix):
-        if type(vector) is np.ndarray:
-            vector = [vector[..., 0], vector[..., 1]]
-
-        val0 = vector[0] * matrix[0][0] + vector[1] * matrix[0][1]
-        val1 = vector[0] * matrix[1][0] + vector[1] * matrix[1][1]
-        return np.array([val0, val1]).transpose((1, 2, 0))  # (NQ,NC,2)
-
     def set_CH_Neumann_edge(self, idxNeuEdge=None):
         """
         We overload the `set_CH_Neumann_edge` function, so that (in the parent class) to call this function.
