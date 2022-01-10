@@ -240,6 +240,7 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         J0 = -1. / 2 * (rho0 - rho1) * m
 
         nDir_NS = self.nDir_NS  # (NDir,GD), here, the GD is 2
+        vface2dof = self.vdof.face_to_dof()  # (NE,vfldof), the velocity-variable face-to-dof
 
         # # the pre-settings
         grad_vel0_f = self.uh_grad_value_at_faces(vel0, self.f_bcs, self.DirCellIdx_NS, self.DirLocalIdx_NS,
@@ -348,7 +349,58 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         plsm_temp = bmat([[plsm, basis_int.reshape(-1, 1)], [basis_int, None]], format='csr')
 
         prv_part0 = np.r_[prv_part0, 0]
-        ph_part0 = spsolve(plsm_temp, prv_part0)[:-1]  # we have added one additional dof
+        ph_part0 = self.space.function()
+        ph_part0[:] = spsolve(plsm_temp, prv_part0)[:-1]  # we have added one additional dof
+
+        prv_part1 = np.r_[prv_part1, 0]
+        ph_part1 = self.space.function()
+        ph_part1[:] = spsolve(plsm_temp, prv_part1)[:-1]  # we have added one additional dof
+
+        # # ---------------------------------------- # #
+        # # --- to update the aux-velocity value --- # #
+        # # ---------------------------------------- # #
+        grad_ph_part0_val = self.space.grad_value(ph_part0, self.c_bcs)  # (NQ,NC,2)
+        grad_ph_part1_val = self.space.grad_value(ph_part1, self.c_bcs)  # (NQ,NC,2)
+
+        # # the aux-Velocity-Left-Matrix
+        auxVLM = 1 / self.dt * self.vel_MM
+
+        # # assemble the first-component of Velocity-Right-Vector
+        vel_val = [vel0_val, vel1_val]
+
+        def solve_auxVel_part0(whichIdx):
+            auxVRV = np.zeros((self.vdof.number_of_global_dofs(),), dtype=self.ftype)  # (Nvdof,)
+            VRVtemp = (1. / rho_n_axis * f_val_NS[..., whichIdx] + 1. / self.dt * vel_val[whichIdx]
+                       - 1. / rho_min * grad_ph_part0_val[..., whichIdx]
+                       + (1. / rho_min - 1. / rho_n_axis) * grad_ph_val[..., whichIdx])  # (NQ,NC)
+            cellInt = np.einsum('i, ij, ijk, j->jk', self.c_ws, VRVtemp, self.vphi_c, self.cellmeasure)  # (NC,clodf)
+            np.add.at(auxVRV, self.vcell2dof, cellInt)
+            return spsolve(auxVLM, auxVRV).reshape(-1)
+
+        auxVel0_part0 = self.vspace.function()
+        auxVel0_part0[:] = solve_auxVel_part0(0)
+        auxVel1_part0 = self.vspace.function()
+        auxVel1_part0[:] = solve_auxVel_part0(1)
+
+        def solve_auxVel_part1(whichIdx):
+            mask_Idx = np.mod(whichIdx + 1)
+            mask_eta_n = [eta_ny, -eta_nx]
+            auxVRV = np.zeros((self.vdof.number_of_global_dofs(),), dtype=self.ftype)  # (Nvdof,)
+            VRVtemp = (-1. / rho_min * grad_ph_part1_val[..., whichIdx] + G_VC[..., 0]
+                       + mask_eta_n[whichIdx] * curl_vel)
+            cellInt0 = 1
+            cellInt1 = np.einsum('i, ij, ijk, j->jk', self.c_ws, (eta_n - eta_max) * curl_vel,
+                                 (-1)**whichIdx * self.vgphi_c[..., mask_Idx], self.cellmeasure)
+
+
+
+
+
+
+        vrv0_c_1 = (np.einsum('i, ij, ijk, j->jk', self.c_ws, (eta_n - eta_max) * curl_vel, self.vgphi_c[..., 1], self.cellmeasure)
+                    + np.einsum('i, ij, ijk, j->jk', self.c_ws, eta_ny * curl_vel, self.vphi_c, self.cellmeasure))  # (NC,clodf)
+
+
 
 
 
