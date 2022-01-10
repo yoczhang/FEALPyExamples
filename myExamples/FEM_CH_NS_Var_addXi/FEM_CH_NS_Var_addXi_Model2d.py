@@ -209,7 +209,7 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
 
         return uh_part0, uh_part1, wh_part0, wh_part1
 
-    def decoupled_NS_addXi_Solver_T1stOrder(self, vel0, vel1, ph, uh, uh_last, next_t):
+    def decoupled_NS_addXi_Solver_T1stOrder(self, vel0, vel1, ph, uh, uh_last, grad_mu_val, next_t):
         """
         The decoupled-Navier-Stokes-solver for the all system.
         :param vel0: The fist-component of velocity: stored the n-th(time) value, and to update the (n+1)-th value.
@@ -217,6 +217,7 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         :param ph: The pressure: stored the n-th(time) value, and to update the (n+1)-th value.
         :param uh: The n-th(time) value of the solution of Cahn-Hilliard equation.
         :param uh_last: The (n-1)-th(time) value of the solution of Cahn-Hilliard equation.
+        :param grad_mu_val: The grad-value of mu at cell-quad-points.
         :param next_t: The next-time.
         :return: Updated vel0, vel1, ph.
 
@@ -296,11 +297,15 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         vel_grad_mat = [[grad_vel0_val[..., 0], grad_vel0_val[..., 1]],
                         [grad_vel1_val[..., 0], grad_vel1_val[..., 1]]]
         rho_n_axis = rho_n[..., np.newaxis]
-        G_VC = (-nolinear_val + (1. / rho_min - 1. / rho_n_axis) * grad_ph_val
+        # G_VC = (-nolinear_val + (1. / rho_min - 1. / rho_n_axis) * grad_ph_val
+        #         + 1. / rho_n_axis * self.vec_div_mat((nu0 - nu1) / 2. * grad_uh_val, vel_stress_mat)
+        #         - 1. / rho_n_axis * np.array([CH_term_val0, CH_term_val1]).transpose((1, 2, 0))
+        #         - 1. / rho_n_axis * self.vec_div_mat([J_n0, J_n1], vel_grad_mat) + 1. / rho_n_axis * f_val_NS
+        #         + 1. / self.dt * np.array([vel0_val, vel1_val]).transpose((1, 2, 0)))  # (NQ,NC,2)
+
+        G_VC = (-nolinear_val - 1. / rho_n_axis * self.vec_div_mat([J_n0, J_n1], vel_grad_mat)
                 + 1. / rho_n_axis * self.vec_div_mat((nu0 - nu1) / 2. * grad_uh_val, vel_stress_mat)
-                - 1. / rho_n_axis * np.array([CH_term_val0, CH_term_val1]).transpose((1, 2, 0))
-                - 1. / rho_n_axis * self.vec_div_mat([J_n0, J_n1], vel_grad_mat) + 1. / rho_n_axis * f_val_NS
-                + 1. / self.dt * np.array([vel0_val, vel1_val]).transpose((1, 2, 0)))  # (NQ,NC,2)
+                - 1. / rho_n_axis * uh_val[..., np.newaxis] * grad_mu_val)  # (NQ,NC,2)
 
         eta_n = nu_n / rho_n  # (NQ,NC)
         eta_n_f = nu_n_f / rho_n_f  # (NQ,NDir)
@@ -309,10 +314,48 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         curl_vel = grad_vel1_val[..., 0] - grad_vel0_val[..., 1]  # (NQ,NC)
         curl_vel_f = grad_vel1_f[..., 0] - grad_vel0_f[..., 1]  # (NQ,NDir)
 
+        # for Dirichlet faces integration
+        # TODO: The following is the Dirichlet of -1/dt * <vel\cdot n, q>, but I DON'T know to add which term?
+        # TODO: dir_int0 = -1 / self.dt * np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, velDir_val, nDir_NS, self.phi_f, self.DirEdgeMeasure_NS)  # (NDir,fldof)
+        # TODO: np.add.at(prv_part0, self.face2dof[self.DirEdgeIdx_NS, :], dir_int0)
 
-    def mu_parts_at_cells(self, uh_last, uh_part0, uh_part1, wh_part0, wh_part1, c_bcs):
+        dir_int1_forpart1 = -(np.einsum('i, j, ij, jin, j->jn', self.f_ws, nDir_NS[:, 1], eta_n_f * curl_vel_f, self.gphi_f[..., 0],
+                                        self.DirEdgeMeasure_NS)
+                              + np.einsum('i, j, ij, jin, j->jn', self.f_ws, -nDir_NS[:, 0], eta_n_f * curl_vel_f, self.gphi_f[..., 1],
+                                          self.DirEdgeMeasure_NS))  # (NDir,cldof)
+
+        # for cell integration
+        aux_int_cell = (1. / rho_n_axis * f_val_NS + 1. / self.dt * np.array([vel0_val, vel1_val]).transpose((1, 2, 0))
+                        + (1. / rho_min - 1. / rho_n_axis) * grad_ph_val)  # (NQ,NC,2)
+        cell_int0_forpart0 = np.einsum('i, ijs, ijks, j->jk', self.c_ws, aux_int_cell, self.gphi_c, self.cellmeasure)  # (NC,cldof)
+        cell_int0_forpart1 = np.einsum('i, ijs, ijks, j->jk', self.c_ws, G_VC, self.gphi_c, self.cellmeasure)  # (NC,cldof)
+        cell_int1_forpart1 = (np.einsum('i, ij, ijk, j->jk', self.c_ws, eta_ny * curl_vel, self.gphi_c[..., 0], self.cellmeasure)
+                              + np.einsum('i, ij, ijk, j->jk', self.c_ws, -eta_nx * curl_vel, self.gphi_c[..., 1], self.cellmeasure))  # (NC,cldof)
+
+        # # --- 1. assemble the NS's pressure equation
+        prv_part0 = np.zeros((self.dof.number_of_global_dofs(),), dtype=self.ftype)  # (Npdof,) the Pressure's Right-hand Vector
+        np.add.at(prv_part0, self.cell2dof, cell_int0_forpart0)
+
+        prv_part1 = np.zeros((self.dof.number_of_global_dofs(),), dtype=self.ftype)  # (Npdof,) the Pressure's Right-hand Vector
+        np.add.at(prv_part1, self.cell2dof[self.DirCellIdx_NS, :], dir_int1_forpart1)
+        np.add.at(prv_part1, self.cell2dof, cell_int0_forpart1 + cell_int1_forpart1)
+
+        # # --- 2. solve the NS's pressure equation
+        plsm = 1. / rho_min * self.StiffMatrix
+
+        # # Method I: The following code is right! Pressure satisfies \int_\Omega p = 0
+        basis_int = self.space.integral_basis()
+        plsm_temp = bmat([[plsm, basis_int.reshape(-1, 1)], [basis_int, None]], format='csr')
+
+        prv_part0 = np.r_[prv_part0, 0]
+        ph_part0 = spsolve(plsm_temp, prv_part0)[:-1]  # we have added one additional dof
+
+
+
+
+    def mu_val_and_grad_val_parts_at_cells(self, uh_last, uh_part0, uh_part1, wh_part0, wh_part1, c_bcs):
         """
-        Compute the discretization two parts of `mu = -epsilon*\Delta\phi + h(\phi)`.
+        Compute the discretization two parts of `mu = -epsilon*\Delta\phi + h(\phi)` at cells' c_bcs.
         ---
         :param uh_last:
         :param uh_part0:
@@ -323,13 +366,32 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         :return:
         """
         phi_space = self.space
-        uh_last_val = phi_space.value(uh_last, c_bcs)  # (NQ,NC)
-        uh_part0_val = phi_space.value(uh_part0, c_bcs)
-        uh_part1_val = phi_space.value(uh_part1, c_bcs)
-        wh_part0_val = phi_space.value(wh_part0, c_bcs)
-        wh_part1_val = phi_space.value(wh_part1, c_bcs)
 
-        
+        uh_last_val = phi_space.value(uh_last, c_bcs)  # (NQ,NC)
+        uh_part0_val = phi_space.value(uh_part0, c_bcs)  # (NQ,NC)
+        uh_part1_val = phi_space.value(uh_part1, c_bcs)  # (NQ,NC)
+        wh_part0_val = phi_space.value(wh_part0, c_bcs)  # (NQ,NC)
+        wh_part1_val = phi_space.value(wh_part1, c_bcs)  # (NQ,NC)
+        free_energy = (1 - uh_last_val ** 2) ** 2  # (NQ,NC)
+
+        grad_uh_last_val = phi_space.grad_value(uh_last, c_bcs)  # (NQ,NC,GD)
+        grad_uh_part0_val = phi_space.grad_value(uh_part0, c_bcs)  # (NQ,NC,GD)
+        grad_uh_part1_val = phi_space.grad_value(uh_part1, c_bcs)  # (NQ,NC,GD)
+        grad_wh_part0_val = phi_space.grad_value(wh_part0, c_bcs)  # (NQ,NC,GD)
+        grad_wh_part1_val = phi_space.grad_value(wh_part1, c_bcs)  # (NQ,NC,GD)
+        grad_free_energy = self.grad_free_energy_at_cells(uh_last, c_bcs)  # (NQ,NC,GD)
+
+        mu_val_part0 = -self.pde.epsilon * wh_part0_val + (self.alpha * self.pde.epsilon + self.s) * uh_part0_val - self.s * uh_last_val
+        mu_val_part1 = -self.pde.epsilon * wh_part1_val + (self.alpha * self.pde.epsilon + self.s) * uh_part1_val + free_energy
+
+        grad_mu_val_part0 = (-self.pde.epsilon * grad_wh_part0_val + (self.alpha * self.pde.epsilon + self.s) * grad_uh_part0_val
+                             - self.s * grad_uh_last_val)  # (NQ,NC,GD)
+        grad_mu_val_part1 = (-self.pde.epsilon * grad_wh_part1_val + (self.alpha * self.pde.epsilon + self.s) * grad_uh_part1_val
+                             + grad_free_energy)  # (NQ,NC,GD)
+        return mu_val_part0, mu_val_part1
+
+
+
 
 
 

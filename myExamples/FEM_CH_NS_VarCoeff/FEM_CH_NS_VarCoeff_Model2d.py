@@ -160,7 +160,7 @@ class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
         basis_int = self.space.integral_basis()
         plsm_temp = bmat([[plsm, basis_int.reshape(-1, 1)], [basis_int, None]], format='csr')
         prv = np.r_[prv, 0]
-        ph[:] = spsolve(plsm_temp, prv)[:-1]  # we have added one addtional dof
+        ph[:] = spsolve(plsm_temp, prv)[:-1]  # we have added one additional dof
         # ph[:] = spsolve(plsm, prv)
 
         # # Method II: Using the Dirichlet boundary of pressure
