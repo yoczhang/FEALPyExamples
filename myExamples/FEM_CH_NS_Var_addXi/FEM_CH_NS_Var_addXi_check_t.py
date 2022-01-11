@@ -16,17 +16,6 @@ The fealpy-FEM program for Variable-Coefficient coupled Cahn-Hilliard-Navier-Sto
 add the solver for \\xi.
 """
 
-
-import numpy as np
-import matplotlib.pyplot as plt
-from CH_NS_VarCoeff_Data import CH_NS_VarCoeff_truesolution
-from FEM_CH_NS_VarCoeff_Model2d import FEM_CH_NS_VarCoeff_Model2d
-from fealpy.mesh import MeshFactory as MF
-from PrintLogger import make_print_to_file
-# from fealpy.tools.show import showmultirate, show_error_table
-from to_show import show_error_table
-
-
 import numpy as np
 import matplotlib.pyplot as plt
 from CH_NS_VarCoeff_Data import CH_NS_VarCoeff_truesolution

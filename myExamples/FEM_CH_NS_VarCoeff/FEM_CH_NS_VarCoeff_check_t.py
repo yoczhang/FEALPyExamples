@@ -81,7 +81,7 @@ for i in range(N_T):
     print('i = ', i)
     print('# -------------------------------------------------- #')
     # NN = int(1./h_space[i]) + 1
-    NN = 32
+    NN = 128
     mesh = MF.boxmesh2d(box, nx=NN, ny=NN, meshtype='tri')
     if time_scheme == 1:
         ch = FEM_CH_NS_VarCoeff_Model2d(pde, mesh, p, dt_space[i])
