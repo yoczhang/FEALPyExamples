@@ -173,7 +173,7 @@ class FEM_CH_NS_Model2d:
         :return:
         """
         uh_val = self.space.value(uh, c_bcs)  # (NQ,NC)
-        return (1 - uh_val**2)**2
+        return uh_val * (uh_val**2 - 1)
 
     def vec_div_mat(self, vector, matrix):
         if type(vector) is np.ndarray:
