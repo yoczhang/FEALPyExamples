@@ -100,7 +100,9 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
 
         # # time-looping
         print('    # ------------ begin the time-looping ------------ #')
-        self.uh_part0[:] = uh[:]  # 这里只赋值 uh_part0, 为了第一次计算 self.rho_bar 与 self.nu_bar 时直接取到 uh 的初始值
+        self.uh_part0[:] = uh[:]
+        #    |___ 这里只赋值 uh_part0, 首先在下面的时间循环中赋值给 self.uh_last_part0,
+        #         |___ 接着是为了 `第一次` 计算 self.rho_bar_n 与 self.nu_bar_n 时直接取到 uh 的初始值.
         for nt in range(NT - 1):
             currt_t = timemesh[nt]
             next_t = currt_t + dt
@@ -267,8 +269,8 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         auxVel0_part1 = self.auxVel0_part1
         auxVel1_part1 = self.auxVel1_part1
 
+        # |--- variable coefficients settings
         pde = self.pde
-        # # variable coefficients settings
         m = pde.m
         rho0 = pde.rho0
         rho1 = pde.rho1
@@ -289,7 +291,7 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         grad_vel1_f = self.uh_grad_value_at_faces(vel1, self.f_bcs, self.DirCellIdx_NS, self.DirLocalIdx_NS,
                                                   space=self.vspace)  # grad_vel1: (NQ,NDir,GD)
 
-        # for cell-integration
+        # |--- for cell-integration
         grad_ph_val = self.space.grad_value(ph, self.c_bcs)  # (NQ,NC,GD)
         uh_val = self.space.value(uh, self.c_bcs)  # (NQ,NC)
         uh_val_f = self.space.value(uh, self.f_bcs)[..., self.DirCellIdx_NS]  # (NQ,NDir)
@@ -300,8 +302,10 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         grad_vel1_val = self.vspace.grad_value(vel1, self.c_bcs)  # (NQ,NC,GD)
 
         uh_last_part0_val = self.space.value(uh_last_part0, self.c_bcs)  # (NQ,NC)
+        grad_uh_last_part0_val = self.space.grad_value(uh_last_part0, self.c_bcs)  # (NQ,NC,GD)
         uh_last_part0_val_f = self.space.value(uh_last_part0, self.f_bcs)[..., self.DirCellIdx_NS]  # (NQ,NDir)
         uh_last_part1_val = self.space.value(uh_last_part1, self.c_bcs)  # (NQ,NC)
+        grad_uh_last_part1_val = self.space.grad_value(uh_last_part1, self.c_bcs)  # (NQ,NC,GD)
         uh_last_part1_val_f = self.space.value(uh_last_part1, self.f_bcs)[..., self.DirCellIdx_NS]  # (NQ,NDir)
 
         nolinear_val = self.NSNolinearTerm(vel0, vel1, self.c_bcs)  # nolinear_val.shape: (NQ,NC,GD)
@@ -339,28 +343,36 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         J_n1 = J0 * (grad_y_laplace_uh + grad_free_energy_c[..., 1])  # (NQ,NC)
 
         self.rho_bar_n = (rho0 + rho1) / 2. + (rho0 - rho1) / 2. * (uh_last_part0_val + uh_last_part1_val)  # (NQ,NC)
-        self.nu_bar_n = nu_n = (nu0 + nu1) / 2. + (nu0 - nu1) / 2. * (uh_last_part0_val + uh_last_part1_val)  # (NQ,NC)
+        self.nu_bar_n = (nu0 + nu1) / 2. + (nu0 - nu1) / 2. * (uh_last_part0_val + uh_last_part1_val)  # (NQ,NC)
+        rho_bar_n = self.rho_bar_n
+        nu_bar_n = self.nu_bar_n
+        rho_bar_n_f = (rho0 + rho1) / 2. + (rho0 - rho1) / 2. * (uh_last_part0_val_f + uh_last_part1_val_f)  # (NQ,NDir)
+        nu_bar_n_f = (nu0 + nu1) / 2. + (nu0 - nu1) / 2. * (uh_last_part0_val_f + uh_last_part1_val_f)  # (NQ,NDir)
 
         # --- the auxiliary variable: G_VC
         vel_stress_mat = [[2 * grad_vel0_val[..., 0], (grad_vel0_val[..., 1] + grad_vel1_val[..., 0])],
                           [(grad_vel0_val[..., 1] + grad_vel1_val[..., 0]), 2 * grad_vel1_val[..., 1]]]
         vel_grad_mat = [[grad_vel0_val[..., 0], grad_vel0_val[..., 1]],
                         [grad_vel1_val[..., 0], grad_vel1_val[..., 1]]]
-        rho_n_axis = rho_n[..., np.newaxis]
+        rho_bar_n_axis = rho_bar_n[..., np.newaxis]
         # G_VC = (-nolinear_val + (1. / rho_min - 1. / rho_n_axis) * grad_ph_val
         #         + 1. / rho_n_axis * self.vec_div_mat((nu0 - nu1) / 2. * grad_uh_val, vel_stress_mat)
         #         - 1. / rho_n_axis * np.array([CH_term_val0, CH_term_val1]).transpose((1, 2, 0))
         #         - 1. / rho_n_axis * self.vec_div_mat([J_n0, J_n1], vel_grad_mat) + 1. / rho_n_axis * f_val_NS
         #         + 1. / self.dt * np.array([vel0_val, vel1_val]).transpose((1, 2, 0)))  # (NQ,NC,2)
 
-        G_VC = (-nolinear_val - 1. / rho_n_axis * self.vec_div_mat([J_n0, J_n1], vel_grad_mat)
-                + 1. / rho_n_axis * self.vec_div_mat((nu0 - nu1) / 2. * grad_uh_val, vel_stress_mat)
-                - 1. / rho_n_axis * uh_val[..., np.newaxis] * grad_mu_val)  # (NQ,NC,2)
+        G_VC = (1. / rho_bar_n_axis * (
+                -rho_bar_n_axis * nolinear_val - self.vec_div_mat([J_n0, J_n1], vel_grad_mat)
+                + self.vec_div_mat((nu0 - nu1) / 2. * (grad_uh_last_part0_val + grad_uh_last_part1_val), vel_stress_mat)
+                - uh_val[..., np.newaxis] * grad_mu_val))  # (NQ,NC,2)
 
-        eta_n = nu_n / rho_n  # (NQ,NC)
-        eta_n_f = nu_n_f / rho_n_f  # (NQ,NDir)
-        eta_nx = ((nu0 - nu1) / 2. * rho_n - (rho0 - rho1) / 2. * nu_n) * grad_uh_val[..., 0] / rho_n ** 2  # (NQ,NC)
-        eta_ny = ((nu0 - nu1) / 2. * rho_n - (rho0 - rho1) / 2. * nu_n) * grad_uh_val[..., 1] / rho_n ** 2  # (NQ,NC)
+        eta_n = nu_bar_n / rho_bar_n  # (NQ,NC)
+        eta_n_f = nu_bar_n_f / rho_bar_n_f  # (NQ,NDir)
+        eta_nx = (((nu0 - nu1) / 2. * rho_bar_n - (rho0 - rho1) / 2. * nu_bar_n)
+                  * (grad_uh_last_part0_val[..., 0] + grad_uh_last_part1_val[..., 0]) / rho_bar_n ** 2)  # (NQ,NC)
+        eta_ny = (((nu0 - nu1) / 2. * rho_bar_n - (rho0 - rho1) / 2. * nu_bar_n)
+                  * (grad_uh_last_part0_val[..., 1] + grad_uh_last_part1_val[..., 1]) / rho_bar_n ** 2)  # (NQ,NC)
+        # |--- TODO: 13 号 晚上, 明天继续
         curl_vel = grad_vel1_val[..., 0] - grad_vel0_val[..., 1]  # (NQ,NC)
         curl_vel_f = grad_vel1_f[..., 0] - grad_vel0_f[..., 1]  # (NQ,NDir)
 
@@ -476,11 +488,10 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         vel0_part1[:] = solve_Vel_part1(0)
         vel1_part1[:] = solve_Vel_part1(1)
 
-    def update_mu_and_Xi(self, Xi, uh, next_t):
+    def update_mu_and_Xi(self, uh, next_t):
         """
-        Compute the discretization two parts of `mu = -epsilon*\Delta\phi + h(\phi)` at cells' c_bcs.
+        Compute the discretization two parts of `mu = -epsilon *\\Delta\\phi + h(\\phi)` at cells' c_bcs.
         ---
-        :param Xi:
         :param uh:
         :param next_t:
         :return:
@@ -578,9 +589,6 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
             Du_Y = [2 * grad_Y0[..., 0], grad_Y0[..., 1] + grad_Y1[..., 0], grad_Y0[..., 1] + grad_Y1[..., 0], 2 * grad_Y1[..., 1]]
             return Du_X[0] * Du_Y[0] + Du_X[1] * Du_Y[1] + Du_X[2] * Du_Y[2] + Du_X[3] * Du_Y[3]  # (NQ,NC)
 
-        def vec_x_vec(U0, U1, V0, V1):
-            return U0 * V0 + U1 * V1  # (NQ,NC)
-
         # |--- compute E^n = \int_Omega H(\phi^n) dx + C_0
         #             |___ where H(\phi) = epsilon/(4*eta^2) * (1-\phi^2)^2
         Hphi_val = epsilon / (4 * eta ** 2) * (1 - uh_val**2)**2  # (NQ,NC)
@@ -644,17 +652,6 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
 
         Xi = Newton_iteration(1.e-9, 1.)
         self.R_n = Xi * np.sqrt(E_n)
-        
-
-
-
-
-
-
-
-
-
-
 
         return mu_val_part0, mu_val_part1
 
