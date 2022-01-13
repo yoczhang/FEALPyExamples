@@ -56,6 +56,8 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         self.rho_bar_n = 0  # 此项在 `decoupled_NS_addXi_Solver_T1stOrder()` 中更新: 为了获得第 n 时间层的取值 (在 `update_mu_and_Xi()` 会用到).
         self.nu_bar_n = 0  # 此项在 `decoupled_NS_addXi_Solver_T1stOrder()` 中更新: 为了获得第 n 时间层的取值 (在 `update_mu_and_Xi()` 会用到).
 
+        self.R_n = 0.
+
     def CH_NS_addXi_Solver_T1stOrder(self):
         pde = self.pde
         timemesh = self.timemesh
@@ -474,18 +476,21 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         vel0_part1[:] = solve_Vel_part1(0)
         vel1_part1[:] = solve_Vel_part1(1)
 
-    def update_mu_and_Xi(self, uh, c_bcs):
+    def update_mu_and_Xi(self, Xi, uh, next_t):
         """
         Compute the discretization two parts of `mu = -epsilon*\Delta\phi + h(\phi)` at cells' c_bcs.
         ---
-        :param uh_last:
-        :param c_bcs:
+        :param Xi:
+        :param uh:
+        :param next_t:
         :return:
         """
 
         space = self.space
         vspace = self.vspace
+        c_bcs = self.c_bcs
 
+        # --- all the *_part* is the newest-time value
         wh_part0 = self.wh_part0
         wh_part1 = self.wh_part1
         uh_part0 = self.uh_part0
@@ -516,10 +521,17 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         auxVel0_part1_val = vspace.value(auxVel0_part1, c_bcs)  # (NQ,NC)
         auxVel1_part1_val = vspace.value(auxVel1_part1, c_bcs)  # (NQ,NC)
 
+        # --- the last-time value
+        # uh = self.uh
         uh_val = space.value(uh, c_bcs)  # (NQ,NC)
         free_energy = uh_val * (uh_val ** 2 - 1)  # (NQ,NC)
 
+        vel0_val = vspace.value(self.vel0, c_bcs)
+        vel1_val = vspace.value(self.vel1, c_bcs)
+
+        # --- some coefficients
         pde = self.pde
+        m = pde.m
         epsilon = pde.epsilon
         eta = pde.eta
         alpha = self.alpha
@@ -547,29 +559,95 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         grad_mu_val_part1 = (-epsilon * grad_wh_part1_val + (alpha * epsilon + s) * grad_uh_part1_val
                              + epsilon / eta ** 2 * grad_free_energy)  # (NQ,NC,GD)
 
+        f_val_CH = self.pde.source_CH(self.c_pp, next_t, epsilon, eta)  # (NQ,NC)
+        f_val_NS = self.pde.source_NS(self.c_pp, next_t, epsilon, eta, m, pde.rho0, pde.rho1, pde.nu0, pde.nu1, 1.)  # (NQ,NC,GD)
+
         # # ------------------------------ # #
         # # --- to update the Xi value --- # #
         # # ------------------------------ # #
         def integral_cell(X):
+            # X.shape: (NQ,NC)
             return np.einsum('i, ij, j->', c_ws, X, cellmeasure)  # (1,)
 
-        def reformat_grad(X1, X2):
-            GD = X1.shape[-1]
-            return np.sum(X1 * X2, axis=GD)  # (NQ,NC)
+        def grad_x_grad(grad_X, grad_Y):
+            GD = grad_X.shape[-1]
+            return np.sum(grad_X * grad_Y, axis=GD)  # (NQ,NC)
 
-        def reformat_Du(X1, X2):
-            pass
+        def Du_x_Du(grad_X0, grad_X1, grad_Y0, grad_Y1):
+            Du_X = [2 * grad_X0[..., 0], grad_X0[..., 1] + grad_X1[..., 0], grad_X0[..., 1] + grad_X1[..., 0], 2 * grad_X1[..., 1]]
+            Du_Y = [2 * grad_Y0[..., 0], grad_Y0[..., 1] + grad_Y1[..., 0], grad_Y0[..., 1] + grad_Y1[..., 0], 2 * grad_Y1[..., 1]]
+            return Du_X[0] * Du_Y[0] + Du_X[1] * Du_Y[1] + Du_X[2] * Du_Y[2] + Du_X[3] * Du_Y[3]  # (NQ,NC)
 
-        # --- compute E^n = \int_Omega H(\phi^n) dx + C_0
-        #    |___ H(\phi) = epsilon/(4*eta^2) * (1-\phi^2)^2
+        def vec_x_vec(U0, U1, V0, V1):
+            return U0 * V0 + U1 * V1  # (NQ,NC)
+
+        # |--- compute E^n = \int_Omega H(\phi^n) dx + C_0
+        #             |___ where H(\phi) = epsilon/(4*eta^2) * (1-\phi^2)^2
         Hphi_val = epsilon / (4 * eta ** 2) * (1 - uh_val**2)**2  # (NQ,NC)
-        En = integral_cell(Hphi_val)  # (1,)
+        E_n = integral_cell(Hphi_val)  # (1,)
+        if pde.t0 + dt == next_t:
+            R_n = np.sqrt(E_n)
+            # |___ R_n = Xi_n * sqrt(E_{n-1}),
+            #      |___ but for the init-time (i.e., n=0), we just take Xi_0 = 1, and E_{-1} use the phi_0 to get.
+        else:
+            R_n = self.R_n
 
         # --- compute the coefficients of \Xi
-        B_VC0 = (epsilon/dt * integral_cell(np.sum((grad_uh_part1_val - grad_uh_val) * grad_uh_part1_val, axis=2))
-                 + s/dt * integral_cell()
+        B_VC0 = (epsilon/dt * integral_cell(grad_x_grad(grad_uh_part0_val - grad_uh_val, grad_uh_part0_val))
+                 + s/dt * integral_cell((uh_part0_val - uh_val)**2)
+                 + 1./(2*dt) * integral_cell(rho_bar_next * (vel0_part0_val**2 + vel1_part0_val**2))
+                 - 1./(2*dt) * integral_cell(rho_bar_n * (vel0_val**2 + vel1_val**2))
+                 + 1./(2*dt) * integral_cell(rho_bar_n * ((auxVel0_part0_val - vel0_val)**2 + (auxVel1_part0_val - vel1_val)**2))
+                 + m * integral_cell(grad_x_grad(grad_mu_val_part0, grad_mu_val_part0))
+                 + 1./2 * integral_cell(nu_bar_n * Du_x_Du(vel0_part0_val, vel1_part0_val, vel0_part0_val, vel1_part0_val))
+                 + 1./(2*dt) * integral_cell(rho_bar_n * ((vel0_part0_val - auxVel0_part0_val)**2
+                                                          + (vel1_part0_val - auxVel1_part0_val)**2))
+                 - integral_cell(f_val_CH*mu_val_part0)
+                 - integral_cell(f_val_NS[..., 0] * auxVel0_part0_val + f_val_NS[..., 1] * auxVel1_part0_val)
+                 )  # (1,)
+        B_VC1 = (epsilon/dt * integral_cell(grad_x_grad(2*grad_uh_part0_val - grad_uh_val, grad_uh_part1_val))
+                 + 2*s/dt * integral_cell((uh_part0_val - uh_val) * uh_part1_val)
+                 + 1./dt * integral_cell(rho_bar_next * (vel0_part0_val * vel0_part1_val + vel1_part0_val * vel1_part1_val))
+                 + 1./dt * integral_cell(rho_bar_n * ((auxVel0_part0_val - vel0_val) * auxVel0_part1_val
+                                                      + (auxVel1_part0_val - vel1_val) * auxVel1_part1_val))
+                 + 2*m * integral_cell(grad_x_grad(grad_mu_val_part0, grad_mu_val_part1))
+                 + integral_cell(nu_bar_n * Du_x_Du(vel0_part0_val, vel1_part0_val, vel0_part1_val, vel1_part1_val))
+                 + 1./dt * integral_cell(rho_bar_n * ((vel0_part0_val - auxVel0_part0_val) * (vel0_part1_val - auxVel0_part1_val)
+                                                      + (vel1_part0_val - auxVel1_part0_val) * (vel1_part1_val - auxVel1_part1_val)))
+                 - integral_cell(f_val_CH * mu_val_part1)
+                 - integral_cell(f_val_NS[..., 0] * auxVel0_part1_val + f_val_NS[..., 1] * auxVel1_part1_val)
+                 )  # (1,)
+        B_VC2 = (epsilon/dt * integral_cell(grad_x_grad(grad_uh_part1_val, grad_uh_part1_val))
+                 + s/dt * integral_cell(uh_part1_val**2)
+                 + 1./(2*dt) * integral_cell(rho_bar_next * (vel0_part1_val**2 + vel1_part1_val**2))
+                 + 1./(2*dt) * integral_cell(rho_bar_n * (auxVel0_part1_val**2 + auxVel1_part1_val**2))
+                 + m * integral_cell(grad_x_grad(grad_mu_val_part1, grad_mu_val_part1))
+                 + 1./2 * integral_cell(nu_bar_n * Du_x_Du(vel0_part1_val, vel1_part1_val, vel0_part1_val, vel1_part1_val))
+                 + 1./(2*dt) * integral_cell(rho_bar_n * ((vel0_part1_val - auxVel0_part1_val)**2
+                                                          + (vel1_part1_val - auxVel1_part1_val)**2))
+                 )
 
-        )
+        # |--- f_Xi = (2./dt * E_n + B_VC2) * Xi^3 + (-2./dt * R_n * sqrt(E_n) + B_VC1) * Xi^2 + B_VC0 * Xi
+        def f_Xi(X):
+            return (2. / dt * E_n + B_VC2) * X**3 + (-2. / dt * R_n * np.sqrt(E_n) + B_VC1) * X**2 + B_VC0 * X
+
+        def diff_f_Xi(X):
+            return 3 * (2. / dt * E_n + B_VC2) * X**2 + 2 * (-2. / dt * R_n * np.sqrt(E_n) + B_VC1) * X + B_VC0
+
+        def Newton_iteration(tol, x0):
+            err = 1.
+            while err > tol:
+                xn = x0 - 1./diff_f_Xi(x0) * f_Xi(x0)
+                err = np.abs(xn - x0)
+                x0 = xn
+            return x0
+
+        Xi = Newton_iteration(1.e-9, 1.)
+        self.R_n = Xi * np.sqrt(E_n)
+        
+
+
+
 
 
 
