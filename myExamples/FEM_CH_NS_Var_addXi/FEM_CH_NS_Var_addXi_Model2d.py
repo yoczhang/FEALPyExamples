@@ -195,8 +195,8 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
                                                          self.gphi_c, self.cellmeasure))  # (NC,cldof)
 
         # # aux_rhs_f_0: (\nabla wh^{n+1}\cdot n, phi)_\Gamma, wh is the solution of auxiliary equation
-        # TODO: aux_rhs_f_0 = np.einsum('i, ij, ijn, j->jn', self.f_ws, self.alpha * Neumann + LaplaceNeumann, self.phi_f, self.NeuEdgeMeasure_CH)  # (Nneu,fldof)
-        # TODO: this is the boundary condition for the wh (aux-variable), but I DON'T known add to which equation?
+        aux_rhs_f_0 = np.einsum('i, ij, ijn, j->jn', self.f_ws, self.alpha * Neumann + LaplaceNeumann, self.phi_f, self.NeuEdgeMeasure_CH)  # (Nneu,fldof)
+        #          |___ This term will add to aux_rv_part0
 
         # # aux_rhs_f_1: s / epsilon * (\nabla uh^n \cdot n, phi)_\Gamma
         aux_rhs_f_1 = self.s / self.pde.epsilon * np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, guh_val_f, self.nNeu_CH,
@@ -225,7 +225,7 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         # # --- assemble the two parts of CH's aux equations
         np.add.at(aux_rv_part0, self.cell2dof, aux_rhs_c_0 + aux_rhs_c_1)
         np.add.at(aux_rv_part1, self.cell2dof, aux_rhs_c_2 + aux_rhs_c_3)
-        np.add.at(aux_rv_part0, self.face2dof[self.NeuEdgeIdx_CH, :], aux_rhs_f_1)
+        np.add.at(aux_rv_part0, self.face2dof[self.NeuEdgeIdx_CH, :], aux_rhs_f_0 + aux_rhs_f_1)
         np.add.at(aux_rv_part1, self.face2dof[self.NeuEdgeIdx_CH, :], aux_rhs_f_2)
         np.add.at(aux_rv_part1, self.face2dof[self.bdIndx, :], aux_rhs_f_3)
 
@@ -238,12 +238,10 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         orig_rv_part0 = np.zeros((self.dof.number_of_global_dofs(),), dtype=self.ftype)  # (Ndof,)
         wh_val_part0 = self.space.value(wh_part0, self.c_bcs)  # (NQ,NC)
         orig_rhs_c_part0 = - np.einsum('i, ij, ijk, j->jk', self.c_ws, wh_val_part0, self.phi_c, self.cellmeasure)  # (NC,cldof)
+        orig_rhs_f_part0 = np.einsum('i, ij, ijn, j->jn', self.f_ws, Neumann, self.phi_f, self.NeuEdgeMeasure_CH)
         np.add.at(orig_rv_part0, self.cell2dof, orig_rhs_c_part0)
+        np.add.at(orig_rv_part0, self.face2dof[self.NeuEdgeIdx_CH, :], orig_rhs_f_part0)
         uh_part0[:] = spsolve(self.StiffMatrix - self.alpha * self.MassMatrix, orig_rv_part0)
-
-        # --- TODO: The following is the Neumann of <\nabla uh\cdot n, \phi>, but I DON'T know to add which term?
-        # TODO: orig_rhs_f = np.einsum('i, ij, ijn, j->jn', self.f_ws, Neumann, self.phi_f, self.NeuEdgeMeasure_CH)
-        # TODO: np.add.at(orig_rv, self.face2dof[self.NeuEdgeIdx_CH, :], orig_rhs_f)
 
         # --- part1
         orig_rv_part1 = np.zeros((self.dof.number_of_global_dofs(),), dtype=self.ftype)  # (Ndof,)
@@ -394,10 +392,8 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         curl_vel_f = grad_vel1_f[..., 0] - grad_vel0_f[..., 1]  # (NQ,NDir)
 
         # for Dirichlet faces integration
-        # TODO: The following is the Dirichlet of -1/dt * <vel\cdot n, q>, but I DON'T know to add which term?
-        # TODO: dir_int0 = -1 / self.dt * np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, velDir_val, nDir_NS, self.phi_f, self.DirEdgeMeasure_NS)  # (NDir,fldof)
-        # TODO: np.add.at(prv_part0, self.face2dof[self.DirEdgeIdx_NS, :], dir_int0)
-
+        # |--- The following is the Dirichlet of -1/dt * <vel\cdot n, q>, but I DON'T know to add which term?
+        dir_int0_forpart0 = -1 / self.dt * np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, velDir_val, nDir_NS, self.phi_f, self.DirEdgeMeasure_NS)  # (NDir,fldof)
         dir_int1_forpart1 = -(np.einsum('i, j, ij, jin, j->jn', self.f_ws, nDir_NS[:, 1], eta_n_f * curl_vel_f, self.gphi_f[..., 0],
                                         self.DirEdgeMeasure_NS)
                               + np.einsum('i, j, ij, jin, j->jn', self.f_ws, -nDir_NS[:, 0], eta_n_f * curl_vel_f, self.gphi_f[..., 1],
@@ -417,6 +413,7 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         # # --- 1. assemble the NS's pressure equation
         prv_part0 = np.zeros((self.dof.number_of_global_dofs(),), dtype=self.ftype)  # (Npdof,) the Pressure's Right-hand Vector
         np.add.at(prv_part0, self.cell2dof, cell_int0_forpart0)
+        np.add.at(prv_part0, self.face2dof[self.DirEdgeIdx_NS, :], dir_int0_forpart0)
 
         prv_part1 = np.zeros((self.dof.number_of_global_dofs(),), dtype=self.ftype)  # (Npdof,) the Pressure's Right-hand Vector
         np.add.at(prv_part1, self.cell2dof[self.DirCellIdx_NS, :], dir_int1_forpart1)
@@ -481,6 +478,13 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         # # the Velocity-Left-Matrix
         VLM = 1 / self.dt * self.vel_MM + eta_max * self.vel_SM
 
+        def dir_u0(p):
+            return self.pde.dirichlet_NS(p, next_t)[..., 0]
+
+        def dir_u1(p):
+            return self.pde.dirichlet_NS(p, next_t)[..., 1]
+        dir_func = [dir_u0, dir_u1]
+
         def solve_Vel_part0(whichIdx):
             VRV = np.zeros((self.vdof.number_of_global_dofs(),), dtype=self.ftype)  # (Nvdof,)
             VRVtemp = (1. / rho_bar_n_axis * f_val_NS[..., whichIdx] + 1. / self.dt * vel_val[whichIdx]
@@ -488,7 +492,9 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
                        + (1. / rho_min - 1. / rho_bar_n_axis) * grad_ph_val[..., whichIdx])  # (NQ,NC)
             cellInt = np.einsum('i, ij, ijk, j->jk', self.c_ws, VRVtemp, self.vphi_c, self.cellmeasure)  # (NC,clodf)
             np.add.at(VRV, self.vcell2dof, cellInt)
-            return spsolve(VLM, VRV).reshape(-1)
+            V_BC = DirichletBC(self.vspace, dir_func[whichIdx], threshold=self.DirEdgeIdx_NS)
+            VLM_Temp, VRV = V_BC.apply(VLM.copy(), VRV)
+            return spsolve(VLM_Temp, VRV).reshape(-1)
         vel0_part0[:] = solve_Vel_part0(0)
         vel1_part0[:] = solve_Vel_part0(1)
 
