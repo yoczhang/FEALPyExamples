@@ -53,6 +53,7 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         self.auxVel0_part1 = self.vspace.function()
         self.auxVel1_part1 = self.vspace.function()
 
+        self.grad_mu_val = 0.  # 此项在 `update_mu_and_Xi()` 中更新.
         self.rho_bar_n = 0  # 此项在 `decoupled_NS_addXi_Solver_T1stOrder()` 中更新: 为了获得第 n 时间层的取值 (在 `update_mu_and_Xi()` 会用到).
         self.nu_bar_n = 0  # 此项在 `decoupled_NS_addXi_Solver_T1stOrder()` 中更新: 为了获得第 n 时间层的取值 (在 `update_mu_and_Xi()` 会用到).
 
@@ -103,19 +104,32 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         self.uh_part0[:] = uh[:]
         #    |___ 这里只赋值 uh_part0, 首先在下面的时间循环中赋值给 self.uh_last_part0,
         #         |___ 接着是为了 `第一次` 计算 self.rho_bar_n 与 self.nu_bar_n 时直接取到 uh 的初始值.
+        uh_last = uh.copy()
         for nt in range(NT - 1):
             currt_t = timemesh[nt]
             next_t = currt_t + dt
 
             # # --- decoupled solvers, updated the discrete-solutions to the next-time
-            uh_currt = uh.copy()
             self.uh_last_part0[:] = self.uh_part0[:]
             self.uh_last_part1[:] = self.uh_part1[:]
             # print('        |___ decoupled Cahn-Hilliard Solver(Time-1st-order): ')
             self.decoupled_CH_addXi_Solver_T1stOrder(uh, wh, vel0, vel1, next_t)
             # print('        -----------------------------------------------')
             # print('        |___ decoupled Navier-Stokes Solver(Time-1st-order): ')
-            # self.decoupled_NS_addXi_Solver_T1stOrder(vel0, vel1, ph, uh_currt, next_t)
+            self.decoupled_NS_addXi_Solver_T1stOrder(vel0, vel1, ph, uh, uh_last, next_t)
+            Xi = self.update_mu_and_Xi(uh, next_t)
+
+            # |--- update the values
+            uh_last[:] = uh[:]
+            uh[:] = self.uh_part0[:] + Xi * self.uh_part1[:]
+            wh[:] = self.wh_part0[:] + Xi * self.wh_part1[:]
+            ph[:] = self.ph_part0[:] + Xi * self.ph_part1[:]
+            vel0[:] = self.vel0_part0[:] + Xi * self.vel0_part1[:]
+            vel1[:] = self.vel1_part0[:] + Xi * self.vel1_part1[:]
+
+            # |--- Handle the boundary conditions
+
+
             # print('    end of one-looping')
 
             if nt % max([int(NT / 5), 1]) == 0:
@@ -143,7 +157,7 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         :param vel0: The fist-component of NS's velocity: stored the n-th(time) value.
         :param vel1: The second-component of NS's velocity: stored the n-th(time) value.
         :param next_t: Next time.
-        :return: Updated uh, wh.
+        :return: Updated uh_part*, wh_part*.
         """
 
         wh_part0 = self.wh_part0
@@ -152,9 +166,9 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         uh_part1 = self.uh_part1
 
         grad_free_energy_c = self.pde.epsilon / self.pde.eta ** 2 * self.grad_free_energy_at_cells(uh, self.c_bcs)  # (NQ,NC,2)
-        grad_free_energy_f = self.pde.epsilon / self.pde.eta ** 2 * \
-                             self.grad_free_energy_at_faces(uh, self.f_bcs, self.NeuEdgeIdx_CH, self.NeuCellIdx_CH,
-                                                            self.NeuLocalIdx_CH)  # (NQ,NE,2)
+        grad_free_energy_f = (self.pde.epsilon / self.pde.eta ** 2
+                              * self.grad_free_energy_at_faces(uh, self.f_bcs, self.NeuEdgeIdx_CH, self.NeuCellIdx_CH,
+                                                               self.NeuLocalIdx_CH))  # (NQ,NE,2)
         uh_val = self.space.value(uh, self.c_bcs)  # (NQ,NC)
         guh_val_c = self.space.grad_value(uh, self.c_bcs)  # (NQ,NC,2)
         guh_val_f = self.uh_grad_value_at_faces(uh, self.f_bcs, self.NeuCellIdx_CH, self.NeuLocalIdx_CH)  # (NQ,NNeu,2)
@@ -238,7 +252,7 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         np.add.at(orig_rv_part1, self.cell2dof, orig_rhs_c_part1)
         uh_part1[:] = spsolve(self.StiffMatrix - self.alpha * self.MassMatrix, orig_rv_part1)
 
-    def decoupled_NS_addXi_Solver_T1stOrder(self, vel0, vel1, ph, uh, uh_last, grad_mu_val, next_t):
+    def decoupled_NS_addXi_Solver_T1stOrder(self, vel0, vel1, ph, uh, uh_last, next_t):
         """
         The decoupled-Navier-Stokes-solver for the all system.
         :param vel0: The fist-component of velocity: stored the n-th(time) value, and to update the (n+1)-th value.
@@ -246,7 +260,6 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         :param ph: The pressure: stored the n-th(time) value, and to update the (n+1)-th value.
         :param uh: The n-th(time) value of the solution of Cahn-Hilliard equation.
         :param uh_last: The (n-1)-th(time) value of the solution of Cahn-Hilliard equation.
-        :param grad_mu_val: The grad-value of mu at cell-quad-points.
         :param next_t: The next-time.
         :return: Updated vel0, vel1, ph.
 
@@ -323,16 +336,21 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         if self.p < 3:
             grad_x_laplace_uh = np.zeros(grad_free_energy_c[..., 0].shape)
             grad_y_laplace_uh = np.zeros(grad_free_energy_c[..., 0].shape)
-            CH_term_val0 = uh_val * grad_free_energy_c[..., 0]  # (NQ,NC)
-            CH_term_val1 = uh_val * grad_free_energy_c[..., 1]  # (NQ,NC)
+            # CH_term_val0 = uh_val * grad_free_energy_c[..., 0]  # (NQ,NC)
+            # CH_term_val1 = uh_val * grad_free_energy_c[..., 1]  # (NQ,NC)
         elif self.p == 3:
             phi_xxx, phi_yyy, phi_yxx, phi_xyy = self.cb.get_highorder_diff(self.c_bcs, order='3rd-order')  # (NQ,NC,ldof)
             grad_x_laplace_uh = -self.pde.epsilon * np.einsum('ijk, jk->ij', phi_xxx + phi_xyy, uh[self.cell2dof])  # (NQ,NC)
             grad_y_laplace_uh = -self.pde.epsilon * np.einsum('ijk, jk->ij', phi_yxx + phi_yyy, uh[self.cell2dof])  # (NQ,NC)
-            CH_term_val0 = uh_val * (grad_x_laplace_uh + grad_free_energy_c[..., 0])  # (NQ,NC)
-            CH_term_val1 = uh_val * (grad_y_laplace_uh + grad_free_energy_c[..., 1])  # (NQ,NC)
+            # CH_term_val0 = uh_val * (grad_x_laplace_uh + grad_free_energy_c[..., 0])  # (NQ,NC)
+            # CH_term_val1 = uh_val * (grad_y_laplace_uh + grad_free_energy_c[..., 1])  # (NQ,NC)
         else:
             raise ValueError("The polynomial order p should be <= 3.")
+        if pde.t0 + self.dt == next_t:
+            grad_mu_val = np.array([grad_x_laplace_uh + grad_free_energy_c[..., 0],
+                                    grad_y_laplace_uh + grad_free_energy_c[..., 1]]).transpose([1, 2, 0])  # (NQ,NC,2)
+        else:
+            grad_mu_val = self.grad_mu_val
 
         # --- update the variable coefficients
         rho_n = (rho0 + rho1) / 2. + (rho0 - rho1) / 2. * uh_val  # (NQ,NC)
@@ -372,7 +390,6 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
                   * (grad_uh_last_part0_val[..., 0] + grad_uh_last_part1_val[..., 0]) / rho_bar_n ** 2)  # (NQ,NC)
         eta_ny = (((nu0 - nu1) / 2. * rho_bar_n - (rho0 - rho1) / 2. * nu_bar_n)
                   * (grad_uh_last_part0_val[..., 1] + grad_uh_last_part1_val[..., 1]) / rho_bar_n ** 2)  # (NQ,NC)
-        # |--- TODO: 13 号 晚上, 明天继续
         curl_vel = grad_vel1_val[..., 0] - grad_vel0_val[..., 1]  # (NQ,NC)
         curl_vel_f = grad_vel1_f[..., 0] - grad_vel0_f[..., 1]  # (NQ,NDir)
 
@@ -387,9 +404,9 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
                                           self.DirEdgeMeasure_NS))  # (NDir,cldof)
 
         # for cell integration
-        aux_int_cell = (1. / rho_n_axis * f_val_NS + 1. / self.dt * np.array([vel0_val, vel1_val]).transpose((1, 2, 0))
-                        + (1. / rho_min - 1. / rho_n_axis) * grad_ph_val)  # (NQ,NC,2)
-        cell_int0_forpart0 = np.einsum('i, ijs, ijks, j->jk', self.c_ws, aux_int_cell, self.gphi_c, self.cellmeasure)  # (NC,cldof)
+        temp = (1. / rho_bar_n_axis * f_val_NS + 1. / self.dt * np.array([vel0_val, vel1_val]).transpose((1, 2, 0))
+                + (1. / rho_min - 1. / rho_bar_n_axis) * grad_ph_val)  # (NQ,NC,2)
+        cell_int0_forpart0 = np.einsum('i, ijs, ijks, j->jk', self.c_ws, temp, self.gphi_c, self.cellmeasure)  # (NC,cldof)
         cell_int0_forpart1 = np.einsum('i, ijs, ijks, j->jk', self.c_ws, G_VC, self.gphi_c, self.cellmeasure)  # (NC,cldof)
         cell_int1_forpart1 = (np.einsum('i, ij, ijk, j->jk', self.c_ws, eta_ny * curl_vel, self.gphi_c[..., 0], self.cellmeasure)
                               + np.einsum('i, ij, ijk, j->jk', self.c_ws, -eta_nx * curl_vel, self.gphi_c[..., 1], self.cellmeasure))  # (NC,cldof)
@@ -433,9 +450,9 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
 
         def solve_auxVel_part0(whichIdx):
             auxVRV = np.zeros((self.vdof.number_of_global_dofs(),), dtype=self.ftype)  # (Nvdof,)
-            VRVtemp = (1. / rho_n_axis * f_val_NS[..., whichIdx] + 1. / self.dt * vel_val[whichIdx]
+            VRVtemp = (1. / rho_bar_n_axis * f_val_NS[..., whichIdx] + 1. / self.dt * vel_val[whichIdx]
                        - 1. / rho_min * grad_ph_part0_val[..., whichIdx]
-                       + (1. / rho_min - 1. / rho_n_axis) * grad_ph_val[..., whichIdx])  # (NQ,NC)
+                       + (1. / rho_min - 1. / rho_bar_n_axis) * grad_ph_val[..., whichIdx])  # (NQ,NC)
             cellInt = np.einsum('i, ij, ijk, j->jk', self.c_ws, VRVtemp, self.vphi_c, self.cellmeasure)  # (NC,clodf)
             np.add.at(auxVRV, self.vcell2dof, cellInt)
             return spsolve(auxVLM, auxVRV).reshape(-1)
@@ -466,9 +483,9 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
 
         def solve_Vel_part0(whichIdx):
             VRV = np.zeros((self.vdof.number_of_global_dofs(),), dtype=self.ftype)  # (Nvdof,)
-            VRVtemp = (1. / rho_n_axis * f_val_NS[..., whichIdx] + 1. / self.dt * vel_val[whichIdx]
+            VRVtemp = (1. / rho_bar_n_axis * f_val_NS[..., whichIdx] + 1. / self.dt * vel_val[whichIdx]
                        - 1. / rho_min * grad_ph_part0_val[..., whichIdx]
-                       + (1. / rho_min - 1. / rho_n_axis) * grad_ph_val[..., whichIdx])  # (NQ,NC)
+                       + (1. / rho_min - 1. / rho_bar_n_axis) * grad_ph_val[..., whichIdx])  # (NQ,NC)
             cellInt = np.einsum('i, ij, ijk, j->jk', self.c_ws, VRVtemp, self.vphi_c, self.cellmeasure)  # (NC,clodf)
             np.add.at(VRV, self.vcell2dof, cellInt)
             return spsolve(VLM, VRV).reshape(-1)
@@ -652,8 +669,9 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
 
         Xi = Newton_iteration(1.e-9, 1.)
         self.R_n = Xi * np.sqrt(E_n)
+        self.grad_mu_val = grad_mu_val_part0 + Xi * grad_mu_val_part1
 
-        return mu_val_part0, mu_val_part1
+        return Xi
 
 
 
