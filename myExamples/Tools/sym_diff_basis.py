@@ -48,7 +48,7 @@ class compute_basis:
 
     def diff_basis(self):
         """
-        这个函数本身被设计为最多只能求 3 阶导数
+        这个函数本身被设计为 *最多* 只能求 3 阶导数
         """
         basis = self.basis
         p = self.p
@@ -128,7 +128,7 @@ class compute_basis:
         phi_yxx_val = np.zeros((NQ, NC, ldof))
         phi_xyy_val = np.zeros((NQ, NC, ldof))
 
-        # # 替换成 numpy 可计算的函数
+        # |--- 替换成 numpy 可计算的函数
         for n in range(ldof):
             func = lambdify([self.lam0, self.lam1, self.lam2], phi[n], 'numpy')
             phi_val[:, n] = func(bcs[:, 0], bcs[:, 1], bcs[:, 2])
@@ -207,7 +207,7 @@ class compute_basis:
                    phi_yyy_val, phi_yxx_val, phi_xyy_val
 
 
-# # --- to test --- # #
+# |--- to test ---| #
 # if __name__ == '__main__':
 #     NN = 2
 #     box = [0, 1, 0, 1]
