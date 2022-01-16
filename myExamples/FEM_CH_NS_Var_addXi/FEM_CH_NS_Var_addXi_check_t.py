@@ -19,14 +19,14 @@ add the solver for \\xi.
 import numpy as np
 import matplotlib.pyplot as plt
 from CH_NS_VarCoeff_Data import CH_NS_VarCoeff_truesolution
-from FEM_CH_NS_VarCoeff_Model2d import FEM_CH_NS_VarCoeff_Model2d
+from FEM_CH_NS_Var_addXi_Model2d import FEM_CH_NS_Var_addXi_Model2d
 from fealpy.mesh import MeshFactory as MF
 from PrintLogger import make_print_to_file
 # from fealpy.tools.show import showmultirate, show_error_table
 from to_show import show_error_table
 
 # --- logging --- #
-# make_print_to_file(filename='FEM_CH_NS_VarCoeff_check_t_stressC=1', setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
+# make_print_to_file(filename='FEM_CH_NS_Var_addXi_check_t', setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
 
 # --- begin setting --- #
 d = 2  # the dimension
@@ -84,11 +84,11 @@ for i in range(N_T):
     print('i = ', i)
     print('# -------------------------------------------------- #')
     # NN = int(1./h_space[i]) + 1
-    NN = 32
+    NN = 128
     mesh = MF.boxmesh2d(box, nx=NN, ny=NN, meshtype='tri')
     if time_scheme == 1:
-        ch = FEM_CH_NS_VarCoeff_Model2d(pde, mesh, p, dt_space[i])
-        uh_l2err, uh_h1err, vel_l2err, vel_h1err, ph_l2err = ch.CH_NS_Solver_T1stOrder()
+        ch = FEM_CH_NS_Var_addXi_Model2d(pde, mesh, p, dt_space[i])
+        uh_l2err, uh_h1err, vel_l2err, vel_h1err, ph_l2err = ch.CH_NS_addXi_Solver_T1stOrder()
     else:
         raise ValueError("There has no other time-scheme")
 

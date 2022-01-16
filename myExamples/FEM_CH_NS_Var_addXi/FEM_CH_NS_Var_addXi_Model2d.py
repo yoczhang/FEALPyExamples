@@ -57,6 +57,7 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         self.rho_bar_n = 0  # 此项在 `decoupled_NS_addXi_Solver_T1stOrder()` 中更新: 为了获得第 n 时间层的取值 (在 `update_mu_and_Xi()` 会用到).
         self.nu_bar_n = 0  # 此项在 `decoupled_NS_addXi_Solver_T1stOrder()` 中更新: 为了获得第 n 时间层的取值 (在 `update_mu_and_Xi()` 会用到).
         self.R_n = 0.  # 此项在 `update_mu_and_Xi()` 中更新.
+        self.C0 = 1.  # 此项在 `update_mu_and_Xi()` 中, 以保证 E_n = \int H(\phi) + C0 > 0.
 
     def CH_NS_addXi_Solver_T1stOrder(self):
         pde = self.pde
@@ -430,9 +431,9 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
 
         def solve_auxVel_part0(whichIdx):
             auxVRV = np.zeros((self.vdof.number_of_global_dofs(),), dtype=self.ftype)  # (Nvdof,)
-            VRVtemp = (1. / rho_bar_n_axis * f_val_NS[..., whichIdx] + 1. / self.dt * vel_val[whichIdx]
+            VRVtemp = (1. / rho_bar_n * f_val_NS[..., whichIdx] + 1. / self.dt * vel_val[whichIdx]
                        - 1. / rho_min * grad_ph_part0_val[..., whichIdx]
-                       + (1. / rho_min - 1. / rho_bar_n_axis) * grad_ph_val[..., whichIdx])  # (NQ,NC)
+                       + (1. / rho_min - 1. / rho_bar_n) * grad_ph_val[..., whichIdx])  # (NQ,NC)
             cellInt = np.einsum('i, ij, ijk, j->jk', self.c_ws, VRVtemp, self.vphi_c, self.cellmeasure)  # (NC,clodf)
             np.add.at(auxVRV, self.vcell2dof, cellInt)
             return spsolve(auxVLM, auxVRV).reshape(-1)
@@ -446,7 +447,7 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
             cellInt0 = np.einsum('i, ij, ijk, j->jk', self.c_ws, VRVtemp, self.vphi_c, self.cellmeasure)  # (NC,clodf)
             cellInt1 = np.einsum('i, ij, ijk, j->jk', self.c_ws, eta_n * curl_vel,
                                  (-1)**whichIdx * self.vgphi_c[..., mask_Idx], self.cellmeasure)  # (NC,clodf)
-            edgeInt = -np.einsum('i, j, ij, jin, j->jn', self.f_ws, (-1)**whichIdx * nbdEdge[:, mask_Idx], eta_n_f * curl_vel_f,
+            edgeInt = -np.einsum('i, j, ij, ijn, j->jn', self.f_ws, (-1)**whichIdx * nbdEdge[:, mask_Idx], eta_n_f * curl_vel_f,
                                  self.vphi_f, self.bdEdgeMeasure)  # (NBE,vfldof)
             np.add.at(auxVRV, self.vcell2dof, cellInt0 + cellInt1)
             np.add.at(auxVRV, self.vface2dof[self.bdIndx, :], edgeInt)
@@ -469,9 +470,9 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
 
         def solve_Vel_part0(whichIdx):
             VRV = np.zeros((self.vdof.number_of_global_dofs(),), dtype=self.ftype)  # (Nvdof,)
-            VRVtemp = (1. / rho_bar_n_axis * f_val_NS[..., whichIdx] + 1. / self.dt * vel_val[whichIdx]
+            VRVtemp = (1. / rho_bar_n * f_val_NS[..., whichIdx] + 1. / self.dt * vel_val[whichIdx]
                        - 1. / rho_min * grad_ph_part0_val[..., whichIdx]
-                       + (1. / rho_min - 1. / rho_bar_n_axis) * grad_ph_val[..., whichIdx])  # (NQ,NC)
+                       + (1. / rho_min - 1. / rho_bar_n) * grad_ph_val[..., whichIdx])  # (NQ,NC)
             cellInt = np.einsum('i, ij, ijk, j->jk', self.c_ws, VRVtemp, self.vphi_c, self.cellmeasure)  # (NC,clodf)
             np.add.at(VRV, self.vcell2dof, cellInt)
             V_BC = DirichletBC(self.vspace, dir_func[whichIdx], threshold=self.DirEdgeIdx_NS)
@@ -532,6 +533,10 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         vel1_part0_val = vspace.value(vel1_part0, c_bcs)  # (NQ,NC)
         vel0_part1_val = vspace.value(vel0_part1, c_bcs)  # (NQ,NC)
         vel1_part1_val = vspace.value(vel1_part1, c_bcs)  # (NQ,NC)
+        grad_vel0_part0_val = vspace.grad_value(vel0_part0, c_bcs)  # (NQ,NC,GD)
+        grad_vel1_part0_val = vspace.grad_value(vel1_part0, c_bcs)  # (NQ,NC,GD)
+        grad_vel0_part1_val = vspace.grad_value(vel0_part1, c_bcs)  # (NQ,NC,GD)
+        grad_vel1_part1_val = vspace.grad_value(vel1_part1, c_bcs)  # (NQ,NC,GD)
         auxVel0_part0_val = vspace.value(auxVel0_part0, c_bcs)  # (NQ,NC)
         auxVel1_part0_val = vspace.value(auxVel1_part0, c_bcs)  # (NQ,NC)
         auxVel0_part1_val = vspace.value(auxVel0_part1, c_bcs)  # (NQ,NC)
@@ -555,7 +560,7 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         # |--- the (n)-th time step value
         uh_val = space.value(uh, c_bcs)  # (NQ,NC)
         free_energy = uh_val * (uh_val ** 2 - 1)  # (NQ,NC), here the free_energy hos NO coefficient
-        grad_uh_val = space.grad_value(uh_val, c_bcs)  # (NQ,NC,GD)
+        grad_uh_val = space.grad_value(uh, c_bcs)  # (NQ,NC,GD)
         grad_uh_part0_val = space.grad_value(uh_part0, c_bcs)  # (NQ,NC,GD)
         grad_uh_part1_val = space.grad_value(uh_part1, c_bcs)  # (NQ,NC,GD)
         grad_wh_part0_val = space.grad_value(wh_part0, c_bcs)  # (NQ,NC,GD)
@@ -575,27 +580,33 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         # # ------------------------------ # #
         # # --- to update the Xi value --- # #
         # # ------------------------------ # #
-        # TODO: 15-th night, tomorrow next
-        f_val_CH = self.pde.source_CH(self.c_pp, next_t, epsilon, eta)  # (NQ,NC)
+        f_val_CH = self.pde.source_CH(self.c_pp, next_t, m, epsilon, eta)
         f_val_NS = self.pde.source_NS(self.c_pp, next_t, epsilon, eta, m, pde.rho0, pde.rho1, pde.nu0, pde.nu1, 1.)  # (NQ,NC,GD)
 
         def integral_cell(X):
-            # X.shape: (NQ,NC)
+            # |--- X.shape: (NQ,NC)
             return np.einsum('i, ij, j->', c_ws, X, cellmeasure)  # (1,)
 
         def grad_x_grad(grad_X, grad_Y):
+            # |--- grad_X.shape: (NQ,NC,GD)
             GD = grad_X.shape[-1]
             return np.sum(grad_X * grad_Y, axis=GD)  # (NQ,NC)
 
         def Du_x_Du(grad_X0, grad_X1, grad_Y0, grad_Y1):
+            # |--- grad_X0.shape: (NQ,NC,GD)
             Du_X = [2 * grad_X0[..., 0], grad_X0[..., 1] + grad_X1[..., 0], grad_X0[..., 1] + grad_X1[..., 0], 2 * grad_X1[..., 1]]
             Du_Y = [2 * grad_Y0[..., 0], grad_Y0[..., 1] + grad_Y1[..., 0], grad_Y0[..., 1] + grad_Y1[..., 0], 2 * grad_Y1[..., 1]]
             return Du_X[0] * Du_Y[0] + Du_X[1] * Du_Y[1] + Du_X[2] * Du_Y[2] + Du_X[3] * Du_Y[3]  # (NQ,NC)
 
         # |--- compute E^n = \int_Omega H(\phi^n) dx + C_0
-        #             |___ where H(\phi) = epsilon/(4*eta^2) * (1-\phi^2)^2
+        #              |___ where H(\phi) = epsilon/(4*eta^2) * (1-\phi^2)^2
         Hphi_val = epsilon / (4 * eta ** 2) * (1 - uh_val**2)**2  # (NQ,NC)
-        E_n = integral_cell(Hphi_val)  # (1,)
+        E_n = integral_cell(Hphi_val) + self.C0  # (1,)
+        while E_n < 0:
+            print("    |___ In `update_mu_and_Xi()` func and the E_n < 0, exactly E_n = %.4e, whrere C0 = %.4e" % (E_n, self.C0))
+            print("        |___ Update the `C0` to `C0 + 0.5`")
+            E_n += 0.5
+            self.C0 += 0.5
         if pde.t0 + dt == next_t:
             R_n = np.sqrt(E_n)
             # |___ R_n = Xi_n * sqrt(E_{n-1}),
@@ -603,26 +614,27 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         else:
             R_n = self.R_n
 
-        # --- compute the coefficients of \Xi
+        # |--- compute the coefficients of \Xi
         B_VC0 = (epsilon/dt * integral_cell(grad_x_grad(grad_uh_part0_val - grad_uh_val, grad_uh_part0_val))
                  + s/dt * integral_cell((uh_part0_val - uh_val)**2)
                  + 1./(2*dt) * integral_cell(rho_bar_next * (vel0_part0_val**2 + vel1_part0_val**2))
                  - 1./(2*dt) * integral_cell(rho_bar_n * (vel0_val**2 + vel1_val**2))
                  + 1./(2*dt) * integral_cell(rho_bar_n * ((auxVel0_part0_val - vel0_val)**2 + (auxVel1_part0_val - vel1_val)**2))
                  + m * integral_cell(grad_x_grad(grad_mu_val_part0, grad_mu_val_part0))
-                 + 1./2 * integral_cell(nu_bar_n * Du_x_Du(vel0_part0_val, vel1_part0_val, vel0_part0_val, vel1_part0_val))
+                 + 1./2 * integral_cell(nu_bar_n * Du_x_Du(grad_vel0_part0_val, grad_vel1_part0_val,
+                                                           grad_vel0_part0_val, grad_vel1_part0_val))
                  + 1./(2*dt) * integral_cell(rho_bar_n * ((vel0_part0_val - auxVel0_part0_val)**2
                                                           + (vel1_part0_val - auxVel1_part0_val)**2))
-                 - integral_cell(f_val_CH*mu_val_part0)
+                 - integral_cell(f_val_CH * mu_val_part0)
                  - integral_cell(f_val_NS[..., 0] * auxVel0_part0_val + f_val_NS[..., 1] * auxVel1_part0_val)
                  )  # (1,)
         B_VC1 = (epsilon/dt * integral_cell(grad_x_grad(2*grad_uh_part0_val - grad_uh_val, grad_uh_part1_val))
-                 + 2*s/dt * integral_cell((uh_part0_val - uh_val) * uh_part1_val)
+                 + 2.*s/dt * integral_cell((uh_part0_val - uh_val) * uh_part1_val)
                  + 1./dt * integral_cell(rho_bar_next * (vel0_part0_val * vel0_part1_val + vel1_part0_val * vel1_part1_val))
                  + 1./dt * integral_cell(rho_bar_n * ((auxVel0_part0_val - vel0_val) * auxVel0_part1_val
                                                       + (auxVel1_part0_val - vel1_val) * auxVel1_part1_val))
                  + 2*m * integral_cell(grad_x_grad(grad_mu_val_part0, grad_mu_val_part1))
-                 + integral_cell(nu_bar_n * Du_x_Du(vel0_part0_val, vel1_part0_val, vel0_part1_val, vel1_part1_val))
+                 + integral_cell(nu_bar_n * Du_x_Du(grad_vel0_part0_val, grad_vel1_part0_val, grad_vel0_part1_val, grad_vel1_part1_val))
                  + 1./dt * integral_cell(rho_bar_n * ((vel0_part0_val - auxVel0_part0_val) * (vel0_part1_val - auxVel0_part1_val)
                                                       + (vel1_part0_val - auxVel1_part0_val) * (vel1_part1_val - auxVel1_part1_val)))
                  - integral_cell(f_val_CH * mu_val_part1)
@@ -633,10 +645,11 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
                  + 1./(2*dt) * integral_cell(rho_bar_next * (vel0_part1_val**2 + vel1_part1_val**2))
                  + 1./(2*dt) * integral_cell(rho_bar_n * (auxVel0_part1_val**2 + auxVel1_part1_val**2))
                  + m * integral_cell(grad_x_grad(grad_mu_val_part1, grad_mu_val_part1))
-                 + 1./2 * integral_cell(nu_bar_n * Du_x_Du(vel0_part1_val, vel1_part1_val, vel0_part1_val, vel1_part1_val))
+                 + 1./2 * integral_cell(nu_bar_n * Du_x_Du(grad_vel0_part1_val, grad_vel1_part1_val,
+                                                           grad_vel0_part1_val, grad_vel1_part1_val))
                  + 1./(2*dt) * integral_cell(rho_bar_n * ((vel0_part1_val - auxVel0_part1_val)**2
                                                           + (vel1_part1_val - auxVel1_part1_val)**2))
-                 )
+                 )  # (1,)
 
         # |--- f_Xi = (2./dt * E_n + B_VC2) * Xi^3 + (-2./dt * R_n * sqrt(E_n) + B_VC1) * Xi^2 + B_VC0 * Xi
         def f_Xi(X):
@@ -652,11 +665,10 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
                 err = np.abs(xn - x0)
                 x0 = xn
             return x0
-
         Xi = Newton_iteration(1.e-9, 1.)
+        print("    |___ In `update_mu_and_Xi()` func and Xi = %.4e" % Xi)
         self.R_n = Xi * np.sqrt(E_n)
         self.grad_mu_val = grad_mu_val_part0 + Xi * grad_mu_val_part1
-
         return Xi
 
 
