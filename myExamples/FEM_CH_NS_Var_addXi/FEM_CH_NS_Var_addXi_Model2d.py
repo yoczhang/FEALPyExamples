@@ -18,12 +18,12 @@ add the solver for \\xi.
 
 import numpy as np
 from scipy.sparse import csr_matrix, spdiags, eye, bmat
-from fealpy.quadrature import FEMeshIntegralAlg
+# from fealpy.quadrature import FEMeshIntegralAlg
 from scipy.sparse.linalg import spsolve
 from fealpy.boundarycondition import DirichletBC
-from fealpy.decorator import timer
-from fealpy.functionspace import LagrangeFiniteElementSpace
-from sym_diff_basis import compute_basis
+# from fealpy.decorator import timer
+# from fealpy.functionspace import LagrangeFiniteElementSpace
+# from sym_diff_basis import compute_basis
 from FEM_CH_NS_Model2d import FEM_CH_NS_Model2d
 
 
