@@ -81,6 +81,8 @@ g_NS_0 = rho * vel0_t + rho * (vel0*vel0_x + vel1*vel0_y) + (J_0*vel0_x + J_1*ve
 g_NS_1 = rho * vel1_t + rho * (vel0*vel1_x + vel1*vel1_y) + (J_0*vel1_x + J_1*vel1_y) - (diff(nu*vel_stress10, x) + diff(nu*vel_stress11, y)) + p_y + u * c_y
 
 print('u = ', u)
+print('u_x = ', u_x)
+print('u_y = ', u_y)
 print('laplace_x = ', laplace_x)
 print('laplace_y = ', laplace_y)
 print('vel0_x = ', vel0_x)

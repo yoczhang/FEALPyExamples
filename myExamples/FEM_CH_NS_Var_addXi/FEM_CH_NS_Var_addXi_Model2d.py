@@ -160,7 +160,7 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         uh_part0 = self.uh_part0
         uh_part1 = self.uh_part1
 
-        # |--- grad-free-energy: \nabla h(phi)
+        # |--- grad-free-energy: \nabla h(phi) = epsilon/eta^2*3*phi^2*(\nabla phi) - (\nabla phi)
         #     |___ where h(phi) = epsilon/eta^2*phi*(phi^2-1)
         grad_free_energy_c = pde.epsilon / pde.eta ** 2 * self.grad_free_energy_at_cells(uh, self.c_bcs)  # (NQ,NC,2)
         grad_free_energy_f = (pde.epsilon / pde.eta ** 2
@@ -174,35 +174,35 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         LaplaceNeumann = pde.laplace_neumann_CH(self.f_pp_Neu_CH, next_t, self.nNeu_CH)  # (NQ,NE)
         f_val_CH = pde.source_CH(self.c_pp, next_t, pde.m, pde.epsilon, pde.eta)  # (NQ,NC)
 
-        # # get the auxiliary equation Right-hand-side-Vector
+        # |--- get the auxiliary equation Right-hand-side-Vector
         aux_rv_part0 = np.zeros((self.dof.number_of_global_dofs(),), dtype=self.ftype)  # (Ndof,)
         aux_rv_part1 = np.zeros((self.dof.number_of_global_dofs(),), dtype=self.ftype)  # (Ndof,)
 
-        # # aux_rhs_c_0:  -1. / (epsilon * m) * (uh^n/dt + g^{n+1},phi)_\Omega
+        # |--- aux_rhs_c_0:  -1. / (epsilon * m) * (uh^n/dt + g^{n+1},phi)_\Omega
         aux_rhs_c_0 = -1. / (pde.epsilon * pde.m) * np.einsum('i, ij, ijk, j->jk', self.c_ws, 1 / self.dt * uh_val
                                                               + f_val_CH, self.phi_c, self.cellmeasure)  # (NC,cldof)
 
-        # # aux_rhs_c_1: -s / epsilon * (\nabla uh^n, \nabla phi)_\Omega
+        # |--- aux_rhs_c_1: -s / epsilon * (\nabla uh^n, \nabla phi)_\Omega
         aux_rhs_c_1 = -self.s / pde.epsilon * (
                 np.einsum('i, ijm, ijkm, j->jk', self.c_ws, guh_val_c, self.gphi_c, self.cellmeasure))  # (NC,cldof)
 
-        # # aux_rhs_c_2: 1 / epsilon * (\nabla h(uh^n), \nabla phi)_\Omega
+        # |--- aux_rhs_c_2: 1 / epsilon * (\nabla h(uh^n), \nabla phi)_\Omega
         aux_rhs_c_2 = 1. / pde.epsilon * (np.einsum('i, ijm, ijkm, j->jk', self.c_ws, grad_free_energy_c,
                                                     self.gphi_c, self.cellmeasure))  # (NC,cldof)
 
-        # # aux_rhs_f_0: (\nabla wh^{n+1}\cdot n, phi)_\Gamma, wh is the solution of auxiliary equation
+        # |--- aux_rhs_f_0: (\nabla wh^{n+1}\cdot n, phi)_\Gamma, wh is the solution of auxiliary equation
         aux_rhs_f_0 = np.einsum('i, ij, ijn, j->jn', self.f_ws, self.alpha * Neumann + LaplaceNeumann, self.phi_f, self.NeuEdgeMeasure_CH)  # (Nneu,fldof)
         #          |___ This term will add to aux_rv_part0
 
-        # # aux_rhs_f_1: s / epsilon * (\nabla uh^n \cdot n, phi)_\Gamma
+        # |--- aux_rhs_f_1: s / epsilon * (\nabla uh^n \cdot n, phi)_\Gamma
         aux_rhs_f_1 = self.s / pde.epsilon * np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, guh_val_f, self.nNeu_CH,
                                                        self.phi_f, self.NeuEdgeMeasure_CH)  # (Nneu,fldof)
 
-        # # aux_rhs_f_2: -1 / epsilon * (\nabla h(uh^n) \cdot n, phi)_\Gamma
+        # |--- aux_rhs_f_2: -1 / epsilon * (\nabla h(uh^n) \cdot n, phi)_\Gamma
         aux_rhs_f_2 = -1. / pde.epsilon * np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, grad_free_energy_f, self.nNeu_CH,
                                                     self.phi_f, self.NeuEdgeMeasure_CH)  # (Nneu,fldof)
 
-        # # --- now, we add the NS term
+        # |--- now, we add the NS term
         vel0_val_c = self.vspace.value(vel0, self.c_bcs)  # (NQ,NC)
         vel1_val_c = self.vspace.value(vel1, self.c_bcs)  # (NQ,NC)
         vel0_val_f = self.vspace.value(vel0, self.f_bcs)[..., self.bdIndx]  # (NQ,NBE)
@@ -218,19 +218,19 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         aux_rhs_f_3 = (1. / (pde.epsilon * pde.m) *
                        np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, uh_vel_val_f, self.nbdEdge, self.phi_f, self.bdEdgeMeasure))  # (NBE,fldof)
 
-        # # --- assemble the two parts of CH's aux equations
+        # |--- assemble the two parts of CH's aux equations
         np.add.at(aux_rv_part0, self.cell2dof, aux_rhs_c_0 + aux_rhs_c_1)
         np.add.at(aux_rv_part0, self.face2dof[self.NeuEdgeIdx_CH, :], aux_rhs_f_0 + aux_rhs_f_1)
         np.add.at(aux_rv_part1, self.cell2dof, aux_rhs_c_2 + aux_rhs_c_3)
         np.add.at(aux_rv_part1, self.face2dof[self.NeuEdgeIdx_CH, :], aux_rhs_f_2)
         np.add.at(aux_rv_part1, self.face2dof[self.bdIndx, :], aux_rhs_f_3)
 
-        # # update the solution of auxiliary equation
+        # |--- update the solution of auxiliary equation
         wh_part0[:] = spsolve(self.StiffMatrix + (self.alpha + self.s / pde.epsilon) * self.MassMatrix, aux_rv_part0)
         wh_part1[:] = spsolve(self.StiffMatrix + (self.alpha + self.s / pde.epsilon) * self.MassMatrix, aux_rv_part1)
 
-        # # update the two parts of original CH solution uh
-        # --- part0
+        # |--- update the two parts of original CH solution uh
+        #      |___ part0
         orig_rv_part0 = np.zeros((self.dof.number_of_global_dofs(),), dtype=self.ftype)  # (Ndof,)
         wh_val_part0 = self.space.value(wh_part0, self.c_bcs)  # (NQ,NC)
         orig_rhs_c_part0 = - np.einsum('i, ij, ijk, j->jk', self.c_ws, wh_val_part0, self.phi_c, self.cellmeasure)  # (NC,cldof)
@@ -239,7 +239,7 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         np.add.at(orig_rv_part0, self.face2dof[self.NeuEdgeIdx_CH, :], orig_rhs_f_part0)
         uh_part0[:] = spsolve(self.StiffMatrix - self.alpha * self.MassMatrix, orig_rv_part0)
 
-        # --- part1
+        #      |___ part1
         orig_rv_part1 = np.zeros((self.dof.number_of_global_dofs(),), dtype=self.ftype)  # (Ndof,)
         wh_val_part1 = self.space.value(wh_part1, self.c_bcs)  # (NQ,NC)
         orig_rhs_c_part1 = - np.einsum('i, ij, ijk, j->jk', self.c_ws, wh_val_part1, self.phi_c, self.cellmeasure)  # (NC,cldof)
@@ -301,8 +301,8 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         # |--- ph, uh, vel0, vel1 are the (n)-th time step values
         grad_ph_val = self.space.grad_value(ph, self.c_bcs)  # (NQ,NC,GD)
         uh_val = self.space.value(uh, self.c_bcs)  # (NQ,NC)
-        uh_val_f = self.space.value(uh, self.f_bcs)[..., self.DirCellIdx_NS]  # (NQ,NDir)
-        grad_uh_val = self.space.grad_value(uh, self.c_bcs)  # (NQ,NC,GD)
+        # uh_val_f = self.space.value(uh, self.f_bcs)[..., self.DirCellIdx_NS]  # (NQ,NDir)
+        # grad_uh_val = self.space.grad_value(uh, self.c_bcs)  # (NQ,NC,GD)
         vel0_val = self.vspace.value(vel0, self.c_bcs)  # (NQ,NC)
         vel1_val = self.vspace.value(vel1, self.c_bcs)  # (NQ,NC)
         grad_vel0_val = self.vspace.grad_value(vel0, self.c_bcs)  # (NQ,NC,GD)
@@ -310,7 +310,7 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
 
         # |--- uh_last_part* are also the (n)-th time step values,
         #     |___ since, in the CH_solver, the all `uh_part*` will be updated to (n+1)-th values,
-        #     |___ so in order to distinguish, here used the `uh_last_*` to denote the (n)-th time step values.
+        #     |___ so, in order to distinguish, here used the `uh_last_*` to denote the (n)-th time step values.
         uh_last_part0_val = self.space.value(uh_last_part0, self.c_bcs)  # (NQ,NC)
         grad_uh_last_part0_val = self.space.grad_value(uh_last_part0, self.c_bcs)  # (NQ,NC,GD)
         uh_last_part0_val_f = self.space.value(uh_last_part0, self.f_bcs)[..., self.DirCellIdx_NS]  # (NQ,NDir)
@@ -378,8 +378,9 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         curl_vel_f = grad_vel1_f[..., 0] - grad_vel0_f[..., 1]  # (NQ,NDir)
 
         # |--- Dirichlet faces integration of 1/dt*(auxVel, \nabla q)_\Omega = -1/dt*<vel\cdot n, q>_\Gamma for part0
-        dir_int0_forpart0 = -1 / self.dt * np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, velDir_val, nDir_NS, self.phi_f, self.DirEdgeMeasure_NS)  # (NDir,fldof)
-        # |--- Dirichlet faces integration of -<eta_n * n x curl_vel, \nabla q>_\Gamma
+        dir_int0_forpart0 = -1 / self.dt * np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, velDir_val, nDir_NS, self.phi_f,
+                                                     self.DirEdgeMeasure_NS)  # (NDir,fldof)
+        # |--- Dirichlet faces integration of -<eta_n * n x curl_vel, \nabla q>_\Gamma =
         dir_int1_forpart1 = -(np.einsum('i, j, ij, jin, j->jn', self.f_ws, nDir_NS[:, 1], eta_n_f * curl_vel_f, self.gphi_f[..., 0],
                                         self.DirEdgeMeasure_NS)
                               + np.einsum('i, j, ij, jin, j->jn', self.f_ws, -nDir_NS[:, 0], eta_n_f * curl_vel_f, self.gphi_f[..., 1],
@@ -423,7 +424,7 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         grad_ph_part1_val = self.space.grad_value(ph_part1, self.c_bcs)  # (NQ,NC,2)
 
         # |--- the aux-Velocity-Left-Matrix
-        auxVLM = 1 / self.dt * self.vel_MM
+        auxVLM = 1. / self.dt * self.vel_MM
 
         # |--- assemble the first-component of Velocity-Right-Vector
         vel_val = [vel0_val, vel1_val]
@@ -459,7 +460,7 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         # # --- to update the velocity value --- # #
         # # ------------------------------------ # #
         # # the Velocity-Left-Matrix
-        VLM = 1 / self.dt * self.vel_MM + eta_max * self.vel_SM
+        VLM = 1. / self.dt * self.vel_MM + eta_max * self.vel_SM
 
         def dir_u0(p):
             return pde.dirichlet_NS(p, next_t)[..., 0]
@@ -481,6 +482,10 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         vel0_part0[:] = solve_Vel_part0(0)
         vel1_part0[:] = solve_Vel_part0(1)
 
+        def zero_func(p):
+            # |--- to handle the zero-boundary-condition for velocity-part1 terms.
+            return 0. * p[..., 0]
+
         def solve_Vel_part1(whichIdx):
             mask_Idx = np.mod(whichIdx + 1, 2)
             VRV = np.zeros((self.vdof.number_of_global_dofs(),), dtype=self.ftype)  # (Nvdof,)
@@ -489,7 +494,9 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
             cellInt1 = np.einsum('i, ij, ijk, j->jk', self.c_ws, (eta_n - eta_max) * curl_vel,
                                  (-1) ** whichIdx * self.vgphi_c[..., mask_Idx], self.cellmeasure)  # (NC,clodf)
             np.add.at(VRV, self.vcell2dof, cellInt0 + cellInt1)
-            return spsolve(VLM, VRV).reshape(-1)
+            V_BC = DirichletBC(self.vspace, zero_func, threshold=self.DirEdgeIdx_NS)
+            VLM_Temp, VRV = V_BC.apply(VLM.copy(), VRV)
+            return spsolve(VLM_Temp, VRV).reshape(-1)
         vel0_part1[:] = solve_Vel_part1(0)
         vel1_part1[:] = solve_Vel_part1(1)
 
