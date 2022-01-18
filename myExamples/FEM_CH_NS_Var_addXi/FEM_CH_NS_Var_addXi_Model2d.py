@@ -59,6 +59,22 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         self.R_n = 0.  # 此项在 `update_mu_and_Xi()` 中更新.
         self.C0 = 1.  # 此项在 `update_mu_and_Xi()` 中, 以保证 E_n = \int H(\phi) + C0 > 0.
 
+        self.s, self.alpha = self.set_CH_Coeff(dt_minimum=self.dt_min/10.)
+
+    # def set_CH_Coeff(self, dt_minimum=None):
+    #     pde = self.pde
+    #     dt_min = self.dt if dt_minimum is None else dt_minimum
+    #     m = pde.m
+    #     epsilon = pde.epsilon
+    #
+    #     if pde.timeScheme in {1, '1', '1st', '1st-order', '1stOrder', 'first', 'first-order', 'firstorder'}:
+    #         s = np.sqrt(4 * epsilon / (m * dt_min))
+    #         alpha = 1. / (2 * epsilon) * (-s + np.sqrt(abs(s ** 2 - 4 * epsilon / (m * self.dt))))
+    #     else:  # time Second-Order
+    #         s = np.sqrt(4 * (3 / 2) * epsilon / (m * dt_min))
+    #         alpha = 1. / (2 * epsilon) * (-s + np.sqrt(abs(s ** 2 - 4 * (3 / 2) * epsilon / (m * self.dt))))
+    #     return s, alpha
+
     def CH_NS_addXi_Solver_T1stOrder(self):
         pde = self.pde
         timemesh = self.timemesh
@@ -342,11 +358,23 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
             # CH_term_val1 = uh_val * (grad_y_laplace_uh + grad_free_energy_c[..., 1])  # (NQ,NC)
         else:
             raise ValueError("The polynomial order p should be <= 3.")
+
+        # |--- Computing `grad_mu_val`, we will list two methods to get `grad_mu_val`:
+        #      |___ 这里 `grad_mu_val` 的计算方式对 velocity 和 pressure 收敛阶的情况影响还是比较明显的,
+        #           |___ 经过测试, 第二种方法 (即 Method II) 有较好的收敛阶.
+        # |--- Method I: 此处, 主要是想利用第 (n)-th 时间层的计算结果, 见 `update_mu_and_Xi(uh, next_t)`,
+        #                |___  由 \nabla(mu^n) = \nabla((mu_0)^n) + Xi*\nabla((mu_1)^n) 的值, 直接拿过来用.
         if pde.t0 + self.dt == next_t:
+            # |--- For the init-value, just using init-method to get.
             grad_mu_val = np.array([grad_x_laplace_uh + grad_free_energy_c[..., 0],
                                     grad_y_laplace_uh + grad_free_energy_c[..., 1]]).transpose([1, 2, 0])  # (NQ,NC,2)
         else:
             grad_mu_val = self.grad_mu_val
+
+        # |--- Method II: 此处, 既然 phi^n 和 phi^{n-1} 都是已知的,
+        #                 |___ 那么直接利用 mu^n=-lambda\Delta(phi^n)+h(phi^{n-1}), 计算 \nabla(mu^n).
+        # grad_mu_val = np.array([grad_x_laplace_uh + grad_free_energy_c[..., 0],
+        #                         grad_y_laplace_uh + grad_free_energy_c[..., 1]]).transpose([1, 2, 0])  # (NQ,NC,2)
 
         # |--- update the variable coefficients
         self.rho_bar_n = (rho0 + rho1) / 2. + (rho0 - rho1) / 2. * (uh_last_part0_val + uh_last_part1_val)  # (NQ,NC)
@@ -577,12 +605,36 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         vel1_val = vspace.value(self.vel1, c_bcs)
 
         # |--- update mu
+        # |--- Method I:
         mu_val_part0 = -epsilon * wh_part0_val + (alpha * epsilon + s) * uh_part0_val - s * uh_val  # (NQ,NC)
         mu_val_part1 = -epsilon * wh_part1_val + (alpha * epsilon + s) * uh_part1_val + epsilon / eta ** 2 * free_energy  # (NQ,NC)
 
         grad_mu_val_part0 = -epsilon * grad_wh_part0_val + (alpha * epsilon + s) * grad_uh_part0_val - s * grad_uh_val  # (NQ,NC,GD)
         grad_mu_val_part1 = (-epsilon * grad_wh_part1_val + (alpha * epsilon + s) * grad_uh_part1_val
                              + epsilon / eta ** 2 * grad_free_energy)  # (NQ,NC,GD)
+
+        # |--- Method II:
+        # if self.p < 3:
+        #     grad_laplace_uh_part0 = np.zeros(grad_free_energy.shape)
+        #     grad_laplace_uh_part1 = grad_laplace_uh_part0
+        # elif self.p == 3:
+        #     phi_xxx, phi_yyy, phi_yxx, phi_xyy = self.cb.get_highorder_diff(self.c_bcs, order='3rd-order')  # (NQ,NC,ldof)
+        #     grad_x_laplace_uh_part0 = np.einsum('ijk, jk->ij', phi_xxx + phi_xyy, uh_part0[self.cell2dof])  # (NQ,NC)
+        #     grad_y_laplace_uh_part0 = np.einsum('ijk, jk->ij', phi_yxx + phi_yyy, uh_part0[self.cell2dof])  # (NQ,NC)
+        #     grad_laplace_uh_part0 = np.array([grad_x_laplace_uh_part0, grad_y_laplace_uh_part0]).transpose([1, 2, 0])
+        #
+        #     grad_x_laplace_uh_part1 = np.einsum('ijk, jk->ij', phi_xxx + phi_xyy, uh_part1[self.cell2dof])  # (NQ,NC)
+        #     grad_y_laplace_uh_part1 = np.einsum('ijk, jk->ij', phi_yxx + phi_yyy, uh_part1[self.cell2dof])  # (NQ,NC)
+        #     grad_laplace_uh_part1 = np.array([grad_x_laplace_uh_part1, grad_y_laplace_uh_part1]).transpose([1, 2, 0])
+        # else:
+        #     raise ValueError("The polynomial order p should be <= 3.")
+        # phi_xy, phi_xx, phi_yy = self.cb.get_highorder_diff(self.c_bcs, order='2nd-order')  # (NQ,NC,ldof)
+        # laplace_uh_part0 = np.einsum('ijk, jk->ij', phi_xx + phi_yy, uh_part0[self.cell2dof])  # (NQ,NC)
+        # laplace_uh_part1 = np.einsum('ijk, jk->ij', phi_xx + phi_yy, uh_part1[self.cell2dof])  # (NQ,NC)
+        # mu_val_part0 = -pde.epsilon * laplace_uh_part0 + s * uh_part0_val - s * uh_val  # (NQ,NC)
+        # mu_val_part1 = -pde.epsilon * laplace_uh_part1 + s * uh_part1_val + epsilon / eta ** 2 * free_energy  # (NQ,NC)
+        # grad_mu_val_part0 = -pde.epsilon * grad_laplace_uh_part0 + s * grad_uh_part0_val - s * grad_uh_val  # (NQ,NC,GD)
+        # grad_mu_val_part1 = -pde.epsilon * grad_laplace_uh_part1 + s * grad_uh_part1_val + epsilon / eta ** 2 * grad_free_energy  # (NQ,NC,GD)
 
         # # ------------------------------ # #
         # # --- to update the Xi value --- # #

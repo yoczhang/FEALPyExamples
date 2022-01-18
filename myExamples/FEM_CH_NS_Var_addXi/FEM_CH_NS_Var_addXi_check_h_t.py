@@ -78,7 +78,6 @@ if hasattr(pde, 'box'):
     box = pde.box
     print('PDE has new domain box = ', box)
 
-
 for i in range(N_T):
     print('\n# *********************************************************************** # \n')
     print('# ------------ in the time-mesh circle ------------ #')

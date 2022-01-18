@@ -196,11 +196,11 @@ class compute_basis:
                                        Dlambda[:, 1, 0], Dlambda[:, 1, 1],
                                        Dlambda[:, 2, 0], Dlambda[:, 2, 1])
 
-        if order in ['3rd-order', 'all-3rd-order']:
+        if order in ['3order', '3-order', '3rd-order', 'all-3rd-order']:
             return phi_xxx_val, phi_yyy_val, phi_yxx_val, phi_xyy_val
-        elif order in ['2nd-order', 'all-2nd-order']:
+        elif order in ['2order', '2-order', '2nd-order', 'all-2nd-order']:
             return phi_xy_val, phi_xx_val, phi_yy_val
-        elif order in ['1st-order', 'all-1st-order']:
+        elif order in ['1order', '1-order', '1st-order', 'all-1st-order']:
             return phi_x_val, phi_y_val
         else:
             return phi_val[..., np.newaxis, :], phi_x_val, phi_y_val, phi_xy_val, phi_xx_val, phi_yy_val, phi_xxx_val, \
