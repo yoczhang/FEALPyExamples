@@ -58,8 +58,9 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         self.nu_bar_n = 0  # 此项在 `decoupled_NS_addXi_Solver_T1stOrder()` 中更新: 为了获得第 n 时间层的取值 (在 `update_mu_and_Xi()` 会用到).
         self.R_n = 0.  # 此项在 `update_mu_and_Xi()` 中更新.
         self.C0 = 1.  # 此项在 `update_mu_and_Xi()` 中, 以保证 E_n = \int H(\phi) + C0 > 0.
+        self.Xi = 1.
 
-        self.s, self.alpha = self.set_CH_Coeff(dt_minimum=self.dt_min/10.)
+        self.s, self.alpha = self.set_CH_Coeff(dt_minimum=self.dt_min/2.)
 
     # def set_CH_Coeff(self, dt_minimum=None):
     #     pde = self.pde
@@ -364,17 +365,23 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         #           |___ 经过测试, 第二种方法 (即 Method II) 有较好的收敛阶.
         # |--- Method I: 此处, 主要是想利用第 (n)-th 时间层的计算结果, 见 `update_mu_and_Xi(uh, next_t)`,
         #                |___  由 \nabla(mu^n) = \nabla((mu_0)^n) + Xi*\nabla((mu_1)^n) 的值, 直接拿过来用.
-        if pde.t0 + self.dt == next_t:
-            # |--- For the init-value, just using init-method to get.
-            grad_mu_val = np.array([grad_x_laplace_uh + grad_free_energy_c[..., 0],
-                                    grad_y_laplace_uh + grad_free_energy_c[..., 1]]).transpose([1, 2, 0])  # (NQ,NC,2)
-        else:
-            grad_mu_val = self.grad_mu_val
+        # if pde.t0 + self.dt == next_t:
+        #     # |--- For the init-value, just using init-method to get.
+        #     grad_mu_val = np.array([grad_x_laplace_uh + grad_free_energy_c[..., 0],
+        #                             grad_y_laplace_uh + grad_free_energy_c[..., 1]]).transpose([1, 2, 0])  # (NQ,NC,2)
+        # else:
+        #     grad_mu_val = self.grad_mu_val
 
         # |--- Method II: 此处, 既然 phi^n 和 phi^{n-1} 都是已知的,
         #                 |___ 那么直接利用 mu^n=-lambda\Delta(phi^n)+h(phi^{n-1}), 计算 \nabla(mu^n).
-        # grad_mu_val = np.array([grad_x_laplace_uh + grad_free_energy_c[..., 0],
-        #                         grad_y_laplace_uh + grad_free_energy_c[..., 1]]).transpose([1, 2, 0])  # (NQ,NC,2)
+        grad_mu_val_II = np.array([grad_x_laplace_uh + grad_free_energy_c[..., 0],
+                                   grad_y_laplace_uh + grad_free_energy_c[..., 1]]).transpose([1, 2, 0])  # (NQ,NC,2)
+
+        # |--- test
+        grad_uh_last_val = self.space.grad_value(uh_last, self.c_bcs)
+        grad_uh_val = self.space.grad_value(uh, self.c_bcs)
+        grad_mu_val = (self.s * (grad_uh_val - grad_uh_last_val) + self.Xi *
+                       np.array([grad_free_energy_c[..., 0], grad_free_energy_c[..., 1]]).transpose([1, 2, 0]))
 
         # |--- update the variable coefficients
         self.rho_bar_n = (rho0 + rho1) / 2. + (rho0 - rho1) / 2. * (uh_last_part0_val + uh_last_part1_val)  # (NQ,NC)
@@ -728,6 +735,7 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         print("    |___ In `update_mu_and_Xi()` func and Xi = %.4e" % Xi)
         self.R_n = Xi * np.sqrt(E_n)
         self.grad_mu_val = grad_mu_val_part0 + Xi * grad_mu_val_part1
+        self.Xi = Xi
         return Xi
 
 
