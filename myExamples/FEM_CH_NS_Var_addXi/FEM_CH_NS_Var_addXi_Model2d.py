@@ -374,14 +374,14 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
 
         # |--- Method II: 此处, 既然 phi^n 和 phi^{n-1} 都是已知的,
         #                 |___ 那么直接利用 mu^n=-lambda\Delta(phi^n)+h(phi^{n-1}), 计算 \nabla(mu^n).
-        grad_mu_val_II = np.array([grad_x_laplace_uh + grad_free_energy_c[..., 0],
-                                   grad_y_laplace_uh + grad_free_energy_c[..., 1]]).transpose([1, 2, 0])  # (NQ,NC,2)
+        grad_mu_val = np.array([grad_x_laplace_uh + grad_free_energy_c[..., 0],
+                                grad_y_laplace_uh + grad_free_energy_c[..., 1]]).transpose([1, 2, 0])  # (NQ,NC,2)
 
-        # |--- test
-        grad_uh_last_val = self.space.grad_value(uh_last, self.c_bcs)
-        grad_uh_val = self.space.grad_value(uh, self.c_bcs)
-        grad_mu_val = (self.s * (grad_uh_val - grad_uh_last_val) + self.Xi *
-                       np.array([grad_free_energy_c[..., 0], grad_free_energy_c[..., 1]]).transpose([1, 2, 0]))
+        # |--- test: Method III:
+        # grad_uh_last_val = self.space.grad_value(uh_last, self.c_bcs)
+        # grad_uh_val = self.space.grad_value(uh, self.c_bcs)
+        # grad_mu_val = (self.s * (grad_uh_val - grad_uh_last_val) + self.Xi *
+        #                np.array([grad_free_energy_c[..., 0], grad_free_energy_c[..., 1]]).transpose([1, 2, 0]))
 
         # |--- update the variable coefficients
         self.rho_bar_n = (rho0 + rho1) / 2. + (rho0 - rho1) / 2. * (uh_last_part0_val + uh_last_part1_val)  # (NQ,NC)
