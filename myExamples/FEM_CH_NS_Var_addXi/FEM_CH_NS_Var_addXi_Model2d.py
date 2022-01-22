@@ -378,8 +378,8 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
                                 grad_y_laplace_uh + grad_free_energy_c[..., 1]]).transpose([1, 2, 0])  # (NQ,NC,2)
 
         # |--- test: Method III:
-        # grad_uh_last_val = self.space.grad_value(uh_last, self.c_bcs)
-        # grad_uh_val = self.space.grad_value(uh, self.c_bcs)
+        grad_uh_last_val = self.space.grad_value(uh_last, self.c_bcs)
+        grad_uh_val = self.space.grad_value(uh, self.c_bcs)
         # grad_mu_val = (self.s * (grad_uh_val - grad_uh_last_val) + self.Xi *
         #                np.array([grad_free_energy_c[..., 0], grad_free_energy_c[..., 1]]).transpose([1, 2, 0]))
 
