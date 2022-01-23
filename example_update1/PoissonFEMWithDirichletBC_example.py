@@ -13,14 +13,18 @@ from fealpy.boundarycondition import DirichletBC
 from fealpy.tools.show import showmultirate
 
 # solver
-from fealpy.solver import PETScSolver
+# from fealpy.solver import PETScSolver
 from scipy.sparse.linalg import spsolve
 import pyamg
 
-p = int(sys.argv[1])
-n = int(sys.argv[2])
-maxit = int(sys.argv[3])
-d = int(sys.argv[4])
+# p = int(sys.argv[1])
+# n = int(sys.argv[2])
+# maxit = int(sys.argv[3])
+# d = int(sys.argv[4])
+p = 2
+n = 1
+maxit = 4
+d = 2
 
 if d == 2:
     from fealpy.pde.poisson_2d import CosCosData as PDE
@@ -59,9 +63,9 @@ for i in range(maxit):
 
     if d==2:
         uh[:] = spsolve(A, F).reshape(-1)
-    elif d==3:
-        solver = PETScSolver()
-        solver.solve(A, F, uh)
+    # elif d==3:
+    #     solver = PETScSolver()
+    #     solver.solve(A, F, uh)
 
     errorMatrix[0, i] = space.integralalg.L2_error(pde.solution, uh)
     errorMatrix[1, i] = space.integralalg.L2_error(pde.gradient, uh.grad_value)

@@ -17,8 +17,9 @@ from fealpy.functionspace.femdof import CPLFEMDof2d
 from fealpy.mesh.mesh_tools import find_node, find_entity
 from fealpy.quadrature.GaussLegendreQuadrature import GaussLegendreQuadrature
 from fealpy.functionspace.ScaledMonomialSpace2d import SMDof2d, ScaledMonomialSpace2d
+from fealpy.mesh.HalfEdgeMesh2d import HalfEdgeMesh2d
 
-# init settings
+# |--- init settings
 n = 1  # refine times
 p = 2  # polynomial order of FEM space
 # q = p + 1  # integration order
@@ -34,6 +35,7 @@ node = np.array([
 cell = np.array([(1, 2, 0), (3, 0, 2)], dtype=np.int)  # tri mesh
 mesh = TriangleMesh(node, cell)
 mesh.uniform_refine(n)
+mesh = HalfEdgeMesh2d.from_mesh(mesh, NV=3)  # 三角形网格的单边数据结构
 # ------------------
 
 # ---- quad mesh ----
@@ -48,16 +50,17 @@ dof = CPLFEMDof2d(mesh, p)
 # plot mesh
 ipoint = dof.interpolation_points()
 cell2dof = dof.cell2dof
+edge2dof = dof.edge_to_dof()
 node = mesh.entity('node')
 edge = mesh.entity('edge')
 
 # fig = plt.figure()
 # axes = fig.gca()
 # mesh.add_plot(axes, cellcolor='w')
-# find_entity(axes, mesh, entity='cell', index='all', showindex=True, color='b', fontsize=15)
+# find_entity(axes, mesh, entity='cell', showindex=True, color='b', fontsize=15)
 # # find_node(axes, ipoint, showindex=False, fontsize=12, markersize=25)
 # find_node(axes, node, showindex=True, fontsize=12, markersize=25)
-# find_entity(axes, mesh, entity='edge', index='all', showindex=True, color='b', fontsize=12)
+# find_entity(axes, mesh, entity='edge', showindex=True, color='b', fontsize=12)
 # plt.show()
 
 # get bcs
