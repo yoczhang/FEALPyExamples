@@ -13,7 +13,7 @@
 import numpy as np
 from fealpy.decorator import cartesian
 from fealpy.mesh.TriangleMesh import TriangleMesh
-from numpy import pi, sin, cos, exp
+from numpy import pi, sin, cos, exp, tanh
 
 
 class CapillaryWaveSolution:
@@ -37,3 +37,15 @@ class CapillaryWaveSolution:
         dt = (self.T - self.t0) / n
         return np.linspace(self.t0, self.T, num=n + 1), dt
 
+    @cartesian
+    def initial_CH(self, p, eta=5.e-3):
+        x = p[..., 0]
+        y = p[..., 1]
+        Lw = 1.
+        Kw = 2 * pi / Lw
+        H0 = 0.01
+
+        eta = self.eta if hasattr(self, 'eta') else eta
+
+        u = tanh((y - H0*cos(Kw*x))/(np.sqrt(2)*eta))
+        return u
