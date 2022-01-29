@@ -14,6 +14,8 @@ import numpy as np
 from fealpy.decorator import cartesian
 from fealpy.mesh.TriangleMesh import TriangleMesh
 from numpy import pi, sin, cos, exp, tanh
+from fealpy.mesh import MeshFactory as MF
+from fealpy.mesh.HalfEdgeMesh2d import HalfEdgeMesh2d
 
 
 class CapillaryWaveSolution:
@@ -31,6 +33,14 @@ class CapillaryWaveSolution:
     def box_settings(self):
         box = [0, 1, -1, 1]
         return box
+
+    def customized_mesh(self):
+        box = self.box
+        mesh = MF.boxmesh2d(box, nx=10, ny=20, meshtype='tri')
+        mesh = HalfEdgeMesh2d.from_mesh(mesh, NV=3)  # 三角形网格的单边数据结构
+
+
+
 
     def time_mesh(self, dt):
         n = int(np.ceil((self.T - self.t0) / dt))

@@ -1335,7 +1335,7 @@ class HalfEdgeMesh2d(Mesh2d):
     def coarsen_poly(self, isMarkedCell, i=0, options={'disp': True}):
 
         NC = self.number_of_all_cells()
-        NN = self.number_of_nodes().copy()
+        NN = self.number_of_nodes()
         NE = self.number_of_edges()
         hlevel = self.halfedgedata['level']
         clevel = self.celldata['level']

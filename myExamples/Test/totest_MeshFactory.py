@@ -21,7 +21,7 @@ from scipy.io import loadmat, savemat
 n = 2
 p = 1
 box = [0, 1, 0, 1]  # [0, 1]^2 domain
-mf = MeshFactory()
+mf = MeshFactory
 meshtype = 'poly'
 # mesh = mf.boxmesh2d(box, nx=n, ny=n, meshtype=meshtype)
 # mesh = mf.triangle(box, 1./8)

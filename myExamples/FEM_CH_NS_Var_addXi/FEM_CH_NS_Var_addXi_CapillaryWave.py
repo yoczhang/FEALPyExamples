@@ -17,10 +17,12 @@ add the solver for \\xi.
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
 from fealpy.mesh import MeshFactory as MF
 from fealpy.mesh.HalfEdgeMesh2d import HalfEdgeMesh2d
 from CapillaryWaveData import CapillaryWaveSolution
+import matplotlib  # 为了解决画图时采用 GUI (plt.show()) 的形式时, python3.8 崩溃的情况.
+matplotlib.use("TkAgg")  # 为了解决画图时采用 GUI (plt.show()) 的形式时, python3.8 崩溃的情况.
+import matplotlib.pyplot as plt
 
 
 # |--- logging
@@ -42,6 +44,12 @@ mesh = MF.boxmesh2d(box, nx=10, ny=20, meshtype='tri')
 mesh = HalfEdgeMesh2d.from_mesh(mesh, NV=3)  # 三角形网格的单边数据结构
 mesh.add_plot(plt)
 plt.show()
+# |--- 加密 |y-0|<=0.1 处的网格
+
+
+# plt.plot([1,2,3,])
+# plt.ylabel('some numbers')
+# plt.show()
 
 # |--- pde setting
 pdePars = {'m': 1e-3, 's': 1, 'alpha': 1, 'epsilon': 1e-3, 'eta': 1e-1, 'dt_min': dt_min, 'timeScheme': '1stOrder'
