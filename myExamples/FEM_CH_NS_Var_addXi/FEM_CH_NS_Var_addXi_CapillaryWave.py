@@ -17,6 +17,9 @@ add the solver for \\xi.
 """
 
 import numpy as np
+import matplotlib.pyplot as plt
+from fealpy.mesh import MeshFactory as MF
+from fealpy.mesh.HalfEdgeMesh2d import HalfEdgeMesh2d
 from CapillaryWaveData import CapillaryWaveSolution
 
 
@@ -34,8 +37,11 @@ T = 3
 dt_space = [1.e-5, ]
 dt_min = min(dt_space)
 time_scheme = 1  # 1 stands for 1st-order time-scheme; 2 is the 2nd-order time-scheme
-# # h_space = dt_space ** (time_scheme/(p+0))
 box = [0, 1, -1, 1]
+mesh = MF.boxmesh2d(box, nx=10, ny=20, meshtype='tri')
+mesh = HalfEdgeMesh2d.from_mesh(mesh, NV=3)  # 三角形网格的单边数据结构
+mesh.add_plot(plt)
+plt.show()
 
 # |--- pde setting
 pdePars = {'m': 1e-3, 's': 1, 'alpha': 1, 'epsilon': 1e-3, 'eta': 1e-1, 'dt_min': dt_min, 'timeScheme': '1stOrder'
