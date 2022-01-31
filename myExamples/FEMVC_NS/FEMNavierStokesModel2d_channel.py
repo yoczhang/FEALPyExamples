@@ -59,7 +59,7 @@ class FEMNavierStokesModel2d_channel:
         pdof = self.pdof
         pface2dof = pdof.face_to_dof()  # (NE,fldof)
         pcell2dof = pdof.cell_to_dof()  # (NC,cldof)
-        ucell2dof = vspace.cell_to_dof() # (NC,cldof)
+        ucell2dof = vspace.cell_to_dof()  # (NC,cldof)
 
         idxDirEdge = self.set_Dirichlet_edge()
         cellidxDir = self.mesh.ds.edge2cell[idxDirEdge, 0]

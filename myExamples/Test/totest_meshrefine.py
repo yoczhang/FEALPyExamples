@@ -127,7 +127,8 @@ while cm > 0.01/2:
     k += 1
     print('|--- k = %d ---|' % k)
     cm = np.sqrt(np.min(mesh.entity_measure('cell')))
-    tt = tt/2.
+    if tt > 0.025:
+        tt = tt / 2.
 
 
 

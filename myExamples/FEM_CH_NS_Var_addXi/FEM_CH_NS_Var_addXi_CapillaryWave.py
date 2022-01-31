@@ -24,7 +24,6 @@ import matplotlib  # 为了解决画图时采用 GUI (plt.show()) 的形式时, 
 matplotlib.use("TkAgg")  # 为了解决画图时采用 GUI (plt.show()) 的形式时, python3.8 崩溃的情况.
 import matplotlib.pyplot as plt
 
-
 # |--- logging
 # make_print_to_file(filename='FEM_CH_NS_Var_addXi_CapillaryWave', setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
 
@@ -39,12 +38,9 @@ T = 3
 dt_space = [1.e-5, ]
 dt_min = min(dt_space)
 time_scheme = 1  # 1 stands for 1st-order time-scheme; 2 is the 2nd-order time-scheme
-box = [0, 1, -1, 1]
-mesh = MF.boxmesh2d(box, nx=10, ny=20, meshtype='tri')
-mesh = HalfEdgeMesh2d.from_mesh(mesh, NV=3)  # 三角形网格的单边数据结构
-mesh.add_plot(plt)
-plt.show()
-# |--- 加密 |y-0|<=0.1 处的网格
+# box = [0, 1, -1, 1]
+# mesh = MF.boxmesh2d(box, nx=10, ny=20, meshtype='tri')
+# mesh = HalfEdgeMesh2d.from_mesh(mesh, NV=3)  # 三角形网格的单边数据结构
 
 
 # plt.plot([1,2,3,])
@@ -58,15 +54,27 @@ varCoeff = {'rho0': 1e-0, 'rho1': 3e-0, 'nu0': 1e-2, 'nu1': 2e-2}
 pde = CapillaryWaveSolution(t0, T)  # create pde model
 pde.setPDEParameters(pdePars)
 pde.setPDEParameters(varCoeff)
+mesh = pde.mesh
+mesh.add_plot(plt)
+plt.show()
 
 # |--- print some basic info
-print('\n# ------------ in FEM_CH_NS_Var_addXi_check_t code ------------ #')
+print('\n# ------------ in FEM_CH_NS_Var_addXi_CapillaryWave code ------------ #')
 print('# ------------ the initial parameters ------------ #')
 print('p = ', p)
 print('t0 = %.4e,  T = %.4e' % (t0, T))
 print('dt_space = ', dt_space)
-print('domain box = ', box)
+print('domain box = ', pde.box)
 print('rho0 = %.4e,  rho1 = %.4e' % (varCoeff['rho0'], varCoeff['rho1']))
 print('nu0 = %.4e,  nu1 = %.4e, ' % (varCoeff['nu0'], varCoeff['nu1']))
 print('# #')
+
+
+
+
+
+
+
+
+
 
