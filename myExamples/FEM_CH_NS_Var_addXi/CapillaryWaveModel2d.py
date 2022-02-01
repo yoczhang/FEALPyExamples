@@ -60,6 +60,7 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         self.C0 = 1.  # 此项在 `update_mu_and_Xi()` 中, 以保证 E_n = \int H(\phi) + C0 > 0.
         self.Xi = 1.
         self.s, self.alpha = self.set_CH_Coeff(dt_minimum=self.dt_min/2.)
+        self.idxPeriodicEdge0, self.idxPeriodicEdge1, self.idxNotPeriodicEdge = self.set_periodic_edge()
 
     def CH_NS_addXi_Solver_T1stOrder(self):
         pde = self.pde
@@ -325,9 +326,6 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
 
         nolinear_val = self.NSNolinearTerm(vel0, vel1, self.c_bcs)  # (NQ,NC,GD)
         velDir_val = pde.dirichlet_NS(self.f_pp_Dir_NS, next_t)  # (NQ,NDir,GD)
-        f_val_NS = pde.source_NS(self.c_pp, next_t, pde.epsilon, pde.eta, m, rho0, rho1, nu0, nu1, 1.0)  # (NQ,NC,GD)
-        # Neumann_0 = pde.neumann_0_NS(self.f_pp_Neu_NS, next_t, self.nNeu_NS)  # (NQ,NE)
-        # Neumann_1 = pde.neumann_1_NS(self.f_pp_Neu_NS, next_t, self.nNeu_NS)  # (NQ,NE)
 
         # |--- grad-free-energy: \nabla h(phi)
         #     |___ where h(phi) = epsilon/eta^2*phi*(phi^2-1)
@@ -410,6 +408,7 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
                                           self.DirEdgeMeasure_NS))  # (NDir,cldof)
 
         # for cell integration
+        f_val_NS = pde.source_NS(self.c_pp, next_t, self.rho_bar_n)  # (NQ,NC,GD)
         temp = (1. / rho_bar_n_axis * f_val_NS + 1. / self.dt * np.array([vel0_val, vel1_val]).transpose((1, 2, 0))
                 + (1. / rho_min - 1. / rho_bar_n_axis) * grad_ph_val)  # (NQ,NC,2)
         cell_int0_forpart0 = np.einsum('i, ijs, ijks, j->jk', self.c_ws, temp, self.gphi_c, self.cellmeasure)  # (NC,cldof)
@@ -726,6 +725,58 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         self.Xi = Xi
         return Xi
 
+    def set_periodic_edge(self):
+        mesh = self.mesh
+        node = mesh.node  # (NV,2)
+        edge2cell = mesh.ds.edge_to_cell()
+        isBdEdge = (edge2cell[:, 0] == edge2cell[:, 1])  # (NE,), the bool vars, to get the boundary edges
+        idxBdEdge, = np.nonzero(isBdEdge)
+
+        edge2node = mesh.ds.edge_to_node()  # (NE,2)
+        mid_coor = (node[edge2node[:, 0], :] + node[edge2node[:, 1], :]) / 2  # (NE,2)
+        bd_mid = mid_coor[isBdEdge, :]
+
+        isPeriodicEdge0 = np.abs(bd_mid[:, 0] - 0.0) < 1e-8
+        isPeriodicEdge1 = np.abs(bd_mid[:, 0] - 1.0) < 1e-8
+        notPeriodicEdge = ~(isPeriodicEdge0 + isPeriodicEdge1)
+        idxPeriodicEdge0 = idxBdEdge[isPeriodicEdge0]  # (NE_Peri,)
+        idxPeriodicEdge1 = idxBdEdge[isPeriodicEdge1]  # (NE_Peri,)
+
+        # # |--- 使得 idxPeriodicEdge0 与 idxPeriodicEdge1 是一一对应的
+        # periE0_y = mid_coor[idxPeriodicEdge0, 1]
+        # argsort0 = np.argsort(periE0_y)
+        # idxPeriodicEdge0 = idxPeriodicEdge0[argsort0]
+        # periE1_y = mid_coor[idxPeriodicEdge1, 1]
+        # argsort1 = np.argsort(periE1_y)
+        # idxPeriodicEdge1 = idxPeriodicEdge1[argsort1]
+
+        idxNotPeriodicEdge = idxBdEdge[notPeriodicEdge]
+        return idxPeriodicEdge0, idxPeriodicEdge1, idxNotPeriodicEdge
+
+    def set_CH_bdDofs(self, dof):
+        """
+        :param dof: dof, CH using the 'p'-order element
+                |___ vdof, NS (velocity) using the 'p+1'-order element
+        :return:
+        """
+
+        edge2dof = dof.edge_to_dof()
+        periodicDof0 = edge2dof[self.idxPeriodicEdge0, :].flatten()
+        periodicDof1 = edge2dof[self.idxPeriodicEdge1, :].flatten()
+        notPeriodicDof = edge2dof[self.idxNotPeriodicEdge, :].flatten()
+
+        # |--- 下面将左右两边的周期边界上的自由度一一对应起来
+        periodicDof0 = np.setdiff1d(periodicDof0, notPeriodicDof)  # 返回的结果会去掉重复的项, 并自动从小到大排序
+        periodicDof1 = np.setdiff1d(periodicDof1, notPeriodicDof)  # 返回的结果会去掉重复的项, 并自动从小到大排序
+
+        ip = self.dof.interpolation_points()  # 插值点, 也就是自由度所在的坐标
+        ip_coory = ip[periodicDof0, 1]  # 得到 y 的坐标
+        argsort = np.argsort(ip_coory)  # ip_coory 从小到大排序时, 返回原来的索引位置
+        periodicDof0 = periodicDof0[argsort]  # 重新排列自由度
+        ip_coory = ip[periodicDof1, 1]  # 得到 y 的坐标
+        argsort = np.argsort(ip_coory)  # ip_coory 从小到大排序时, 返回原来的索引位置
+        periodicDof1 = periodicDof1[argsort]  # 重新排列自由度
+        return periodicDof0, periodicDof1, np.unique(notPeriodicDof)
 
 
 

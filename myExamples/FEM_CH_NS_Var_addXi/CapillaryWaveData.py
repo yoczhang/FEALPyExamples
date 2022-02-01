@@ -65,6 +65,8 @@ class CapillaryWaveSolution:
             cm = np.sqrt(np.min(mesh.entity_measure('cell')))
             if tt > 0.025:
                 tt = tt / 2.
+        # |--- 下面做一下网格结构的转换, 因为目前 HalfEdgeMesh2d 对 p>1 时有 bug
+        mesh = TriangleMesh(mesh.node, mesh.entity('cell'))
         return mesh
 
     def time_mesh(self, dt):
@@ -84,3 +86,72 @@ class CapillaryWaveSolution:
 
         u = tanh((y - H0*cos(Kw*x))/(np.sqrt(2)*eta))
         return u
+
+    @cartesian
+    def neumann_CH(self, p, t, n):
+        """
+        Neumann boundary condition
+
+        Parameters
+        ----------
+
+        p: (NQ, NE, 2)
+        t: the time
+        n: (NE, 2)
+
+        grad*n : (NQ, NE)
+        """
+
+        val = 0. * p[..., 0]  # (NQ,NE)
+        return val
+
+    @cartesian
+    def laplace_neumann_CH(self, p, t, n):
+        """
+        Laplace Neumann boundary condition
+
+        Parameters
+        ----------
+
+        p: (NQ, NE, 2)
+        t: the time
+        n: (NE, 2)
+
+        grad(laplace u)*n : (NQ, NE)
+        """
+
+        val = 0. * p[..., 0]  # (NQ,NE)
+        return val
+
+    @cartesian
+    def source_CH(self, p, t):
+
+        val = 0. * p[..., 0]
+        return val
+
+    # |--- the Navier-Stokes data
+    @cartesian
+    def velocity_NS(self, p, t):
+        val = np.zeros(p.shape, dtype=np.float)
+        return val
+
+    @cartesian
+    def pressure_NS(self, p, t):
+        val = 0. * p[..., 0]
+        return val
+
+    @cartesian
+    def source_NS(self, p, t, rho_bar_n):
+        """
+
+        :param p: (NQ,NC,GD) the physical Gauss points
+        :param t:
+        :param rho_bar_n: (NQ,NC) the approximation of rho
+        :return:
+        """
+
+        val = np.ones(p.shape, dtype=np.float)  # (NQ,NC,2)
+        grav = np.array([0, -1.])  # (2,), the gravitational acceleration
+        val[..., 0] = val[..., 0] * rho_bar_n * grav[0]
+        val[..., 1] = val[..., 1] * rho_bar_n * grav[1]
+        return val

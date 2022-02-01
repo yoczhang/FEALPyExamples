@@ -20,6 +20,7 @@ import numpy as np
 from fealpy.mesh import MeshFactory as MF
 from fealpy.mesh.HalfEdgeMesh2d import HalfEdgeMesh2d
 from CapillaryWaveData import CapillaryWaveSolution
+from CapillaryWaveModel2d import CapillaryWaveModel2d
 import matplotlib  # 为了解决画图时采用 GUI (plt.show()) 的形式时, python3.8 崩溃的情况.
 matplotlib.use("TkAgg")  # 为了解决画图时采用 GUI (plt.show()) 的形式时, python3.8 崩溃的情况.
 import matplotlib.pyplot as plt
@@ -29,7 +30,7 @@ import matplotlib.pyplot as plt
 
 # |--- begin setting
 d = 2  # the dimension
-p = 1  # the polynomial order
+p = 2  # the polynomial order
 n = 2  # the number of refine mesh
 
 # |--- time and mesh setting
@@ -55,8 +56,8 @@ pde = CapillaryWaveSolution(t0, T)  # create pde model
 pde.setPDEParameters(pdePars)
 pde.setPDEParameters(varCoeff)
 mesh = pde.mesh
-mesh.add_plot(plt)
-plt.show()
+# mesh.add_plot(plt)
+# plt.show()
 
 # |--- print some basic info
 print('\n# ------------ in FEM_CH_NS_Var_addXi_CapillaryWave code ------------ #')
@@ -69,6 +70,8 @@ print('rho0 = %.4e,  rho1 = %.4e' % (varCoeff['rho0'], varCoeff['rho1']))
 print('nu0 = %.4e,  nu1 = %.4e, ' % (varCoeff['nu0'], varCoeff['nu1']))
 print('# #')
 
+cw = CapillaryWaveModel2d(pde, mesh, p, dt_space[0])
+cw.set_CH_bdDofs()
 
 
 
