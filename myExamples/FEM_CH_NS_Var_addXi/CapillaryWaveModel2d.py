@@ -58,9 +58,11 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         self.nu_bar_n = 0  # 此项在 `decoupled_NS_addXi_Solver_T1stOrder()` 中更新: 为了获得第 n 时间层的取值 (在 `update_mu_and_Xi()` 会用到).
         self.R_n = 0.  # 此项在 `update_mu_and_Xi()` 中更新.
         self.C0 = 1.  # 此项在 `update_mu_and_Xi()` 中, 以保证 E_n = \int H(\phi) + C0 > 0.
-        self.Xi = 1.
+        self.Xi = 1.  # 此项在 `update_mu_and_Xi()` 中更新.
         self.s, self.alpha = self.set_CH_Coeff(dt_minimum=self.dt_min/2.)
-        self.idxPeriodicEdge0, self.idxPeriodicEdge1, self.idxNotPeriodicEdge = self.set_periodic_edge()
+
+        if ~hasattr(self, 'idxNotPeriodicEdge'):
+            self.idxPeriodicEdge0, self.idxPeriodicEdge1, self.idxNotPeriodicEdge = self.set_periodic_edge()
 
     def CH_NS_addXi_Solver_T1stOrder(self):
         pde = self.pde
@@ -777,6 +779,22 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         argsort = np.argsort(ip_coory)  # ip_coory 从小到大排序时, 返回原来的索引位置
         periodicDof1 = periodicDof1[argsort]  # 重新排列自由度
         return periodicDof0, periodicDof1, np.unique(notPeriodicDof)
+
+    def set_NS_Dirichlet_edge(self, idxDirEdge=None):
+        if hasattr(self, 'idxNotPeriodicEdge'):
+            idxDirEdge = self.idxNotPeriodicEdge
+        else:
+            self.idxPeriodicEdge0, self.idxPeriodicEdge1, self.idxNotPeriodicEdge = self.set_periodic_edge()
+            idxDirEdge = self.idxNotPeriodicEdge
+        return idxDirEdge
+
+    def set_CH_Neumann_edge(self, idxNeuEdge=None):
+        if hasattr(self, 'idxNotPeriodicEdge'):
+            idxNeuEdge = self.idxNotPeriodicEdge
+        else:
+            self.idxPeriodicEdge0, self.idxPeriodicEdge1, self.idxNotPeriodicEdge = self.set_periodic_edge()
+            idxNeuEdge = self.idxNotPeriodicEdge
+        return idxNeuEdge
 
 
 

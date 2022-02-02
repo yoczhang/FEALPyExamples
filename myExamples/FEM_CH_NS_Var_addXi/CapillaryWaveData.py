@@ -155,3 +155,7 @@ class CapillaryWaveSolution:
         val[..., 0] = val[..., 0] * rho_bar_n * grav[0]
         val[..., 1] = val[..., 1] * rho_bar_n * grav[1]
         return val
+
+    @cartesian
+    def dirichlet_NS(self, p, t):
+        return np.zeros(p.shape, dtype=np.float)

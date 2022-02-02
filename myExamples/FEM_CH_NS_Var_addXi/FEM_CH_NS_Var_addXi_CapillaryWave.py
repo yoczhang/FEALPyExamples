@@ -71,7 +71,7 @@ print('nu0 = %.4e,  nu1 = %.4e, ' % (varCoeff['nu0'], varCoeff['nu1']))
 print('# #')
 
 cw = CapillaryWaveModel2d(pde, mesh, p, dt_space[0])
-cw.set_CH_bdDofs()
+cw.set_CH_bdDofs(cw.dof)
 
 
 
