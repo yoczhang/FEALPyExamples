@@ -61,7 +61,7 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         self.Xi = 1.  # 此项在 `update_mu_and_Xi()` 中更新.
         self.s, self.alpha = self.set_CH_Coeff(dt_minimum=self.dt_min/2.)
 
-        if ~hasattr(self, 'idxNotPeriodicEdge'):
+        if hasattr(self, 'idxNotPeriodicEdge') is False:
             self.idxPeriodicEdge0, self.idxPeriodicEdge1, self.idxNotPeriodicEdge = self.set_periodic_edge()
 
     def CH_NS_addXi_Solver_T1stOrder(self):
@@ -180,7 +180,7 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
 
         Neumann = pde.neumann_CH(self.f_pp_Neu_CH, next_t, self.nNeu_CH)  # (NQ,NE)
         LaplaceNeumann = pde.laplace_neumann_CH(self.f_pp_Neu_CH, next_t, self.nNeu_CH)  # (NQ,NE)
-        f_val_CH = pde.source_CH(self.c_pp, next_t, pde.m, pde.epsilon, pde.eta)  # (NQ,NC)
+        f_val_CH = pde.source_CH(self.c_pp, next_t)  # (NQ,NC)
 
         # |--- get the auxiliary equation Right-hand-side-Vector
         aux_rv_part0 = np.zeros((self.dof.number_of_global_dofs(),), dtype=self.ftype)  # (Ndof,)
@@ -213,27 +213,37 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         # |--- now, we add the NS term
         vel0_val_c = self.vspace.value(vel0, self.c_bcs)  # (NQ,NC)
         vel1_val_c = self.vspace.value(vel1, self.c_bcs)  # (NQ,NC)
-        vel0_val_f = self.vspace.value(vel0, self.f_bcs)[..., self.bdIndx]  # (NQ,NBE)
-        vel1_val_f = self.vspace.value(vel1, self.f_bcs)[..., self.bdIndx]  # (NQ,NBE)
+        vel0_val_f = self.vspace.value(vel0, self.f_bcs)[..., self.NeuEdgeIdx_CH]  # (NQ,Nneu)
+        vel1_val_f = self.vspace.value(vel1, self.f_bcs)[..., self.NeuEdgeIdx_CH]  # (NQ,Nneu)
 
-        uh_val_f = self.space.value(uh, self.f_bcs)[..., self.bdIndx]  # (NQ,NBE)
+        uh_val_f = self.space.value(uh, self.f_bcs)[..., self.NeuEdgeIdx_CH]  # (NQ,Nneu)
         uh_vel_val_f = np.concatenate([(uh_val_f * vel0_val_f)[..., np.newaxis],
-                                       (uh_val_f * vel1_val_f)[..., np.newaxis]], axis=2)  # (NQ,NBE,2)
+                                       (uh_val_f * vel1_val_f)[..., np.newaxis]], axis=2)  # (NQ,Nneu,2)
 
         aux_rhs_c_3 = (-1. / (pde.epsilon * pde.m) *
                        (np.einsum('i, ij, ijk, j->jk', self.c_ws, uh_val * vel0_val_c, self.gphi_c[..., 0], self.cellmeasure) +
                         np.einsum('i, ij, ijk, j->jk', self.c_ws, uh_val * vel1_val_c, self.gphi_c[..., 1], self.cellmeasure)))  # (NC,cldof)
         aux_rhs_f_3 = (1. / (pde.epsilon * pde.m) *
-                       np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, uh_vel_val_f, self.nbdEdge, self.phi_f, self.bdEdgeMeasure))  # (NBE,fldof)
+                       np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, uh_vel_val_f, self.nNeu_CH, self.phi_f, self.NeuEdgeMeasure_CH))  # (NBE,fldof)
 
         # |--- assemble the two parts of CH's aux equations
         np.add.at(aux_rv_part0, self.cell2dof, aux_rhs_c_0 + aux_rhs_c_1)
         np.add.at(aux_rv_part0, self.face2dof[self.NeuEdgeIdx_CH, :], aux_rhs_f_0 + aux_rhs_f_1)
         np.add.at(aux_rv_part1, self.cell2dof, aux_rhs_c_2 + aux_rhs_c_3)
-        np.add.at(aux_rv_part1, self.face2dof[self.NeuEdgeIdx_CH, :], aux_rhs_f_2)
-        np.add.at(aux_rv_part1, self.face2dof[self.bdIndx, :], aux_rhs_f_3)
+        np.add.at(aux_rv_part1, self.face2dof[self.NeuEdgeIdx_CH, :], aux_rhs_f_2 + aux_rhs_f_3)
 
         # |--- update the solution of auxiliary equation
+        periodicDof0, periodicDof1, _ = self.set_boundaryDofs(self.dof)
+        nPDof = len(periodicDof0)
+        oneVec = np.ones((2*nPDof,), dtype=np.int_)
+        # oneVec[nPDof:] = -1.
+
+        auxPeriodicM = self.StiffMatrix + (self.alpha + self.s / pde.epsilon) * self.MassMatrix  # csr_matrix
+        auxPeriodicM[periodicDof0, ...] += auxPeriodicM[periodicDof1, ...]  # Changing the sparsity structure of a csr_matrix is expensive.
+        auxPeriodicM[periodicDof1, ...] = 0.
+        # |--- 需要对 csr_matrix 操作, 所以需要创建一系列 csr 矩阵进行相乘
+
+
         wh_part0[:] = spsolve(self.StiffMatrix + (self.alpha + self.s / pde.epsilon) * self.MassMatrix, aux_rv_part0)
         wh_part1[:] = spsolve(self.StiffMatrix + (self.alpha + self.s / pde.epsilon) * self.MassMatrix, aux_rv_part1)
 
@@ -728,15 +738,16 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         return Xi
 
     def set_periodic_edge(self):
+        """
+        :return: idxPeriodicEdge0, 表示区域网格 `左侧` 的边
+                 idxPeriodicEdge1, 表示区域网格 `右侧` 的边
+                 idxNotPeriodicEdge, 表示区域网格 `上下两侧` 的边
+        """
         mesh = self.mesh
-        node = mesh.node  # (NV,2)
-        edge2cell = mesh.ds.edge_to_cell()
-        isBdEdge = (edge2cell[:, 0] == edge2cell[:, 1])  # (NE,), the bool vars, to get the boundary edges
-        idxBdEdge, = np.nonzero(isBdEdge)
+        idxBdEdge = self.bdIndx
 
-        edge2node = mesh.ds.edge_to_node()  # (NE,2)
-        mid_coor = (node[edge2node[:, 0], :] + node[edge2node[:, 1], :]) / 2  # (NE,2)
-        bd_mid = mid_coor[isBdEdge, :]
+        mid_coor = mesh.entity_barycenter('edge')  # (NE,2)
+        bd_mid = mid_coor[idxBdEdge, :]
 
         isPeriodicEdge0 = np.abs(bd_mid[:, 0] - 0.0) < 1e-8
         isPeriodicEdge1 = np.abs(bd_mid[:, 0] - 1.0) < 1e-8
@@ -744,22 +755,21 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         idxPeriodicEdge0 = idxBdEdge[isPeriodicEdge0]  # (NE_Peri,)
         idxPeriodicEdge1 = idxBdEdge[isPeriodicEdge1]  # (NE_Peri,)
 
-        # # |--- 使得 idxPeriodicEdge0 与 idxPeriodicEdge1 是一一对应的
-        # periE0_y = mid_coor[idxPeriodicEdge0, 1]
-        # argsort0 = np.argsort(periE0_y)
-        # idxPeriodicEdge0 = idxPeriodicEdge0[argsort0]
-        # periE1_y = mid_coor[idxPeriodicEdge1, 1]
-        # argsort1 = np.argsort(periE1_y)
-        # idxPeriodicEdge1 = idxPeriodicEdge1[argsort1]
-
+        # |--- 检验 idxPeriodicEdge0 与 idxPeriodicEdge1 是否是一一对应的
+        y_0 = mid_coor[idxPeriodicEdge0, 1]
+        y_1 = mid_coor[idxPeriodicEdge1, 1]
+        if np.allclose(np.sort(y_0), np.sort(y_1)) is False:
+            raise ValueError("`idxPeriodicEdge0` and `idxPeriodicEdge1` are not 1-to-1.")
         idxNotPeriodicEdge = idxBdEdge[notPeriodicEdge]
         return idxPeriodicEdge0, idxPeriodicEdge1, idxNotPeriodicEdge
 
-    def set_CH_bdDofs(self, dof):
+    def set_boundaryDofs(self, dof):
         """
         :param dof: dof, CH using the 'p'-order element
                 |___ vdof, NS (velocity) using the 'p+1'-order element
-        :return:
+        :return: periodicDof0, 表示区域网格 `左侧` 的边的自由度
+                 periodicDof1, 表示区域网格 `右侧` 的边的自由度
+                 np.unique(notPeriodicDof), 表示区域网格 `上下两侧` 的边的自由度
         """
 
         edge2dof = dof.edge_to_dof()
@@ -770,6 +780,8 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         # |--- 下面将左右两边的周期边界上的自由度一一对应起来
         periodicDof0 = np.setdiff1d(periodicDof0, notPeriodicDof)  # 返回的结果会去掉重复的项, 并自动从小到大排序
         periodicDof1 = np.setdiff1d(periodicDof1, notPeriodicDof)  # 返回的结果会去掉重复的项, 并自动从小到大排序
+        #     |___ 注意, 上面这种处理方式直接将 `长方形` 区域的 `四个角点` 当做 Dirichlet-dof,
+        #         |___ 即, 下面的 periodicDof0, periodicDof1 中是不包含区域的 `四个角点` 的.
 
         ip = self.dof.interpolation_points()  # 插值点, 也就是自由度所在的坐标
         ip_coory = ip[periodicDof0, 1]  # 得到 y 的坐标
@@ -778,6 +790,9 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         ip_coory = ip[periodicDof1, 1]  # 得到 y 的坐标
         argsort = np.argsort(ip_coory)  # ip_coory 从小到大排序时, 返回原来的索引位置
         periodicDof1 = periodicDof1[argsort]  # 重新排列自由度
+
+        if np.allclose(ip[periodicDof0, 1], ip[periodicDof1, 1]) is False:
+            raise ValueError("`periodicDof0` and `periodicDof1` are not 1-to-1.")
         return periodicDof0, periodicDof1, np.unique(notPeriodicDof)
 
     def set_NS_Dirichlet_edge(self, idxDirEdge=None):
