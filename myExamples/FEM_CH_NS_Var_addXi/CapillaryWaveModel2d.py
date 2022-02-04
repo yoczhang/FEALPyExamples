@@ -64,6 +64,12 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         if hasattr(self, 'idxNotPeriodicEdge') is False:
             self.idxPeriodicEdge0, self.idxPeriodicEdge1, self.idxNotPeriodicEdge = self.set_periodic_edge()
 
+        # |--- setting periodic dofs
+        self.periodicDof0, self.periodicDof1, self.notPeriodicDof = self.set_boundaryDofs(self.dof)
+        #   |___ the phi_h- and p_h-related variables periodic dofs (using p-order polynomial)
+        self.vPeriodicDof0, self.vPeriodicDof1, self.vNotPeriodicDof = self.set_boundaryDofs(self.vdof)
+        #   |___ the velocity-related variables periodic dofs (using (p+1)-order polynomial)
+
         # |--- CH: setting algebraic system for periodic boundary condition
         self.auxM_CH = self.StiffMatrix + (self.alpha + self.s / self.pde.epsilon) * self.MassMatrix  # csr_matrix
         self.auxPeriodicM_CH = None
@@ -71,7 +77,6 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         self.orgPeriodicM_CH = None
 
         # |--- NS: setting algebraic system for periodic boundary condition
-
 
     def CH_NS_addXi_Solver_T1stOrder(self):
         pde = self.pde
@@ -141,6 +146,10 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
             ph[:] = self.ph_part0[:] + Xi * self.ph_part1[:]
             vel0[:] = self.vel0_part0[:] + Xi * self.vel0_part1[:]
             vel1[:] = self.vel1_part0[:] + Xi * self.vel1_part1[:]
+
+            # |--- TODO: get the position y-coord of `uh == 0`
+            periodicDof0 = self.periodicDof0
+            
             # print('    end of one-looping')
 
             if nt % max([int(NT / 5), 1]) == 0:
@@ -304,7 +313,6 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
 
         uh_part0[:] = spsolve(orgPeriodicM, orig_rv_part0)
         uh_part1[:] = spsolve(orgPeriodicM, orig_rv_part1)
-
 
     def decoupled_NS_addXi_Solver_T1stOrder(self, vel0, vel1, ph, uh, uh_last, next_t):
         """
@@ -825,7 +833,7 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         #     |___ 注意, 上面这种处理方式直接将 `长方形` 区域的 `四个角点` 当做 Dirichlet-dof,
         #         |___ 即, 下面的 periodicDof0, periodicDof1 中是不包含区域的 `四个角点` 的.
 
-        ip = self.dof.interpolation_points()  # 插值点, 也就是自由度所在的坐标
+        ip = dof.interpolation_points()  # 插值点, 也就是自由度所在的坐标
         ip_coory = ip[periodicDof0, 1]  # 得到 y 的坐标
         argsort = np.argsort(ip_coory)  # ip_coory 从小到大排序时, 返回原来的索引位置
         periodicDof0 = periodicDof0[argsort]  # 重新排列自由度
@@ -854,7 +862,13 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         return idxNeuEdge
 
     def set_periodicAlgebraicSystem(self, dof, rhsVec0, rhsVec1, lhsM=None):
-        periodicDof0, periodicDof1, _ = self.set_boundaryDofs(dof)
+        if dof.p == self.p:
+            periodicDof0, periodicDof1 = self.periodicDof0, self.periodicDof1
+            #   |___ the phi_h- and p_h-related variables periodic dofs (using p-order polynomial)
+        else:
+            periodicDof0, periodicDof1 = self.vPeriodicDof0, self.vPeriodicDof1
+            #   |___ the velocity-related variables periodic dofs (using (p+1)-order polynomial)
+
         NPDof = len(periodicDof0)
         NglobalDof = len(rhsVec0)
         IM = identity(NglobalDof, dtype=np.int_)
