@@ -64,9 +64,14 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         if hasattr(self, 'idxNotPeriodicEdge') is False:
             self.idxPeriodicEdge0, self.idxPeriodicEdge1, self.idxNotPeriodicEdge = self.set_periodic_edge()
 
+        # |--- CH: setting algebraic system for periodic boundary condition
         self.auxM_CH = self.StiffMatrix + (self.alpha + self.s / self.pde.epsilon) * self.MassMatrix  # csr_matrix
         self.auxPeriodicM_CH = None
         self.orgM_CH = self.StiffMatrix - self.alpha * self.MassMatrix  # csr_matrix
+        self.orgPeriodicM_CH = None
+
+        # |--- NS: setting algebraic system for periodic boundary condition
+
 
     def CH_NS_addXi_Solver_T1stOrder(self):
         pde = self.pde
@@ -265,14 +270,12 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         # auxPeriodicM += operatorM
         # #    |___ auxPeriodicM 中第 periodicDof1 行: 第 periodicDof0 列为 1, 第 periodicDof1 列为 -1.
 
-        if self.auxPeriodicM_CH is not None:
-            auxPeriodicM = self.auxPeriodicM_CH
-            aux_rv_part0, aux_rv_part1, _ = self.set_periodicLinearSystem_CH(len(aux_rv_part0), aux_rv_part0, aux_rv_part1)
+        if self.auxPeriodicM_CH is None:
+            aux_rv_part0, aux_rv_part1, auxPeriodicM = self.set_periodicAlgebraicSystem(self.dof, aux_rv_part0, aux_rv_part1, self.auxM_CH)
+            self.auxPeriodicM_CH = auxPeriodicM.copy()
         else:
-            aux_rv_part0, aux_rv_part1, auxPeriodicM = self.set_periodicLinearSystem_CH(
-                len(aux_rv_part0), aux_rv_part0, aux_rv_part1, self.auxM_CH)
-            self.auxPeriodicM_CH = auxPeriodicM
-
+            auxPeriodicM = self.auxPeriodicM_CH
+            aux_rv_part0, aux_rv_part1, _ = self.set_periodicAlgebraicSystem(self.dof, aux_rv_part0, aux_rv_part1)
 
         wh_part0[:] = spsolve(auxPeriodicM, aux_rv_part0)
         wh_part1[:] = spsolve(auxPeriodicM, aux_rv_part1)
@@ -285,14 +288,23 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         orig_rhs_f_part0 = np.einsum('i, ij, ijn, j->jn', self.f_ws, Neumann, self.phi_f, self.NeuEdgeMeasure_CH)  # (Nneu,fldof)
         np.add.at(orig_rv_part0, self.cell2dof, orig_rhs_c_part0)
         np.add.at(orig_rv_part0, self.face2dof[self.NeuEdgeIdx_CH, :], orig_rhs_f_part0)
-        uh_part0[:] = spsolve(self.StiffMatrix - self.alpha * self.MassMatrix, orig_rv_part0)
 
         #      |___ part1
         orig_rv_part1 = np.zeros((self.dof.number_of_global_dofs(),), dtype=self.ftype)  # (Ndof,)
         wh_val_part1 = self.space.value(wh_part1, self.c_bcs)  # (NQ,NC)
         orig_rhs_c_part1 = - np.einsum('i, ij, ijk, j->jk', self.c_ws, wh_val_part1, self.phi_c, self.cellmeasure)  # (NC,cldof)
         np.add.at(orig_rv_part1, self.cell2dof, orig_rhs_c_part1)
-        uh_part1[:] = spsolve(self.StiffMatrix - self.alpha * self.MassMatrix, orig_rv_part1)
+
+        if self.orgPeriodicM_CH is None:
+            orig_rv_part0, orig_rv_part1, orgPeriodicM = self.set_periodicAlgebraicSystem(self.dof, orig_rv_part0, orig_rv_part1, self.orgM_CH)
+            self.orgPeriodicM_CH = orgPeriodicM.copy()
+        else:
+            orgPeriodicM = self.orgPeriodicM_CH
+            orig_rv_part0, orig_rv_part1, _ = self.set_periodicAlgebraicSystem(self.dof, orig_rv_part0, orig_rv_part1)
+
+        uh_part0[:] = spsolve(orgPeriodicM, orig_rv_part0)
+        uh_part1[:] = spsolve(orgPeriodicM, orig_rv_part1)
+
 
     def decoupled_NS_addXi_Solver_T1stOrder(self, vel0, vel1, ph, uh, uh_last, next_t):
         """
@@ -841,32 +853,33 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
             idxNeuEdge = self.idxNotPeriodicEdge
         return idxNeuEdge
 
-    def set_periodicLinearSystem_CH(self, Msize, rhsVec0, rhsVec1, lhsM=None):
-        periodicDof0, periodicDof1, _ = self.set_boundaryDofs(self.dof)
-        nPDof = len(periodicDof0)
-        IM = identity(Msize, dtype=np.int_)
+    def set_periodicAlgebraicSystem(self, dof, rhsVec0, rhsVec1, lhsM=None):
+        periodicDof0, periodicDof1, _ = self.set_boundaryDofs(dof)
+        NPDof = len(periodicDof0)
+        NglobalDof = len(rhsVec0)
+        IM = identity(NglobalDof, dtype=np.int_)
         if lhsM is None:
             lhsM = IM.copy()
 
-        oneVec = np.ones((nPDof,), dtype=np.int_)
-        operatorM = IM + csr_matrix((oneVec, (periodicDof0, periodicDof1)), shape=(Msize, Msize), dtype=np.int_)
+        oneVec = np.ones((NPDof,), dtype=np.int_)
+        operatorM = IM + csr_matrix((oneVec, (periodicDof0, periodicDof1)), shape=(NglobalDof, NglobalDof), dtype=np.int_)
         lhsM = operatorM @ lhsM
         rhsVec0 = operatorM @ rhsVec0
         rhsVec1 = operatorM @ rhsVec1
         #    |___ operatorM@lhsM: lhsM 中第 periodicDof1 行加到 periodicDof0 上; rhsVec0, rhsVec1 同理.
 
-        oneVec = np.ones((Msize,), dtype=np.int_)
+        oneVec = np.ones((NglobalDof,), dtype=np.int_)
         oneVec[periodicDof1] = np.int_(0)
-        operatorM = spdiags(oneVec, 0, Msize, Msize)
+        operatorM = spdiags(oneVec, 0, NglobalDof, NglobalDof)
         lhsM = operatorM @ lhsM
         rhsVec0 = operatorM @ rhsVec0
         rhsVec1 = operatorM @ rhsVec1
         #    |___ rowM0@lhsM: lhsM 中第 periodicDof1 行所有元素设置为 0; rhsVec0, rhsVec1 同理.
 
-        oneVec = np.ones((2 * nPDof,), dtype=np.int_)
-        oneVec[nPDof:] = np.int_(-1)
+        oneVec = np.ones((2 * NPDof,), dtype=np.int_)
+        oneVec[NPDof:] = np.int_(-1)
         operatorM = csr_matrix((oneVec, (np.hstack([periodicDof1, periodicDof1]), np.hstack([periodicDof0, periodicDof1]))),
-                               shape=(Msize, Msize), dtype=np.int_)
+                               shape=(NglobalDof, NglobalDof), dtype=np.int_)
         lhsM += operatorM
         #    |___ lhsM 中第 periodicDof1 行: 第 periodicDof0 列为 1, 第 periodicDof1 列为 -1.
 
