@@ -17,7 +17,7 @@ add the solver for \\xi.
 """
 
 import numpy as np
-from scipy.sparse import csr_matrix, spdiags, eye, bmat
+from scipy.sparse import csr_matrix, spdiags, identity, eye, bmat
 # from fealpy.quadrature import FEMeshIntegralAlg
 from scipy.sparse.linalg import spsolve
 from fealpy.boundarycondition import DirichletBC
@@ -59,10 +59,14 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         self.R_n = 0.  # 此项在 `update_mu_and_Xi()` 中更新.
         self.C0 = 1.  # 此项在 `update_mu_and_Xi()` 中, 以保证 E_n = \int H(\phi) + C0 > 0.
         self.Xi = 1.  # 此项在 `update_mu_and_Xi()` 中更新.
-        self.s, self.alpha = self.set_CH_Coeff(dt_minimum=self.dt_min/2.)
+        self.s, self.alpha = self.set_CH_Coeff(dt_minimum=self.dt_min)
 
         if hasattr(self, 'idxNotPeriodicEdge') is False:
             self.idxPeriodicEdge0, self.idxPeriodicEdge1, self.idxNotPeriodicEdge = self.set_periodic_edge()
+
+        self.auxM_CH = self.StiffMatrix + (self.alpha + self.s / self.pde.epsilon) * self.MassMatrix  # csr_matrix
+        self.auxPeriodicM_CH = None
+        self.orgM_CH = self.StiffMatrix - self.alpha * self.MassMatrix  # csr_matrix
 
     def CH_NS_addXi_Solver_T1stOrder(self):
         pde = self.pde
@@ -233,19 +237,45 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         np.add.at(aux_rv_part1, self.face2dof[self.NeuEdgeIdx_CH, :], aux_rhs_f_2 + aux_rhs_f_3)
 
         # |--- update the solution of auxiliary equation
-        periodicDof0, periodicDof1, _ = self.set_boundaryDofs(self.dof)
-        nPDof = len(periodicDof0)
-        oneVec = np.ones((2*nPDof,), dtype=np.int_)
-        # oneVec[nPDof:] = -1.
-
-        auxPeriodicM = self.StiffMatrix + (self.alpha + self.s / pde.epsilon) * self.MassMatrix  # csr_matrix
-        auxPeriodicM[periodicDof0, ...] += auxPeriodicM[periodicDof1, ...]  # Changing the sparsity structure of a csr_matrix is expensive.
-        auxPeriodicM[periodicDof1, ...] = 0.
         # |--- 需要对 csr_matrix 操作, 所以需要创建一系列 csr 矩阵进行相乘
+        # periodicDof0, periodicDof1, _ = self.set_boundaryDofs(self.dof)
+        # nPDof = len(periodicDof0)
+        # auxPeriodicM = self.StiffMatrix + (self.alpha + self.s / pde.epsilon) * self.MassMatrix  # csr_matrix
+        # IM = identity(auxPeriodicM.shape[0], dtype=np.int_)
+        #
+        # oneVec = np.ones((nPDof,), dtype=np.int_)
+        # operatorM = IM + csr_matrix((oneVec, (periodicDof0, periodicDof1)), shape=auxPeriodicM.shape, dtype=np.int_)
+        # auxPeriodicM = operatorM @ auxPeriodicM
+        # aux_rv_part0 = operatorM @ aux_rv_part0
+        # aux_rv_part1 = operatorM @ aux_rv_part1
+        # #    |___ operatorM@auxPeriodicM: auxPeriodicM 中第 periodicDof1 行加到 periodicDof0 上; aux_rv_part0, aux_rv_part1 同理.
+        #
+        # oneVec = np.ones((auxPeriodicM.shape[0],), dtype=np.int_)
+        # oneVec[periodicDof1] = np.int_(0)
+        # operatorM = spdiags(oneVec, 0, auxPeriodicM.shape[0], auxPeriodicM.shape[0])
+        # auxPeriodicM = operatorM @ auxPeriodicM
+        # aux_rv_part0 = operatorM @ aux_rv_part0
+        # aux_rv_part1 = operatorM @ aux_rv_part1
+        # #    |___ rowM0@auxPeriodicM: auxPeriodicM 中第 periodicDof1 行所有元素设置为 0; aux_rv_part0, aux_rv_part1 同理.
+        #
+        # oneVec = np.ones((2*nPDof,), dtype=np.int_)
+        # oneVec[nPDof:] = np.int_(-1)
+        # operatorM = csr_matrix((oneVec, (np.hstack([periodicDof1, periodicDof1]), np.hstack([periodicDof0, periodicDof1]))),
+        #                        shape=auxPeriodicM.shape, dtype=np.int_)
+        # auxPeriodicM += operatorM
+        # #    |___ auxPeriodicM 中第 periodicDof1 行: 第 periodicDof0 列为 1, 第 periodicDof1 列为 -1.
+
+        if self.auxPeriodicM_CH is not None:
+            auxPeriodicM = self.auxPeriodicM_CH
+            aux_rv_part0, aux_rv_part1, _ = self.set_periodicLinearSystem_CH(len(aux_rv_part0), aux_rv_part0, aux_rv_part1)
+        else:
+            aux_rv_part0, aux_rv_part1, auxPeriodicM = self.set_periodicLinearSystem_CH(
+                len(aux_rv_part0), aux_rv_part0, aux_rv_part1, self.auxM_CH)
+            self.auxPeriodicM_CH = auxPeriodicM
 
 
-        wh_part0[:] = spsolve(self.StiffMatrix + (self.alpha + self.s / pde.epsilon) * self.MassMatrix, aux_rv_part0)
-        wh_part1[:] = spsolve(self.StiffMatrix + (self.alpha + self.s / pde.epsilon) * self.MassMatrix, aux_rv_part1)
+        wh_part0[:] = spsolve(auxPeriodicM, aux_rv_part0)
+        wh_part1[:] = spsolve(auxPeriodicM, aux_rv_part1)
 
         # |--- update the two parts of original CH solution uh
         #      |___ part0
@@ -810,6 +840,38 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
             self.idxPeriodicEdge0, self.idxPeriodicEdge1, self.idxNotPeriodicEdge = self.set_periodic_edge()
             idxNeuEdge = self.idxNotPeriodicEdge
         return idxNeuEdge
+
+    def set_periodicLinearSystem_CH(self, Msize, rhsVec0, rhsVec1, lhsM=None):
+        periodicDof0, periodicDof1, _ = self.set_boundaryDofs(self.dof)
+        nPDof = len(periodicDof0)
+        IM = identity(Msize, dtype=np.int_)
+        if lhsM is None:
+            lhsM = IM.copy()
+
+        oneVec = np.ones((nPDof,), dtype=np.int_)
+        operatorM = IM + csr_matrix((oneVec, (periodicDof0, periodicDof1)), shape=(Msize, Msize), dtype=np.int_)
+        lhsM = operatorM @ lhsM
+        rhsVec0 = operatorM @ rhsVec0
+        rhsVec1 = operatorM @ rhsVec1
+        #    |___ operatorM@lhsM: lhsM 中第 periodicDof1 行加到 periodicDof0 上; rhsVec0, rhsVec1 同理.
+
+        oneVec = np.ones((Msize,), dtype=np.int_)
+        oneVec[periodicDof1] = np.int_(0)
+        operatorM = spdiags(oneVec, 0, Msize, Msize)
+        lhsM = operatorM @ lhsM
+        rhsVec0 = operatorM @ rhsVec0
+        rhsVec1 = operatorM @ rhsVec1
+        #    |___ rowM0@lhsM: lhsM 中第 periodicDof1 行所有元素设置为 0; rhsVec0, rhsVec1 同理.
+
+        oneVec = np.ones((2 * nPDof,), dtype=np.int_)
+        oneVec[nPDof:] = np.int_(-1)
+        operatorM = csr_matrix((oneVec, (np.hstack([periodicDof1, periodicDof1]), np.hstack([periodicDof0, periodicDof1]))),
+                               shape=(Msize, Msize), dtype=np.int_)
+        lhsM += operatorM
+        #    |___ lhsM 中第 periodicDof1 行: 第 periodicDof0 列为 1, 第 periodicDof1 列为 -1.
+
+        return rhsVec0, rhsVec1, lhsM
+
 
 
 
