@@ -25,6 +25,7 @@ from fealpy.boundarycondition import DirichletBC
 # from fealpy.functionspace import LagrangeFiniteElementSpace
 # from sym_diff_basis import compute_basis
 from FEM_CH_NS_Model2d import FEM_CH_NS_Model2d
+import numpy.polynomial as poly
 
 
 class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
@@ -780,7 +781,7 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
                 err = np.abs(xn - x0)
                 x0 = xn
             return x0
-        Xi = Newton_iteration(1.e-9, 1.)
+        Xi = Newton_iteration(1.e-10, 1.)
         print("    |___ In `update_mu_and_Xi()` func and Xi = %.4e" % Xi)
         self.R_n = Xi * np.sqrt(E_n)
         self.grad_mu_val = grad_mu_val_part0 + Xi * grad_mu_val_part1
@@ -898,6 +899,53 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         #    |___ lhsM 中第 periodicDof1 行: 第 periodicDof0 列为 1, 第 periodicDof1 列为 -1.
 
         return rhsVec0, rhsVec1, lhsM
+
+    def get_position_of_uh_at_zero(self, uh):
+        periodicDof0 = self.periodicDof0
+        #   |___ 需要注意的是, periodicDof0[0] 到 periodicDof0[-1] 的顺序必须是使得
+        #   |___ self.dof.interpolation_points()[periodicDof0, 1] 从小达到的顺序, 这个过程我们已经在 set_boundaryDofs() 中实现了.
+
+        uh_p = uh[periodicDof0]
+        zero_dof = periodicDof0[abs(uh_p - 0.) < 1e-8]
+        if np.any(zero_dof):
+            zero_dof = min(zero_dof)
+            coord = self.dof.interpolation_points()[zero_dof, 1]
+            return coord
+        else:
+            half_indicator = np.int(self.p/2) + np.mod(self.p + 1, 2)
+            uh_p_negative = np.max(uh_p[uh_p[:] < 0])
+            uh_p_positive = np.min(uh_p[uh_p[:] > 0])
+
+            negative_indicator, = np.nonzero(uh_p == uh_p_negative)[0]
+            positive_indicator, = np.nonzero(uh_p == uh_p_positive)[0]
+            dof_negative_indicator = periodicDof0[(negative_indicator + 1 - half_indicator):(negative_indicator + 1)]
+            dof_positive_indicator = periodicDof0[positive_indicator:(positive_indicator + half_indicator)]
+            dof_indicator = np.hstack([dof_negative_indicator, dof_positive_indicator])
+
+            coord = self.dof.interpolation_points()[dof_indicator, 1]
+            uh_val = uh[dof_indicator]
+
+            thePoly = poly.Polynomial.fit(coord, uh_val, deg=self.p)  # 通过给定的 coord 和 uh_val, 拟合一维 self.p-阶的多项式
+            return min(abs(np.real(thePoly.roots())))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
