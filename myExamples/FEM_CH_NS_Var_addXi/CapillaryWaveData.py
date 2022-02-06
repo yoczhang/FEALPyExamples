@@ -75,6 +75,18 @@ class CapillaryWaveSolution:
         return np.linspace(self.t0, self.T, num=n + 1), dt
 
     @cartesian
+    def solution_CH(self, p, t):
+        x = p[..., 0]
+        y = p[..., 1]
+        u = 0 * x
+        return u
+
+    @cartesian
+    def gradient_CH(self, p, t):
+        val = np.zeros(p.shape, dtype=np.float64)
+        return val  # val.shape == p.shape
+
+    @cartesian
     def initial_CH(self, p, eta=5.e-3):
         x = p[..., 0]
         y = p[..., 1]
@@ -132,6 +144,16 @@ class CapillaryWaveSolution:
     # |--- the Navier-Stokes data
     @cartesian
     def velocity_NS(self, p, t):
+        val = np.zeros(p.shape, dtype=np.float)
+        return val
+
+    @cartesian
+    def grad_velocity0_NS(self, p, t):
+        val = np.zeros(p.shape, dtype=np.float)
+        return val
+
+    @cartesian
+    def grad_velocity1_NS(self, p, t):
         val = np.zeros(p.shape, dtype=np.float)
         return val
 

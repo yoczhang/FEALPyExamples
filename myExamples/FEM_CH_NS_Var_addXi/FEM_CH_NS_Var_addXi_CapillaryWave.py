@@ -28,7 +28,7 @@ from CapillaryWaveModel2d import CapillaryWaveModel2d
 import matplotlib.pyplot as plt
 
 # |--- logging
-make_print_to_file(filename='FEM_CH_NS_Var_addXi_CapillaryWave', setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
+# make_print_to_file(filename='FEM_CH_NS_Var_addXi_CapillaryWave', setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
 
 # |--- begin setting
 d = 2  # the dimension
