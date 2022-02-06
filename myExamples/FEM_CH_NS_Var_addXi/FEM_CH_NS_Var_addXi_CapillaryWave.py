@@ -17,8 +17,10 @@ add the solver for \\xi.
 """
 
 import numpy as np
-from fealpy.mesh import MeshFactory as MF
-from fealpy.mesh.HalfEdgeMesh2d import HalfEdgeMesh2d
+# from fealpy.mesh import MeshFactory as MF
+# from fealpy.mesh.HalfEdgeMesh2d import HalfEdgeMesh2d
+from PrintLogger import make_print_to_file
+import datetime
 from CapillaryWaveData import CapillaryWaveSolution
 from CapillaryWaveModel2d import CapillaryWaveModel2d
 import matplotlib  # 为了解决画图时采用 GUI (plt.show()) 的形式时, python3.8 崩溃的情况.
@@ -26,12 +28,12 @@ matplotlib.use("TkAgg")  # 为了解决画图时采用 GUI (plt.show()) 的形�
 import matplotlib.pyplot as plt
 
 # |--- logging
-# make_print_to_file(filename='FEM_CH_NS_Var_addXi_CapillaryWave', setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
+make_print_to_file(filename='FEM_CH_NS_Var_addXi_CapillaryWave', setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
 
 # |--- begin setting
 d = 2  # the dimension
 p = 2  # the polynomial order
-n = 2  # the number of refine mesh
+# n = 2  # the number of refine mesh
 
 # |--- time and mesh setting
 t0 = 0.
@@ -49,9 +51,14 @@ time_scheme = 1  # 1 stands for 1st-order time-scheme; 2 is the 2nd-order time-s
 # plt.show()
 
 # |--- pde setting
-pdePars = {'m': 1e-3, 's': 1, 'alpha': 1, 'epsilon': 1e-3, 'eta': 1e-1, 'dt_min': dt_min, 'timeScheme': '1stOrder'
-           }  # value of parameters
-varCoeff = {'rho0': 1e-0, 'rho1': 3e-0, 'nu0': 1e-2, 'nu1': 2e-2}
+rho0 = 1.e-0
+nu0 = 1.e-2
+rho1 = 1.e-0
+nu1 = nu0 * rho1 / rho0
+
+
+pdePars = {'m': 5e-4, 'epsilon': 1e-3, 'eta': 5e-3, 'dt_min': dt_min, 'timeScheme': '1stOrder'}  # value of parameters
+varCoeff = {'rho0': rho0, 'rho1': rho1, 'nu0': nu0, 'nu1': nu1}
 pde = CapillaryWaveSolution(t0, T)  # create pde model
 pde.setPDEParameters(pdePars)
 pde.setPDEParameters(varCoeff)
@@ -70,15 +77,19 @@ print('rho0 = %.4e,  rho1 = %.4e' % (varCoeff['rho0'], varCoeff['rho1']))
 print('nu0 = %.4e,  nu1 = %.4e, ' % (varCoeff['nu0'], varCoeff['nu1']))
 print('# #')
 
+daytime = datetime.datetime.now().strftime('%Y%m%d')
+hourtime = datetime.datetime.now().strftime("%H%M%S")
+
 cw = CapillaryWaveModel2d(pde, mesh, p, dt_space[0])
-cw.set_boundaryDofs(cw.dof)
-cw.CH_NS_addXi_Solver_T1stOrder()
+time_position_Xi = cw.CH_NS_addXi_Solver_T1stOrder()
 
+filename = './time_position_Xi' + '_' + daytime + '-' + hourtime
+np.save(filename + '.npy', time_position_Xi)
 
+plt.figure()
+plt.plot(time_position_Xi[:, 0], time_position_Xi[:, 1])
+plt.xlabel("time")
+plt.ylabel("H")
+plt.savefig(filename + '.png')
 
-
-
-
-
-
-
+print('end of the `FEM_CH_NS_Var_addXi_CapillaryWave` code')
