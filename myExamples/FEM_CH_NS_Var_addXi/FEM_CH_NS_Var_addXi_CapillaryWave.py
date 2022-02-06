@@ -23,8 +23,8 @@ from PrintLogger import make_print_to_file
 import datetime
 from CapillaryWaveData import CapillaryWaveSolution
 from CapillaryWaveModel2d import CapillaryWaveModel2d
-import matplotlib  # 为了解决画图时采用 GUI (plt.show()) 的形式时, python3.8 崩溃的情况.
-matplotlib.use("TkAgg")  # 为了解决画图时采用 GUI (plt.show()) 的形式时, python3.8 崩溃的情况.
+# import matplotlib  # 为了解决画图时采用 GUI (plt.show()) 的形式时, python3.8 崩溃的情况.
+# matplotlib.use("TkAgg")  # 为了解决画图时采用 GUI (plt.show()) 的形式时, python3.8 崩溃的情况.
 import matplotlib.pyplot as plt
 
 # |--- logging
