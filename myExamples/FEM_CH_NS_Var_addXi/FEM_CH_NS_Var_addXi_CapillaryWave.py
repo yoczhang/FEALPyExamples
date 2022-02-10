@@ -28,7 +28,7 @@ from CapillaryWaveModel2d import CapillaryWaveModel2d
 import matplotlib.pyplot as plt
 
 # |--- logging
-# make_print_to_file(filename='FEM_CH_NS_Var_addXi_CapillaryWave', setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
+make_print_to_file(filename='FEM_CH_NS_Var_addXi_CapillaryWave', setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
 
 # |--- begin setting
 d = 2  # the dimension
@@ -37,7 +37,7 @@ p = 2  # the polynomial order
 
 # |--- time and mesh setting
 t0 = 0.
-T = 3
+T = 1.
 dt_space = [1.e-5, ]
 dt_min = min(dt_space)
 time_scheme = 1  # 1 stands for 1st-order time-scheme; 2 is the 2nd-order time-scheme
