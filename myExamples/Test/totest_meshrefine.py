@@ -1,4 +1,4 @@
-#!/anaconda3/envs/FEALPy/bin python3.8
+# /anaconda3/envs/FEALPy/bin python3.8
 # -*- coding: utf-8 -*-
 # ---
 # @Software: PyCharm
@@ -12,8 +12,8 @@
 
 import numpy as np
 import sys
-# import os, sys
-# os.chdir(sys.path[0])
+import os, sys
+os.chdir(sys.path[0])
 import time
 # from prst.gridprocessing import *
 from ..Tools.mesh_IO import mesh_IO
