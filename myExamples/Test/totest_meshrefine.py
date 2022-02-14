@@ -12,6 +12,8 @@
 
 import numpy as np
 import sys
+# import os, sys
+# os.chdir(sys.path[0])
 import time
 # from prst.gridprocessing import *
 from ..Tools.mesh_IO import mesh_IO
