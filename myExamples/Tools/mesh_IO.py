@@ -49,10 +49,14 @@ class mesh_IO:
         node = np.array(mesh.node)
         c2n = mesh.ds.cell_to_node()
         # nvc = mesh.number_of_vertices_of_cells()
-        cell_all = c2n[0] + 1  # 转换为 MATLAB 数据时, 编号从 1 开始.
-        cell_location = c2n[1]
-        cell = np.split(cell_all, cell_location[1:-1])
-
+        if isinstance(c2n, tuple):
+            cell_all = c2n[0] + 1  # 转换为 MATLAB 数据时, 编号从 1 开始.
+            cell_location = c2n[1]
+            cell = np.split(cell_all, cell_location[1:-1])
+        elif isinstance(c2n, np.ndarray):
+            cell = c2n
+        else:
+            raise ValueError("In `save2MatlabMesh()`, the `c2n` type is wrong")
         io.savemat(filename, {'node': node, 'elem': cell})
 
     def save2MatlabUh(self, Uh, filename=None):

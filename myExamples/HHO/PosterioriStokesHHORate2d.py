@@ -54,11 +54,11 @@ box = [0, 1, 0, 1]  # [0, 1]^2 domain
 # mesh = mIO.loadMatlabMesh(filename=matfile)
 
 # --- mesh3 --- #
-mesh = mf.triangle(box, 1./4)
+# mesh = mf.triangle(box, 1./4)
 
 # --- mesh4: L-shape --- #
-# matfile = '../Meshfiles/Lshape3_poly_64.mat'
-# mesh = mIO.loadMatlabMesh(filename=matfile)
+matfile = '../Meshfiles/Lshape3_poly_64.mat'
+mesh = mIO.loadMatlabMesh(filename=matfile)
 
 # --- to halfedgemesh --- #
 mesh = HalfEdgeMesh2d.from_mesh(mesh)
