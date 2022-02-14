@@ -54,7 +54,7 @@ class mesh_IO:
             cell_location = c2n[1]
             cell = np.split(cell_all, cell_location[1:-1])
         elif isinstance(c2n, np.ndarray):
-            cell = c2n
+            cell = c2n + 1
         else:
             raise ValueError("In `save2MatlabMesh()`, the `c2n` type is wrong")
         io.savemat(filename, {'node': node, 'elem': cell})

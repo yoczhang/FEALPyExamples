@@ -90,8 +90,8 @@ mesh = HalfEdgeMesh2d.from_mesh(mesh, NV=3)
 # mesh.refine_triangle_rg(isMarkedCell)
 mesh.uniform_refine(2)
 
-meshio = mesh_IO()
-meshio.save2MatlabMesh(mesh, './CapillaryWaveInitMesh.mat')
+# meshio = mesh_IO()
+# meshio.save2MatlabMesh(mesh, './CapillaryWaveInitMesh.mat')
 
 
 # |--- plot the mesh
