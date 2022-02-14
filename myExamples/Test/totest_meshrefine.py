@@ -16,7 +16,7 @@ import os, sys
 os.chdir(sys.path[0])
 import time
 # from prst.gridprocessing import *
-from ..Tools.mesh_IO import mesh_IO
+from Tools.mesh_IO import mesh_IO
 from fealpy.mesh import MeshFactory as MF
 from fealpy.mesh.HalfEdgeMesh2d import HalfEdgeMesh2d
 from fealpy.mesh import Quadtree
@@ -90,7 +90,8 @@ mesh = HalfEdgeMesh2d.from_mesh(mesh, NV=3)
 # mesh.refine_triangle_rg(isMarkedCell)
 mesh.uniform_refine(2)
 
-mesh_IO.save2MatlabMesh(mesh, './CapillaryWaveInitMesh')
+meshio = mesh_IO()
+meshio.save2MatlabMesh(mesh, './CapillaryWaveInitMesh.mat')
 
 
 # |--- plot the mesh
