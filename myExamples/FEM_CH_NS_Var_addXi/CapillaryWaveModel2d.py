@@ -170,7 +170,7 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
             time_position_Xi[nt + 1, 2] = Xi
             # print('    end of one-looping')
 
-            if nt % max([int(NT / 5), 1]) == 0:
+            if nt % max([int(NT / 100), 1]) == 0:
                 print('    currt_t = %.4e' % currt_t)
                 print('    Xi = %.6e' % Xi)
                 uh_l2err, uh_h1err, vel_l2err, vel_h1err, ph_l2err = self.currt_error(uh, vel0, vel1, ph, timemesh[nt])
