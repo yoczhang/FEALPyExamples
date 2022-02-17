@@ -18,7 +18,7 @@ add the solver for \\xi.
 
 
 import numpy as np
-from scipy.sparse import csr_matrix, spdiags, eye, bmat
+from scipy.sparse import csr_matrix, spdiags, identity, eye, bmat
 # from fealpy.quadrature import FEMeshIntegralAlg
 from scipy.sparse.linalg import spsolve
 from fealpy.boundarycondition import DirichletBC
@@ -88,8 +88,210 @@ class CocurrentFlowModel2d(FEM_CH_NS_Model2d):
         self.VLM = 1. / self.dt * self.vel_MM + max(self.pde.nu0 / self.pde.rho0, self.pde.nu1 / self.pde.rho1) * self.vel_SM
         self.vOrgPeriodicM_NS = None
 
+    def CH_NS_addXi_Solver_T1stOrder(self):
+        pde = self.pde
+        timemesh = self.timemesh
+        NT = len(timemesh)
+        dt = self.dt
+        uh = self.uh
+        wh = self.wh
+        vel0 = self.vel0
+        vel1 = self.vel1
+        ph = self.ph
 
+        print('    # #################################### #')
+        print('      Time 1st-order scheme')
+        print('    # #################################### #')
 
+        print('    # ------------ parameters ------------ #')
+        print('    s = %.4e,  alpha = %.4e,  m = %.4e,  epsilon = %.4e,  eta = %.4e'
+              % (self.s, self.alpha, self.pde.m, self.pde.epsilon, self.pde.eta))
+        print('    t0 = %.4e,  T = %.4e, dt = %.4e' % (timemesh[0], timemesh[-1], dt))
+        print(' ')
+
+        if pde.haveTrueSolution:
+            def init_solution_CH(p):
+                return pde.solution_CH(p, 0)
+            uh[:] = self.space.interpolation(init_solution_CH)
+
+            def init_velocity0(p):
+                return pde.velocity_NS(p, 0)[..., 0]
+            vel0[:] = self.vspace.interpolation(init_velocity0)
+
+            def init_velocity1(p):
+                return pde.velocity_NS(p, 0)[..., 1]
+            vel1[:] = self.vspace.interpolation(init_velocity1)
+
+            def init_pressure(p):
+                return pde.pressure_NS(p, 0)
+            ph[:] = self.space.interpolation(init_pressure)
+
+        # # time-looping
+        print('    # ------------ begin the time-looping ------------ #')
+        self.uh_part0[:] = uh[:]
+        #    |___ 这里只赋值 uh_part0, 首先在下面的时间循环中赋值给 self.uh_last_part0,
+        #         |___ 接着是为了 `第一次` 计算 self.rho_bar_n 与 self.nu_bar_n 时直接取到 uh 的初始值.
+        uh_last = uh.copy()
+        for nt in range(NT - 1):
+            currt_t = timemesh[nt]
+            next_t = currt_t + dt
+
+            # # --- decoupled solvers, updated the discrete-solutions to the next-time
+            self.uh_last_part0[:] = self.uh_part0[:]
+            self.uh_last_part1[:] = self.uh_part1[:]
+            # print('        |___ decoupled Cahn-Hilliard Solver(Time-1st-order): ')
+            self.decoupled_CH_addXi_Solver_T1stOrder(uh, wh, vel0, vel1, next_t)
+            # print('        -----------------------------------------------')
+            # print('        |___ decoupled Navier-Stokes Solver(Time-1st-order): ')
+            self.decoupled_NS_addXi_Solver_T1stOrder(vel0, vel1, ph, uh, uh_last, next_t)
+            Xi = self.update_mu_and_Xi(uh, next_t)
+
+            # |--- update the values
+            uh_last[:] = uh[:]
+            uh[:] = self.uh_part0[:] + Xi * self.uh_part1[:]
+            wh[:] = self.wh_part0[:] + Xi * self.wh_part1[:]
+            ph[:] = self.ph_part0[:] + Xi * self.ph_part1[:]
+            vel0[:] = self.vel0_part0[:] + Xi * self.vel0_part1[:]
+            vel1[:] = self.vel1_part0[:] + Xi * self.vel1_part1[:]
+            # print('    end of one-looping')
+
+            if nt % max([int(NT / 5), 1]) == 0:
+                print('    currt_t = %.4e' % currt_t)
+                uh_l2err, uh_h1err, vel_l2err, vel_h1err, ph_l2err = self.currt_error(uh, vel0, vel1, ph, timemesh[nt])
+                if np.isnan(uh_l2err) | np.isnan(uh_h1err) | np.isnan(vel_l2err) | np.isnan(vel_h1err) | np.isnan(
+                        ph_l2err):
+                    print('Some error is nan: breaking the program')
+                    break
+        print('    # ------------ end the time-looping ------------ #\n')
+
+        # # --- errors
+        uh_l2err, uh_h1err, vel_l2err, vel_h1err, ph_l2err = self.currt_error(uh, vel0, vel1, ph, timemesh[-1])
+        print('    # ------------ the last errors ------------ #')
+        print('    uh_l2err = %.4e, uh_h1err = %.4e' % (uh_l2err, uh_h1err))
+        print('    vel_l2err = %.4e, vel_h1err = %.4e, ph_l2err = %.4e' % (vel_l2err, vel_h1err, ph_l2err))
+
+        return uh_l2err, uh_h1err, vel_l2err, vel_h1err, ph_l2err
+
+    def decoupled_CH_addXi_Solver_T1stOrder(self, uh, wh, vel0, vel1, next_t):
+        """
+        The decoupled-Cahn-Hilliard-solver for the all system.
+        :param uh: The value of the solution 'phi' of Cahn-Hilliard equation: stored the n-th(time) value, and to update the (n+1)-th value.
+        :param wh: The value of the auxiliary solution of Cahn-Hilliard equation: stored the n-th(time) value, and to update the (n+1)-th value.
+        :param vel0: The fist-component of NS's velocity: stored the n-th(time) value.
+        :param vel1: The second-component of NS's velocity: stored the n-th(time) value.
+        :param next_t: Next time.
+        :return: Updated uh_part*, wh_part*.
+        """
+
+        pde = self.pde
+        wh_part0 = self.wh_part0
+        wh_part1 = self.wh_part1
+        uh_part0 = self.uh_part0
+        uh_part1 = self.uh_part1
+
+        # |--- uh using the true solution
+        def solution_CH(p):
+            return pde.solution_CH(p, next_t)
+        uh[:] = self.space.interpolation(solution_CH)
+
+        # |--- grad-free-energy: \nabla h(phi) = epsilon/eta^2*3*phi^2*(\nabla phi) - (\nabla phi)
+        #     |___ where h(phi) = epsilon/eta^2*phi*(phi^2-1)
+        grad_free_energy_c = pde.epsilon / pde.eta ** 2 * self.grad_free_energy_at_cells(uh, self.c_bcs)  # (NQ,NC,2)
+        grad_free_energy_f = (pde.epsilon / pde.eta ** 2
+                              * self.grad_free_energy_at_faces(uh, self.f_bcs, self.NeuEdgeIdx_CH, self.NeuCellIdx_CH,
+                                                               self.NeuLocalIdx_CH))  # (NQ,NE,2)
+        uh_val = self.space.value(uh, self.c_bcs)  # (NQ,NC)
+        guh_val_c = self.space.grad_value(uh, self.c_bcs)  # (NQ,NC,2)
+        guh_val_f = self.uh_grad_value_at_faces(uh, self.f_bcs, self.NeuCellIdx_CH, self.NeuLocalIdx_CH)  # (NQ,NNeu,2)
+
+        Neumann = pde.neumann_CH(self.f_pp_Neu_CH, next_t, self.nNeu_CH)  # (NQ,NE)
+        LaplaceNeumann = pde.laplace_neumann_CH(self.f_pp_Neu_CH, next_t, self.nNeu_CH)  # (NQ,NE)
+        f_val_CH = pde.source_CH(self.c_pp, next_t, pde.m, pde.epsilon, pde.eta)  # (NQ,NC)
+
+        # |--- get the auxiliary equation Right-hand-side-Vector
+        aux_rv_part0 = np.zeros((self.dof.number_of_global_dofs(),), dtype=self.ftype)  # (Ndof,)
+        aux_rv_part1 = np.zeros((self.dof.number_of_global_dofs(),), dtype=self.ftype)  # (Ndof,)
+
+        # |--- aux_rhs_c_0:  -1. / (epsilon * m) * (uh^n/dt + g^{n+1},phi)_\Omega
+        aux_rhs_c_0 = -1. / (pde.epsilon * pde.m) * np.einsum('i, ij, ijk, j->jk', self.c_ws, 1 / self.dt * uh_val
+                                                              + f_val_CH, self.phi_c, self.cellmeasure)  # (NC,cldof)
+
+        # |--- aux_rhs_c_1: -s / epsilon * (\nabla uh^n, \nabla phi)_\Omega
+        aux_rhs_c_1 = -self.s / pde.epsilon * (
+                np.einsum('i, ijm, ijkm, j->jk', self.c_ws, guh_val_c, self.gphi_c, self.cellmeasure))  # (NC,cldof)
+
+        # |--- aux_rhs_c_2: 1 / epsilon * (\nabla h(uh^n), \nabla phi)_\Omega
+        aux_rhs_c_2 = 1. / pde.epsilon * (np.einsum('i, ijm, ijkm, j->jk', self.c_ws, grad_free_energy_c,
+                                                    self.gphi_c, self.cellmeasure))  # (NC,cldof)
+
+        # |--- aux_rhs_f_0: (\nabla wh^{n+1}\cdot n, phi)_\Gamma, wh is the solution of auxiliary equation
+        aux_rhs_f_0 = np.einsum('i, ij, ijn, j->jn', self.f_ws, self.alpha * Neumann + LaplaceNeumann, self.phi_f, self.NeuEdgeMeasure_CH)  # (Nneu,fldof)
+        #          |___ This term will add to aux_rv_part0
+
+        # |--- aux_rhs_f_1: s / epsilon * (\nabla uh^n \cdot n, phi)_\Gamma
+        aux_rhs_f_1 = self.s / pde.epsilon * np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, guh_val_f, self.nNeu_CH,
+                                                       self.phi_f, self.NeuEdgeMeasure_CH)  # (Nneu,fldof)
+
+        # |--- aux_rhs_f_2: -1 / epsilon * (\nabla h(uh^n) \cdot n, phi)_\Gamma
+        aux_rhs_f_2 = -1. / pde.epsilon * np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, grad_free_energy_f, self.nNeu_CH,
+                                                    self.phi_f, self.NeuEdgeMeasure_CH)  # (Nneu,fldof)
+
+        # |--- now, we add the NS term
+        vel0_val_c = self.vspace.value(vel0, self.c_bcs)  # (NQ,NC)
+        vel1_val_c = self.vspace.value(vel1, self.c_bcs)  # (NQ,NC)
+        vel0_val_f = self.vspace.value(vel0, self.f_bcs)[..., self.NeuEdgeIdx_CH]  # (NQ,Nneu)
+        vel1_val_f = self.vspace.value(vel1, self.f_bcs)[..., self.NeuEdgeIdx_CH]  # (NQ,Nneu)
+
+        uh_val_f = self.space.value(uh, self.f_bcs)[..., self.NeuEdgeIdx_CH]  # (NQ,Nneu)
+        uh_vel_val_f = np.concatenate([(uh_val_f * vel0_val_f)[..., np.newaxis],
+                                       (uh_val_f * vel1_val_f)[..., np.newaxis]], axis=2)  # (NQ,Nneu,2)
+
+        aux_rhs_c_3 = (-1. / (pde.epsilon * pde.m) *
+                       (np.einsum('i, ij, ijk, j->jk', self.c_ws, uh_val * vel0_val_c, self.gphi_c[..., 0], self.cellmeasure) +
+                        np.einsum('i, ij, ijk, j->jk', self.c_ws, uh_val * vel1_val_c, self.gphi_c[..., 1], self.cellmeasure)))  # (NC,cldof)
+        aux_rhs_f_3 = (1. / (pde.epsilon * pde.m) *
+                       np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, uh_vel_val_f, self.nNeu_CH, self.phi_f, self.NeuEdgeMeasure_CH))  # (NBE,fldof)
+
+        # |--- assemble the two parts of CH's aux equations
+        np.add.at(aux_rv_part0, self.cell2dof, aux_rhs_c_0 + aux_rhs_c_1)
+        np.add.at(aux_rv_part0, self.face2dof[self.NeuEdgeIdx_CH, :], aux_rhs_f_0 + aux_rhs_f_1)
+        np.add.at(aux_rv_part1, self.cell2dof, aux_rhs_c_2 + aux_rhs_c_3)
+        np.add.at(aux_rv_part1, self.face2dof[self.NeuEdgeIdx_CH, :], aux_rhs_f_2 + aux_rhs_f_3)
+
+        if self.auxPeriodicM_CH is None:
+            aux_rv_part0, aux_rv_part1, auxPeriodicM = self.set_periodicAlgebraicSystem(self.dof, aux_rv_part0, aux_rv_part1, self.auxM_CH)
+            self.auxPeriodicM_CH = auxPeriodicM.copy()
+        else:
+            auxPeriodicM = self.auxPeriodicM_CH
+            aux_rv_part0, aux_rv_part1, _ = self.set_periodicAlgebraicSystem(self.dof, aux_rv_part0, aux_rv_part1)
+
+        wh_part0[:] = spsolve(auxPeriodicM, aux_rv_part0)
+        wh_part1[:] = spsolve(auxPeriodicM, aux_rv_part1)
+
+        # |--- update the two parts of original CH solution uh
+        #      |___ part0
+        orig_rv_part0 = np.zeros((self.dof.number_of_global_dofs(),), dtype=self.ftype)  # (Ndof,)
+        wh_val_part0 = self.space.value(wh_part0, self.c_bcs)  # (NQ,NC)
+        orig_rhs_c_part0 = - np.einsum('i, ij, ijk, j->jk', self.c_ws, wh_val_part0, self.phi_c, self.cellmeasure)  # (NC,cldof)
+        orig_rhs_f_part0 = np.einsum('i, ij, ijn, j->jn', self.f_ws, Neumann, self.phi_f, self.NeuEdgeMeasure_CH)  # (Nneu,fldof)
+        np.add.at(orig_rv_part0, self.cell2dof, orig_rhs_c_part0)
+        np.add.at(orig_rv_part0, self.face2dof[self.NeuEdgeIdx_CH, :], orig_rhs_f_part0)
+
+        #      |___ part1
+        orig_rv_part1 = np.zeros((self.dof.number_of_global_dofs(),), dtype=self.ftype)  # (Ndof,)
+        wh_val_part1 = self.space.value(wh_part1, self.c_bcs)  # (NQ,NC)
+        orig_rhs_c_part1 = - np.einsum('i, ij, ijk, j->jk', self.c_ws, wh_val_part1, self.phi_c, self.cellmeasure)  # (NC,cldof)
+        np.add.at(orig_rv_part1, self.cell2dof, orig_rhs_c_part1)
+
+        if self.orgPeriodicM_CH is None:
+            orig_rv_part0, orig_rv_part1, orgPeriodicM = self.set_periodicAlgebraicSystem(self.dof, orig_rv_part0, orig_rv_part1, self.orgM_CH)
+            self.orgPeriodicM_CH = orgPeriodicM.copy()
+        else:
+            orgPeriodicM = self.orgPeriodicM_CH
+            orig_rv_part0, orig_rv_part1, _ = self.set_periodicAlgebraicSystem(self.dof, orig_rv_part0, orig_rv_part1)
+
+        uh_part0[:] = spsolve(orgPeriodicM, orig_rv_part0)
+        uh_part1[:] = spsolve(orgPeriodicM, orig_rv_part1)
 
     def set_periodic_edge(self):
         """
