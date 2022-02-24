@@ -1,0 +1,46 @@
+453
+857
+1677
+3329
+8193
+8193
+
+# ------------ in FEM_CH_NS_Var_addXi_CapillaryWave code ------------ #
+# ------------ the initial parameters ------------ #
+p =  2
+t0 = 0.0000e+00,  T = 1.0000e+00
+dt_space =  [1e-05]
+domain box =  [0, 1, -1, 1]
+rho0 = 1.0000e+00,  rho1 = 1.0000e+00
+nu0 = 1.0000e-02,  nu1 = 1.0000e-02, 
+# #
+run serial_construct_matrix with time: 0.23220432699999993
+run serial_construct_matrix with time: 0.03004726499999988
+run serial_construct_matrix with time: 0.5693319320000001
+run serial_construct_matrix with time: 0.06588646900000006
+    |___ In `set_CH_Coeff()`: self.dt_min = 1.0000e-05, dt_minimum = 1.0000e-05, (dt_min/dt_minimum = 1.0000e+00)
+    |___ In `set_CH_Coeff()`: self.dt_min = 1.0000e-05, dt_minimum = 1.0000e-05, (dt_min/dt_minimum = 1.0000e+00)
+    # #################################### #
+            Time 1st-order scheme
+    # #################################### #
+    # ------------ parameters ------------ #
+    s = 8.9443e+02,  alpha = -4.4721e+05,  m = 5.0000e-04,  epsilon = 1.0000e-03,  eta = 5.0000e-03
+    t0 = 0.0000e+00,  T = 1.0000e+00, dt = 1.0000e-05
+ 
+    # ------------ begin the time-looping ------------ #
+    currt_t = 0.0000e+00
+    Xi = 9.999998e-01
+    currt_t = 2.0000e-01
+    Xi = 9.643055e-01
+    currt_t = 4.0000e-01
+    Xi = 9.327117e-01
+    currt_t = 6.0000e-01
+    Xi = 9.044647e-01
+    currt_t = 8.0000e-01
+    Xi = 8.789974e-01
+    # ------------ end the time-looping ------------ #
+
+    # ------------ the last errors ------------ #
+    uh_l2err = 1.4088e+00, uh_h1err = 1.3211e+01
+    vel_l2err = 2.0448e-04, vel_h1err = 4.2707e-01, ph_l2err = 1.6888e+00
+end of the `FEM_CH_NS_Var_addXi_CapillaryWave` code
