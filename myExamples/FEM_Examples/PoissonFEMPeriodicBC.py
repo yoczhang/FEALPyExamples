@@ -73,8 +73,13 @@ for i in range(maxit):
     print("The {}-th computation:".format(i))
 
     space = LagrangeFiniteElementSpace(mesh, p=p)
+
+    pBS = periodicBoundarySettings(mesh, space.dof, set_periodic_edge_func)
+    DirEdgeInd = pBS.idxNotPeriodicEdge
+    periodicDof0, periodicDof1, _ = pBS.set_boundaryDofs()
+
     NDof[i] = space.number_of_global_dofs()
-    bc = DirichletBC(space, pde.dirichlet)
+    bc = DirichletBC(space, pde.dirichlet, threshold=DirEdgeInd)
 
     uh = space.function()
     A = space.stiff_matrix()
@@ -83,8 +88,6 @@ for i in range(maxit):
 
     A, F = bc.apply(A, F, uh)
 
-    pBS = periodicBoundarySettings(mesh, space.dof, set_periodic_edge_func)
-    periodicDof0, periodicDof1, _ = pBS.set_boundaryDofs()
     F, A = pBS.set_periodicAlgebraicSystem(periodicDof0, periodicDof1, F, lhsM=A)
 
     uh[:] = spsolve(A, F).reshape(-1)
@@ -94,6 +97,8 @@ for i in range(maxit):
 
     if i < maxit - 1:
         mesh.uniform_refine()
+        print('|--- refine the mesh')
+
 
 # --- get the convergence rate --- #
 print('# ------------ the error-table ------------ #')
