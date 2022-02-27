@@ -1,0 +1,3 @@
+/Users/yczhang/Desktop/capillary_wave/build/CMakeFiles/capillary_wave_app.dir
+/Users/yczhang/Desktop/capillary_wave/build/CMakeFiles/edit_cache.dir
+/Users/yczhang/Desktop/capillary_wave/build/CMakeFiles/rebuild_cache.dir

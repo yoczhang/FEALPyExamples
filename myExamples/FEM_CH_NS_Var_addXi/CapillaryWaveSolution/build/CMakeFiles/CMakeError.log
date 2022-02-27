@@ -1,0 +1,99 @@
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: /Library/Developer/CommandLineTools/usr/bin/cc 
+Build flags: 
+Id flags:  
+
+The output was:
+1
+ld: library not found for -lSystem
+clang: error: linker command failed with exit code 1 (use -v to see invocation)
+
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" failed.
+Compiler: /Library/Developer/CommandLineTools/usr/bin/c++ 
+Build flags: 
+Id flags:  
+
+The output was:
+1
+ld: library not found for -lc++
+clang: error: linker command failed with exit code 1 (use -v to see invocation)
+
+
+Compiling the Fortran compiler identification source file "CMakeFortranCompilerId.F" failed.
+Compiler: /usr/local/bin/gfortran 
+Build flags: 
+Id flags: -v 
+
+The output was:
+1
+Driving: /usr/local/bin/gfortran -v CMakeFortranCompilerId.F -mmacosx-version-min=10.17.0 -asm_macosx_version_min=10.17 -l gfortran -shared-libgcc
+Using built-in specs.
+COLLECT_GCC=/usr/local/bin/gfortran
+COLLECT_LTO_WRAPPER=/usr/local/Cellar/gcc/8.2.0/libexec/gcc/x86_64-apple-darwin17.7.0/8.2.0/lto-wrapper
+Target: x86_64-apple-darwin17.7.0
+Configured with: ../configure --build=x86_64-apple-darwin17.7.0 --prefix=/usr/local/Cellar/gcc/8.2.0 --libdir=/usr/local/Cellar/gcc/8.2.0/lib/gcc/8 --enable-languages=c,c++,objc,obj-c++,fortran --program-suffix=-8 --with-gmp=/usr/local/opt/gmp --with-mpfr=/usr/local/opt/mpfr --with-mpc=/usr/local/opt/libmpc --with-isl=/usr/local/opt/isl --with-system-zlib --enable-checking=release --with-pkgversion='Homebrew GCC 8.2.0' --with-bugurl=https://github.com/Homebrew/homebrew-core/issues --disable-nls
+Thread model: posix
+gcc version 8.2.0 (Homebrew GCC 8.2.0) 
+COLLECT_GCC_OPTIONS='-v' '-mmacosx-version-min=10.17.0' '-asm_macosx_version_min=10.17' '-shared-libgcc' '-mtune=core2'
+ /usr/local/Cellar/gcc/8.2.0/libexec/gcc/x86_64-apple-darwin17.7.0/8.2.0/f951 CMakeFortranCompilerId.F -ffixed-form -cpp=/var/folders/p1/2sd_j60d41n2gnzsvgz5llzm0000gn/T//ccg8DWTq.f90 -quiet -v -D__DYNAMIC__ CMakeFortranCompilerId.F -fPIC -quiet -dumpbase CMakeFortranCompilerId.F -mmacosx-version-min=10.17.0 -mtune=core2 -auxbase CMakeFortranCompilerId -version -fintrinsic-modules-path /usr/local/Cellar/gcc/8.2.0/lib/gcc/8/gcc/x86_64-apple-darwin17.7.0/8.2.0/finclude -o /var/folders/p1/2sd_j60d41n2gnzsvgz5llzm0000gn/T//ccEMEKcw.s
+GNU Fortran (Homebrew GCC 8.2.0) version 8.2.0 (x86_64-apple-darwin17.7.0)
+	compiled by GNU C version 8.2.0, GMP version 6.1.2, MPFR version 4.0.1, MPC version 1.1.0, isl version isl-0.20-GMP
+
+GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+ignoring nonexistent directory "/usr/local/Cellar/gcc/8.2.0/lib/gcc/8/gcc/x86_64-apple-darwin17.7.0/8.2.0/../../../../../../x86_64-apple-darwin17.7.0/include"
+ignoring nonexistent directory "/usr/include"
+#include "..." search starts here:
+#include <...> search starts here:
+ /usr/local/Cellar/gcc/8.2.0/lib/gcc/8/gcc/x86_64-apple-darwin17.7.0/8.2.0/finclude
+ /usr/local/Cellar/gcc/8.2.0/lib/gcc/8/gcc/x86_64-apple-darwin17.7.0/8.2.0/include
+ /usr/local/include
+ /usr/local/Cellar/gcc/8.2.0/include
+ /usr/local/Cellar/gcc/8.2.0/lib/gcc/8/gcc/x86_64-apple-darwin17.7.0/8.2.0/include-fixed
+End of search list.
+GNU Fortran2008 (Homebrew GCC 8.2.0) version 8.2.0 (x86_64-apple-darwin17.7.0)
+	compiled by GNU C version 8.2.0, GMP version 6.1.2, MPFR version 4.0.1, MPC version 1.1.0, isl version isl-0.20-GMP
+
+GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+COLLECT_GCC_OPTIONS='-v' '-mmacosx-version-min=10.17.0'  '-shared-libgcc' '-mtune=core2'
+ as -arch x86_64 -v -force_cpusubtype_ALL -mmacosx-version-min=10.17 -o /var/folders/p1/2sd_j60d41n2gnzsvgz5llzm0000gn/T//cc6Lz8pq.o /var/folders/p1/2sd_j60d41n2gnzsvgz5llzm0000gn/T//ccEMEKcw.s
+Apple clang version 11.0.0 (clang-1100.0.33.12)
+Target: x86_64-apple-darwin21.2.0
+Thread model: posix
+InstalledDir: /Library/Developer/CommandLineTools/usr/bin
+ "/Library/Developer/CommandLineTools/usr/bin/clang" -cc1as -triple x86_64-apple-macosx10.17.0 -filetype obj -main-file-name ccEMEKcw.s -target-cpu penryn -fdebug-compilation-dir /Users/yczhang/Desktop/capillary_wave/build/CMakeFiles/3.23.0-rc1/CompilerIdFortran -dwarf-debug-producer Apple clang version 11.0.0 (clang-1100.0.33.12) -dwarf-version=4 -mrelocation-model pic -o /var/folders/p1/2sd_j60d41n2gnzsvgz5llzm0000gn/T//cc6Lz8pq.o /var/folders/p1/2sd_j60d41n2gnzsvgz5llzm0000gn/T//ccEMEKcw.s
+Reading specs from /usr/local/Cellar/gcc/8.2.0/lib/gcc/8/gcc/x86_64-apple-darwin17.7.0/8.2.0/../../../libgfortran.spec
+rename spec lib to liborig
+COLLECT_GCC_OPTIONS='-v' '-mmacosx-version-min=10.17.0'  '-shared-libgcc' '-mtune=core2'
+COMPILER_PATH=/usr/local/Cellar/gcc/8.2.0/libexec/gcc/x86_64-apple-darwin17.7.0/8.2.0/:/usr/local/Cellar/gcc/8.2.0/libexec/gcc/x86_64-apple-darwin17.7.0/8.2.0/:/usr/local/Cellar/gcc/8.2.0/libexec/gcc/x86_64-apple-darwin17.7.0/:/usr/local/Cellar/gcc/8.2.0/lib/gcc/8/gcc/x86_64-apple-darwin17.7.0/8.2.0/:/usr/local/Cellar/gcc/8.2.0/lib/gcc/8/gcc/x86_64-apple-darwin17.7.0/
+LIBRARY_PATH=/usr/local/Cellar/gcc/8.2.0/lib/gcc/8/gcc/x86_64-apple-darwin17.7.0/8.2.0/:/usr/local/Cellar/gcc/8.2.0/lib/gcc/8/gcc/x86_64-apple-darwin17.7.0/8.2.0/../../../
+COLLECT_GCC_OPTIONS='-v' '-mmacosx-version-min=10.17.0'  '-shared-libgcc' '-mtune=core2'
+ /usr/local/Cellar/gcc/8.2.0/libexec/gcc/x86_64-apple-darwin17.7.0/8.2.0/collect2 -dynamic -arch x86_64 -macosx_version_min 10.17.0 -weak_reference_mismatches non-weak -o a.out -L/usr/local/Cellar/gcc/8.2.0/lib/gcc/8/gcc/x86_64-apple-darwin17.7.0/8.2.0 -L/usr/local/Cellar/gcc/8.2.0/lib/gcc/8/gcc/x86_64-apple-darwin17.7.0/8.2.0/../../.. /var/folders/p1/2sd_j60d41n2gnzsvgz5llzm0000gn/T//cc6Lz8pq.o -lgfortran -no_compact_unwind -lSystem -lgcc_ext.10.5 -lgcc -lquadmath -lm -lgcc_ext.10.5 -lgcc -lSystem -v
+collect2 version 8.2.0
+/usr/bin/ld -dynamic -arch x86_64 -macosx_version_min 10.17.0 -weak_reference_mismatches non-weak -o a.out -L/usr/local/Cellar/gcc/8.2.0/lib/gcc/8/gcc/x86_64-apple-darwin17.7.0/8.2.0 -L/usr/local/Cellar/gcc/8.2.0/lib/gcc/8/gcc/x86_64-apple-darwin17.7.0/8.2.0/../../.. /var/folders/p1/2sd_j60d41n2gnzsvgz5llzm0000gn/T//cc6Lz8pq.o -lgfortran -no_compact_unwind -lSystem -lgcc_ext.10.5 -lgcc -lquadmath -lm -lgcc_ext.10.5 -lgcc -lSystem -v
+@(#)PROGRAM:ld  PROJECT:ld64-520
+BUILD 18:38:01 Oct 11 2019
+configured to support archs: armv6 armv7 armv7s arm64 arm64e arm64_32 i386 x86_64 x86_64h armv6m armv7k armv7m armv7em
+Library search paths:
+	/usr/local/Cellar/gcc/8.2.0/lib/gcc/8/gcc/x86_64-apple-darwin17.7.0/8.2.0
+	/usr/local/Cellar/gcc/8.2.0/lib/gcc/8
+	/usr/lib
+	/usr/local/lib
+Framework search paths:
+	/Library/Frameworks/
+	/System/Library/Frameworks/
+ld: library not found for -lSystem
+collect2: error: ld returned 1 exit status
+
+
+Compiling the Fortran compiler identification source file "CMakeFortranCompilerId.F" failed.
+Compiler: /usr/local/bin/gfortran 
+Build flags: 
+Id flags:  
+
+The output was:
+1
+ld: library not found for -lSystem
+collect2: error: ld returned 1 exit status
+
+
