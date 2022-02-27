@@ -28,7 +28,7 @@ from CapillaryWaveModel2d import CapillaryWaveModel2d
 import matplotlib.pyplot as plt
 
 # |--- logging
-make_print_to_file(filename='FEM_CH_NS_Var_addXi_CapillaryWave', setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
+# make_print_to_file(filename='FEM_CH_NS_Var_addXi_CapillaryWave', setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
 
 # |--- begin setting
 d = 2  # the dimension
@@ -37,7 +37,7 @@ p = 2  # the polynomial order
 
 # |--- time and mesh setting
 t0 = 0.
-T = 1.
+T = 0.1
 dt_space = [1.e-5, ]
 dt_min = min(dt_space)
 time_scheme = 1  # 1 stands for 1st-order time-scheme; 2 is the 2nd-order time-scheme
@@ -55,9 +55,11 @@ rho0 = 1.e-0
 nu0 = 1.e-2
 rho1 = 1.e-0
 nu1 = nu0 * rho1 / rho0
+sigma = 1.
+eta = 5e-3
+epsilon = 3./(2*np.sqrt(2))*sigma*eta
 
-
-pdePars = {'m': 5e-4, 'epsilon': 1e-3, 'eta': 5e-3, 'dt_min': dt_min, 'timeScheme': '1stOrder'}  # value of parameters
+pdePars = {'m': 5e-4, 'epsilon': epsilon, 'eta': eta, 'dt_min': dt_min, 'timeScheme': '1stOrder'}  # value of parameters
 varCoeff = {'rho0': rho0, 'rho1': rho1, 'nu0': nu0, 'nu1': nu1}
 pde = CapillaryWaveSolution(t0, T)  # create pde model
 pde.setPDEParameters(pdePars)
@@ -84,7 +86,7 @@ cw = CapillaryWaveModel2d(pde, mesh, p, dt_space[0])
 time_position_Xi = cw.CH_NS_addXi_Solver_T1stOrder()
 
 filename = './time_position_Xi' + '_' + daytime + '-' + hourtime
-np.save(filename + '.npy', time_position_Xi)
+# np.save(filename + '.npy', time_position_Xi)
 
 plt.figure()
 plt.plot(time_position_Xi[:, 0], time_position_Xi[:, 1])

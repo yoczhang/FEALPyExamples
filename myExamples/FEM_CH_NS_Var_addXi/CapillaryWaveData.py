@@ -70,7 +70,11 @@ class CapillaryWaveSolution:
     #     return mesh
 
     def customized_mesh(self):
-        mesh = 1
+        # node = np.load('WaveMeshNode1.npy')
+        # cell = np.load('WaveMeshCell1.npy')
+        node = np.load('WaveMeshNode_mat1.npy')  # WaveMeshNode_mat1 是新构造的网格
+        cell = np.load('WaveMeshCell_mat1.npy')
+        mesh = TriangleMesh(node, cell)
         return mesh
 
     def time_mesh(self, dt):
