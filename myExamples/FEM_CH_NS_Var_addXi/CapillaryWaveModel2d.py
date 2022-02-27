@@ -816,7 +816,7 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
                 x0 = xn
             return x0
         Xi = Newton_iteration(1.e-10, 1.)
-        # print("    |___ In `update_mu_and_Xi()` func and Xi = %.4e" % Xi)
+        print("    |___ In `update_mu_and_Xi()` func and Xi = %.9e" % Xi)
         self.R_n = Xi * np.sqrt(E_n)
         self.grad_mu_val = grad_mu_val_part0 + Xi * grad_mu_val_part1
         self.Xi = Xi
