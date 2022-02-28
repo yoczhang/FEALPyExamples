@@ -76,7 +76,13 @@ for i in range(maxit):
 
     pBS = periodicBoundarySettings(mesh, space.dof, set_periodic_edge_func)
     DirEdgeInd = pBS.idxNotPeriodicEdge
-    periodicDof0, periodicDof1, _ = pBS.set_boundaryDofs()
+    periodicDof0, periodicDof1, dirDof = pBS.set_boundaryDofs()
+
+    # |--- test
+    # pdof = np.concatenate([periodicDof0, periodicDof1])
+    # print('pdof = ', pdof)
+    # bddof, = np.nonzero(space.boundary_dof())
+    # print('diff_pdof = ', np.setdiff1d(bddof, pdof))
 
     NDof[i] = space.number_of_global_dofs()
     bc = DirichletBC(space, pde.dirichlet, threshold=DirEdgeInd)
