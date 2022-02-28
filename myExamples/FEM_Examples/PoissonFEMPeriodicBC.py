@@ -27,7 +27,7 @@ from fealpy.tools.show import showmultirate
 # from fealpy.solver import PETScSolver
 from scipy.sparse.linalg import spsolve
 import pyamg
-from fealpy.pde.poisson_2d import CosCosData as PDE
+from poisson_periodic_2d import CosCosData as PDE
 
 
 # |--- set periodic function
