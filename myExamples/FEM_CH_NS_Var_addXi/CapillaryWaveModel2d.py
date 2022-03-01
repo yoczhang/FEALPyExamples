@@ -170,9 +170,9 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
             time_position_Xi[nt + 1, 2] = Xi
             # print('    end of one-looping')
 
-            if nt % max([int(NT / 100), 1]) == 0:
-                print('    currt_t = %.4e' % currt_t)
-                print('    Xi = %.6e' % Xi)
+            if nt % max([int(NT / NT), 1]) == 0:
+                # print('    currt_t = %.4e' % currt_t)
+                print('    currt_t = %.4e, position = %.4e, Xi = %.9e' % (currt_t, position, Xi))
                 uh_l2err, uh_h1err, vel_l2err, vel_h1err, ph_l2err = self.currt_error(uh, vel0, vel1, ph, timemesh[nt])
                 if np.isnan(uh_l2err) | np.isnan(uh_h1err) | np.isnan(vel_l2err) | np.isnan(vel_h1err) | np.isnan(
                         ph_l2err):
@@ -816,7 +816,7 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
                 x0 = xn
             return x0
         Xi = Newton_iteration(1.e-10, 1.)
-        print("    |___ In `update_mu_and_Xi()` func and Xi = %.9e" % Xi)
+        # print("    |___ In `update_mu_and_Xi()` func and Xi = %.9e" % Xi)
         self.R_n = Xi * np.sqrt(E_n)
         self.grad_mu_val = grad_mu_val_part0 + Xi * grad_mu_val_part1
         self.Xi = Xi

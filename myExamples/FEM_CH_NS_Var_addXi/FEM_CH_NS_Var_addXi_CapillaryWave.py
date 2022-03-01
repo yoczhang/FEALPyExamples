@@ -56,10 +56,10 @@ nu0 = 1.e-2
 rho1 = 1.e-0
 nu1 = nu0 * rho1 / rho0
 sigma = 1.
-eta = 5e-3
+eta = 1e-2
 epsilon = 3./(2*np.sqrt(2))*sigma*eta
 
-pdePars = {'m': 5e-4, 'epsilon': epsilon, 'eta': eta, 'dt_min': dt_min, 'timeScheme': '1stOrder'}  # value of parameters
+pdePars = {'m': 5e-5, 'epsilon': epsilon, 'eta': eta, 'dt_min': dt_min, 'timeScheme': '1stOrder'}  # value of parameters
 varCoeff = {'rho0': rho0, 'rho1': rho1, 'nu0': nu0, 'nu1': nu1}
 pde = CapillaryWaveSolution(t0, T)  # create pde model
 pde.setPDEParameters(pdePars)
@@ -77,6 +77,7 @@ print('dt_space = ', dt_space)
 print('domain box = ', pde.box)
 print('rho0 = %.4e,  rho1 = %.4e' % (varCoeff['rho0'], varCoeff['rho1']))
 print('nu0 = %.4e,  nu1 = %.4e, ' % (varCoeff['nu0'], varCoeff['nu1']))
+print('m = %.4e, sigma = %.4e,  eta = %.4e, ' % (pdePars['m'], sigma, eta))
 print('# #')
 
 daytime = datetime.datetime.now().strftime('%Y%m%d')
@@ -86,7 +87,7 @@ cw = CapillaryWaveModel2d(pde, mesh, p, dt_space[0])
 time_position_Xi = cw.CH_NS_addXi_Solver_T1stOrder()
 
 filename = './time_position_Xi' + '_' + daytime + '-' + hourtime
-# np.save(filename + '.npy', time_position_Xi)
+np.save(filename + '.npy', time_position_Xi)
 
 plt.figure()
 plt.plot(time_position_Xi[:, 0], time_position_Xi[:, 1])
