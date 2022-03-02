@@ -60,7 +60,7 @@ a0   = 0.01;
 u0   = 0;        
 % Characteristic timescale
 % tau = 1/sqrt(wSq);
-tau = 3;
+tau = 0.1;
 % Time step (different per case!)
 % dt = 1.0e-5;   
 dt = tau/dtpp;
@@ -114,8 +114,8 @@ h = part0 + part1 + part2 + part3 + part4;
 %   Output
 %--------------------------------------------------------------
 t_h = [t;h];
-plot(t,h)
-axis([0 tau -a0 a0])
+plot(t,h,'LineWidth',1)
+% axis([0 tau -a0 a0])
 y_val=get(gca,'YTick');    %为了获得y轴句柄
 y_str=num2str(y_val');     %为了将数字转换为字符数组
 set(gca,'YTickLabel',y_str);     %显示
@@ -124,4 +124,10 @@ hold on
 grid on
 % mat=[t;h];
 % csvwrite(filename,transpose(mat))
+
+load('time_position_Xi_20220301-141024.mat')
+plot(wavedata(:,1),wavedata(:,2),'LineWidth',1)
+
+legend('true', 'numerical')
+
 disp('end of the file')
