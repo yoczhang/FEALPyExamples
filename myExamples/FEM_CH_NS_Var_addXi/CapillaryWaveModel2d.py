@@ -132,7 +132,7 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         print('    # ------------ begin the time-looping ------------ #')
         time_position_Xi = np.zeros((NT, 3), np.float)
         currt_t = timemesh[0]
-        position = self.get_position_of_uh_at_zero(uh[:])
+        position = self.get_position_of_uh_at_zero(uh[:], 1.)
         time_position_Xi[0, 0] = currt_t
         time_position_Xi[0, 1] = position
         time_position_Xi[0, 2] = 1.
@@ -165,7 +165,7 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
             vel1[:] = self.vel1_part0[:] + Xi * self.vel1_part1[:]
 
             # |--- get the position y-coord of `uh == 0`
-            position = self.get_position_of_uh_at_zero(uh[:])
+            position = self.get_position_of_uh_at_zero(uh[:], position)
             time_position_Xi[nt + 1, 0] = next_t
             time_position_Xi[nt + 1, 1] = position
             time_position_Xi[nt + 1, 2] = Xi
@@ -269,35 +269,6 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         np.add.at(aux_rv_part0, self.face2dof[self.NeuEdgeIdx_CH, :], aux_rhs_f_0 + aux_rhs_f_1)
         np.add.at(aux_rv_part1, self.cell2dof, aux_rhs_c_2 + aux_rhs_c_3)
         np.add.at(aux_rv_part1, self.face2dof[self.NeuEdgeIdx_CH, :], aux_rhs_f_2 + aux_rhs_f_3)
-
-        # |--- update the solution of auxiliary equation
-        # |--- 需要对 csr_matrix 操作, 所以需要创建一系列 csr 矩阵进行相乘
-        # periodicDof0, periodicDof1, _ = self.set_boundaryDofs(self.dof)
-        # nPDof = len(periodicDof0)
-        # auxPeriodicM = self.StiffMatrix + (self.alpha + self.s / pde.epsilon) * self.MassMatrix  # csr_matrix
-        # IM = identity(auxPeriodicM.shape[0], dtype=np.int_)
-        #
-        # oneVec = np.ones((nPDof,), dtype=np.int_)
-        # operatorM = IM + csr_matrix((oneVec, (periodicDof0, periodicDof1)), shape=auxPeriodicM.shape, dtype=np.int_)
-        # auxPeriodicM = operatorM @ auxPeriodicM
-        # aux_rv_part0 = operatorM @ aux_rv_part0
-        # aux_rv_part1 = operatorM @ aux_rv_part1
-        # #    |___ operatorM@auxPeriodicM: auxPeriodicM 中第 periodicDof1 行加到 periodicDof0 上; aux_rv_part0, aux_rv_part1 同理.
-        #
-        # oneVec = np.ones((auxPeriodicM.shape[0],), dtype=np.int_)
-        # oneVec[periodicDof1] = np.int_(0)
-        # operatorM = spdiags(oneVec, 0, auxPeriodicM.shape[0], auxPeriodicM.shape[0])
-        # auxPeriodicM = operatorM @ auxPeriodicM
-        # aux_rv_part0 = operatorM @ aux_rv_part0
-        # aux_rv_part1 = operatorM @ aux_rv_part1
-        # #    |___ rowM0@auxPeriodicM: auxPeriodicM 中第 periodicDof1 行所有元素设置为 0; aux_rv_part0, aux_rv_part1 同理.
-        #
-        # oneVec = np.ones((2*nPDof,), dtype=np.int_)
-        # oneVec[nPDof:] = np.int_(-1)
-        # operatorM = csr_matrix((oneVec, (np.hstack([periodicDof1, periodicDof1]), np.hstack([periodicDof0, periodicDof1]))),
-        #                        shape=auxPeriodicM.shape, dtype=np.int_)
-        # auxPeriodicM += operatorM
-        # #    |___ auxPeriodicM 中第 periodicDof1 行: 第 periodicDof0 列为 1, 第 periodicDof1 列为 -1.
 
         if self.auxPeriodicM_CH is None:
             aux_rv_part0, aux_rv_part1, auxPeriodicM = self.set_periodicAlgebraicSystem(self.dof, aux_rv_part0, aux_rv_part1, self.auxM_CH)
@@ -935,7 +906,14 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
 
         return rhsVec0, rhsVec1, lhsM
 
-    def get_position_of_uh_at_zero(self, uh):
+    def get_position_of_uh_at_zero(self, uh, criterion=None):
+        """
+
+        :param uh:
+        :param criterion: 给定的一个 '准则' 值, 最后返回与 `criterion` 最靠近的那个值.
+                          criterion 应该选取上一步的值, 保证 '本步与上一步的值' 变化最小.
+        :return:
+        """
         periodicDof0 = self.periodicDof0
         #   |___ 需要注意的是, periodicDof0[0] 到 periodicDof0[-1] 的顺序必须是使得
         #   |___ self.dof.interpolation_points()[periodicDof0, 1] 从小达到的顺序, 这个过程我们已经在 set_boundaryDofs() 中实现了.
@@ -961,8 +939,13 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
             uh_val = uh[dof_indicator]
 
             thePoly = poly.Polynomial.fit(coord, uh_val, deg=self.p)  # 通过给定的 coord 和 uh_val, 拟合一维 self.p-阶的多项式
-            roots = abs(np.real(thePoly.roots()))
-            argsort = np.argsort(roots)
-            roots = roots[argsort]
-            return roots[0]
+
+            if criterion is not None:
+                roots = np.real(thePoly.roots())
+                return roots[np.abs(roots - criterion).argmin()]
+            else:
+                roots = abs(np.real(thePoly.roots()))
+                argsort = np.argsort(roots)
+                roots = roots[argsort]
+                return roots[0]
 

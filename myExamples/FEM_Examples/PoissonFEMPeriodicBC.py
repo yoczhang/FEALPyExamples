@@ -57,9 +57,9 @@ def set_periodic_edge_func(mesh):
     return idxPeriodicEdge0, idxPeriodicEdge1, idxNotPeriodicEdge
 
 
-p = 2
-n = 2
-maxit = 4
+p = 3
+n = 3
+maxit = 5
 d = 2
 
 pde = PDE()
