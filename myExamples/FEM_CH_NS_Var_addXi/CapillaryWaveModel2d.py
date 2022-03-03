@@ -58,7 +58,7 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         self.rho_bar_n = 0  # 此项在 `decoupled_NS_addXi_Solver_T1stOrder()` 中更新: 为了获得第 n 时间层的取值 (在 `update_mu_and_Xi()` 会用到).
         self.nu_bar_n = 0  # 此项在 `decoupled_NS_addXi_Solver_T1stOrder()` 中更新: 为了获得第 n 时间层的取值 (在 `update_mu_and_Xi()` 会用到).
         self.R_n = 0.  # 此项在 `update_mu_and_Xi()` 中更新.
-        self.C0 = 100.  # 此项在 `update_mu_and_Xi()` 中, 以保证 E_n = \int H(\phi) + C0 > 0.
+        self.C0 = 500.  # 此项在 `update_mu_and_Xi()` 中, 以保证 E_n = \int H(\phi) + C0 > 0.
         self.Xi = 1.  # 此项在 `update_mu_and_Xi()` 中更新.
         self.s, self.alpha = self.set_CH_Coeff(dt_minimum=self.dt_min)
 
@@ -141,6 +141,7 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         #    |___ 这里只赋值 uh_part0, 首先在下面的时间循环中赋值给 self.uh_last_part0,
         #         |___ 接着是为了 `第一次` 计算 self.rho_bar_n 与 self.nu_bar_n 时直接取到 uh 的初始值.
         uh_last = uh.copy()
+        print('    currt_t = %.4e, position = %.9e, Xi = %.9e' % (currt_t, position, 1.))
         for nt in range(NT - 1):
             currt_t = timemesh[nt]
             next_t = currt_t + dt
@@ -172,7 +173,7 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
 
             if nt % max([int(NT / NT), 1]) == 0:
                 # print('    currt_t = %.4e' % currt_t)
-                print('    currt_t = %.4e, position = %.4e, Xi = %.9e' % (currt_t, position, Xi))
+                print('    currt_t = %.4e, position = %.9e, Xi = %.9e' % (next_t, position, Xi))
                 uh_l2err, uh_h1err, vel_l2err, vel_h1err, ph_l2err = self.currt_error(uh, vel0, vel1, ph, timemesh[nt])
                 if np.isnan(uh_l2err) | np.isnan(uh_h1err) | np.isnan(vel_l2err) | np.isnan(vel_h1err) | np.isnan(
                         ph_l2err):

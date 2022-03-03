@@ -182,6 +182,7 @@ class CapillaryWaveSolution:
 
         val = np.ones(p.shape, dtype=np.float)  # (NQ,NC,2)
         grav = np.array([0, -1.])  # (2,), the gravitational acceleration
+        # grav = np.array([0, 1.])  # (2,), the gravitational acceleration
         val[..., 0] = val[..., 0] * rho_bar_n * grav[0]
         val[..., 1] = val[..., 1] * rho_bar_n * grav[1]
         return val
