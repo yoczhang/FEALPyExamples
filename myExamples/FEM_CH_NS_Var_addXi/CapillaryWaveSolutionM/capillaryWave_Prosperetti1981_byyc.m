@@ -10,6 +10,7 @@
 %| upper fluid to 0).                                         |%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+function capillaryWave_Prosperetti1981_byyc()
 clc; 
 clear;
 close all;
@@ -115,6 +116,10 @@ h = part0 + part1 + part2 + part3 + part4;
 %   Output
 %--------------------------------------------------------------
 t_h = [t;h]';
+displace_byM = t_h;
+% save displace_byM displace_byM
+write_dat_file('displace_byM.dat', displace_byM);
+
 t_h_diff = t_h(1:end-1, :) - t_h(2:end, :);
 plot(t,h,'LineWidth',1)
 % axis([0 tau -a0 a0])
@@ -142,3 +147,15 @@ legend('true-Matlab', 'true-C', 'numerical')
 set(gca,'LooseInset',get(gca,'TightInset'))
 
 disp('end of the file')
+end
+
+function write_dat_file(filename, filedata)
+[r, c] = size(filedata);
+fid = fopen(filename, 'w');
+
+for k = 1:r
+    fprintf(fid, "%.4e %.9e\n", ...
+        filedata(k, 1), filedata(k, 2));
+end
+fclose(fid);
+end
