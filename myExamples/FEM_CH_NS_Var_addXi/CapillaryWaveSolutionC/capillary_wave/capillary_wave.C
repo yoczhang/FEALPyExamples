@@ -27,7 +27,7 @@
 #define DK (2.0*PI*1.0) // wave number
 
 #define DENSITY_UPPER 1.0 // density of fluid on top, assumed to be lighter
-#define DENSITY_LOWER 1000.0 // density of fluid at bottom, assumed to be heavier
+#define DENSITY_LOWER 1.0 // density of fluid at bottom, assumed to be heavier
 
 #define GRAVITATIONAL_ACCELERATION 1.0 // gravity
 
@@ -44,7 +44,7 @@
 #define SURFACE_TENSION 1.0 // surface tension
 
 #define T_INITIAL 0 // initial time
-#define T_FINAL 5.0 // final time
+#define T_FINAL 0.10 // final time
 #define N_STEPS 10000 // number of time steps
 
 #define NROOTS 4
@@ -226,21 +226,21 @@ int main(int argc, char **argv)
   // output solution
 
   FILE *fp = fopen(OUTPUT_FILE, "w");
-  fprintf(fp, "# density_upper_fluid = %.9le, density_lower_fluid = %.9le\n# density ratio = %.9le\n"
-	  "# kinematic viscosity = %.9le, wave number = %.9le\n"
-	  "# dynamic viscosity of upper fluid = %.9le, dynamic viscosity of lower fluid = %.9le\n"
-	  "# dynamics viscosity ratio = %.9le\n"
-	  "# gravitational acceleration = %.9le\n"
-	  "# surface tension = %.9le, initial amplitude H0 = %.9le\n"
-	  "# omega_0 = %.9le, nu_bar = %.9le, beta = %.9le\n\n",
-	  rho_1, rho_2, rho_2/rho_1,
-	  viscosity, dk,
-	  dynamic_vis_1, dynamic_vis_2,
-	  dynamic_vis_2/dynamic_vis_1,
-	  gravity,
-	  sigma, dh0,
-	  omega_0, nu_bar, beta);
-  fprintf(fp, "variables = t, H, omega_t\n");
+  // fprintf(fp, "# density_upper_fluid = %.9le, density_lower_fluid = %.9le\n# density ratio = %.9le\n"
+	//   "# kinematic viscosity = %.9le, wave number = %.9le\n"
+	//   "# dynamic viscosity of upper fluid = %.9le, dynamic viscosity of lower fluid = %.9le\n"
+	//   "# dynamics viscosity ratio = %.9le\n"
+	//   "# gravitational acceleration = %.9le\n"
+	//   "# surface tension = %.9le, initial amplitude H0 = %.9le\n"
+	//   "# omega_0 = %.9le, nu_bar = %.9le, beta = %.9le\n\n",
+	//   rho_1, rho_2, rho_2/rho_1,
+	//   viscosity, dk,
+	//   dynamic_vis_1, dynamic_vis_2,
+	//   dynamic_vis_2/dynamic_vis_1,
+	//   gravity,
+	//   sigma, dh0,
+	//   omega_0, nu_bar, beta);
+  // fprintf(fp, "variables = t, H, omega_t\n");
 
   for(i=0;i<=Nsteps;i++) {
     fprintf(fp, "%lf %.12le %.12le \n",

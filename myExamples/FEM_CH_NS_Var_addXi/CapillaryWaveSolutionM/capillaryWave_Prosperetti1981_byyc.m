@@ -58,12 +58,13 @@ wSq  = sigma * k^3 / (rhoL + rhoU) + gravity*k*(rhoL-rhoU)/(rhoL + rhoU);
 a0   = 0.01;                            
 % Initial velocity of center point
 u0   = 0;        
+
 % Characteristic timescale
 % tau = 1/sqrt(wSq);
 tau = 0.1;
 % Time step (different per case!)
-% dt = 1.0e-5;   
-dt = tau/dtpp;
+dt = 1.0e-5;   
+% dt = tau/dtpp;
 
 % Dimensionless viscosity
 epsil = v*k^2/sqrt(wSq);
@@ -113,7 +114,8 @@ h = part0 + part1 + part2 + part3 + part4;
 %--------------------------------------------------------------
 %   Output
 %--------------------------------------------------------------
-t_h = [t;h];
+t_h = [t;h]';
+t_h_diff = t_h(1:end-1, :) - t_h(2:end, :);
 plot(t,h,'LineWidth',1)
 % axis([0 tau -a0 a0])
 y_val=get(gca,'YTick');    %为了获得y轴句柄
@@ -125,9 +127,18 @@ grid on
 % mat=[t;h];
 % csvwrite(filename,transpose(mat))
 
+% |--- plot C data
+load 'displace_byC.dat'
+plot(displace_byC(:,1),displace_byC(:,2),'LineWidth',1)
+
+% |--- plot numerical data
 load('time_position_Xi_20220301-141024.mat')
 plot(wavedata(:,1),wavedata(:,2),'LineWidth',1)
 
-legend('true', 'numerical')
+% |--- plot legend
+legend('true-Matlab', 'true-C', 'numerical')
+
+% |--- 去掉过多的 白边
+set(gca,'LooseInset',get(gca,'TightInset'))
 
 disp('end of the file')

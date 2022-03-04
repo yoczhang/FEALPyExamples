@@ -1,4 +1,4 @@
-# Install script for directory: /Users/yczhang/Desktop/capillary_wave
+# Install script for directory: /Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/CapillaryWaveSolutionC
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -45,5 +45,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/Users/yczhang/Desktop/capillary_wave/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/CapillaryWaveSolutionC/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

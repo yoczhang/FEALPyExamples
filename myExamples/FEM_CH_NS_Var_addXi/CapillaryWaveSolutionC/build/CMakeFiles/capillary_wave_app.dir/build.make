@@ -53,10 +53,10 @@ RM = /Applications/CMake.app/Contents/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/yczhang/Desktop/capillary_wave
+CMAKE_SOURCE_DIR = /Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/CapillaryWaveSolutionC
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/yczhang/Desktop/capillary_wave/build
+CMAKE_BINARY_DIR = /Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/CapillaryWaveSolutionC/build
 
 # Include any dependencies generated for this target.
 include CMakeFiles/capillary_wave_app.dir/depend.make
@@ -72,56 +72,56 @@ include CMakeFiles/capillary_wave_app.dir/flags.make
 CMakeFiles/capillary_wave_app.dir/capillary_wave/capillary_wave.C.o: CMakeFiles/capillary_wave_app.dir/flags.make
 CMakeFiles/capillary_wave_app.dir/capillary_wave/capillary_wave.C.o: ../capillary_wave/capillary_wave.C
 CMakeFiles/capillary_wave_app.dir/capillary_wave/capillary_wave.C.o: CMakeFiles/capillary_wave_app.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/yczhang/Desktop/capillary_wave/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/capillary_wave_app.dir/capillary_wave/capillary_wave.C.o"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/capillary_wave_app.dir/capillary_wave/capillary_wave.C.o -MF CMakeFiles/capillary_wave_app.dir/capillary_wave/capillary_wave.C.o.d -o CMakeFiles/capillary_wave_app.dir/capillary_wave/capillary_wave.C.o -c /Users/yczhang/Desktop/capillary_wave/capillary_wave/capillary_wave.C
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/CapillaryWaveSolutionC/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/capillary_wave_app.dir/capillary_wave/capillary_wave.C.o"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/capillary_wave_app.dir/capillary_wave/capillary_wave.C.o -MF CMakeFiles/capillary_wave_app.dir/capillary_wave/capillary_wave.C.o.d -o CMakeFiles/capillary_wave_app.dir/capillary_wave/capillary_wave.C.o -c /Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/CapillaryWaveSolutionC/capillary_wave/capillary_wave.C
 
 CMakeFiles/capillary_wave_app.dir/capillary_wave/capillary_wave.C.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/capillary_wave_app.dir/capillary_wave/capillary_wave.C.i"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/yczhang/Desktop/capillary_wave/capillary_wave/capillary_wave.C > CMakeFiles/capillary_wave_app.dir/capillary_wave/capillary_wave.C.i
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/CapillaryWaveSolutionC/capillary_wave/capillary_wave.C > CMakeFiles/capillary_wave_app.dir/capillary_wave/capillary_wave.C.i
 
 CMakeFiles/capillary_wave_app.dir/capillary_wave/capillary_wave.C.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/capillary_wave_app.dir/capillary_wave/capillary_wave.C.s"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/yczhang/Desktop/capillary_wave/capillary_wave/capillary_wave.C -o CMakeFiles/capillary_wave_app.dir/capillary_wave/capillary_wave.C.s
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/CapillaryWaveSolutionC/capillary_wave/capillary_wave.C -o CMakeFiles/capillary_wave_app.dir/capillary_wave/capillary_wave.C.s
 
 CMakeFiles/capillary_wave_app.dir/capillary_wave/dmath_util.C.o: CMakeFiles/capillary_wave_app.dir/flags.make
 CMakeFiles/capillary_wave_app.dir/capillary_wave/dmath_util.C.o: ../capillary_wave/dmath_util.C
 CMakeFiles/capillary_wave_app.dir/capillary_wave/dmath_util.C.o: CMakeFiles/capillary_wave_app.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/yczhang/Desktop/capillary_wave/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/capillary_wave_app.dir/capillary_wave/dmath_util.C.o"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/capillary_wave_app.dir/capillary_wave/dmath_util.C.o -MF CMakeFiles/capillary_wave_app.dir/capillary_wave/dmath_util.C.o.d -o CMakeFiles/capillary_wave_app.dir/capillary_wave/dmath_util.C.o -c /Users/yczhang/Desktop/capillary_wave/capillary_wave/dmath_util.C
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/CapillaryWaveSolutionC/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/capillary_wave_app.dir/capillary_wave/dmath_util.C.o"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/capillary_wave_app.dir/capillary_wave/dmath_util.C.o -MF CMakeFiles/capillary_wave_app.dir/capillary_wave/dmath_util.C.o.d -o CMakeFiles/capillary_wave_app.dir/capillary_wave/dmath_util.C.o -c /Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/CapillaryWaveSolutionC/capillary_wave/dmath_util.C
 
 CMakeFiles/capillary_wave_app.dir/capillary_wave/dmath_util.C.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/capillary_wave_app.dir/capillary_wave/dmath_util.C.i"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/yczhang/Desktop/capillary_wave/capillary_wave/dmath_util.C > CMakeFiles/capillary_wave_app.dir/capillary_wave/dmath_util.C.i
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/CapillaryWaveSolutionC/capillary_wave/dmath_util.C > CMakeFiles/capillary_wave_app.dir/capillary_wave/dmath_util.C.i
 
 CMakeFiles/capillary_wave_app.dir/capillary_wave/dmath_util.C.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/capillary_wave_app.dir/capillary_wave/dmath_util.C.s"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/yczhang/Desktop/capillary_wave/capillary_wave/dmath_util.C -o CMakeFiles/capillary_wave_app.dir/capillary_wave/dmath_util.C.s
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/CapillaryWaveSolutionC/capillary_wave/dmath_util.C -o CMakeFiles/capillary_wave_app.dir/capillary_wave/dmath_util.C.s
 
 CMakeFiles/capillary_wave_app.dir/capillary_wave/680.f.o: CMakeFiles/capillary_wave_app.dir/flags.make
 CMakeFiles/capillary_wave_app.dir/capillary_wave/680.f.o: ../capillary_wave/680.f
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/yczhang/Desktop/capillary_wave/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building Fortran object CMakeFiles/capillary_wave_app.dir/capillary_wave/680.f.o"
-	/usr/local/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /Users/yczhang/Desktop/capillary_wave/capillary_wave/680.f -o CMakeFiles/capillary_wave_app.dir/capillary_wave/680.f.o
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/CapillaryWaveSolutionC/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building Fortran object CMakeFiles/capillary_wave_app.dir/capillary_wave/680.f.o"
+	/usr/local/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/CapillaryWaveSolutionC/capillary_wave/680.f -o CMakeFiles/capillary_wave_app.dir/capillary_wave/680.f.o
 
 CMakeFiles/capillary_wave_app.dir/capillary_wave/680.f.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing Fortran source to CMakeFiles/capillary_wave_app.dir/capillary_wave/680.f.i"
-	/usr/local/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /Users/yczhang/Desktop/capillary_wave/capillary_wave/680.f > CMakeFiles/capillary_wave_app.dir/capillary_wave/680.f.i
+	/usr/local/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/CapillaryWaveSolutionC/capillary_wave/680.f > CMakeFiles/capillary_wave_app.dir/capillary_wave/680.f.i
 
 CMakeFiles/capillary_wave_app.dir/capillary_wave/680.f.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling Fortran source to assembly CMakeFiles/capillary_wave_app.dir/capillary_wave/680.f.s"
-	/usr/local/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /Users/yczhang/Desktop/capillary_wave/capillary_wave/680.f -o CMakeFiles/capillary_wave_app.dir/capillary_wave/680.f.s
+	/usr/local/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/CapillaryWaveSolutionC/capillary_wave/680.f -o CMakeFiles/capillary_wave_app.dir/capillary_wave/680.f.s
 
 CMakeFiles/capillary_wave_app.dir/capillary_wave/merrcz.f.o: CMakeFiles/capillary_wave_app.dir/flags.make
 CMakeFiles/capillary_wave_app.dir/capillary_wave/merrcz.f.o: ../capillary_wave/merrcz.f
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/yczhang/Desktop/capillary_wave/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building Fortran object CMakeFiles/capillary_wave_app.dir/capillary_wave/merrcz.f.o"
-	/usr/local/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /Users/yczhang/Desktop/capillary_wave/capillary_wave/merrcz.f -o CMakeFiles/capillary_wave_app.dir/capillary_wave/merrcz.f.o
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/CapillaryWaveSolutionC/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building Fortran object CMakeFiles/capillary_wave_app.dir/capillary_wave/merrcz.f.o"
+	/usr/local/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/CapillaryWaveSolutionC/capillary_wave/merrcz.f -o CMakeFiles/capillary_wave_app.dir/capillary_wave/merrcz.f.o
 
 CMakeFiles/capillary_wave_app.dir/capillary_wave/merrcz.f.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing Fortran source to CMakeFiles/capillary_wave_app.dir/capillary_wave/merrcz.f.i"
-	/usr/local/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /Users/yczhang/Desktop/capillary_wave/capillary_wave/merrcz.f > CMakeFiles/capillary_wave_app.dir/capillary_wave/merrcz.f.i
+	/usr/local/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/CapillaryWaveSolutionC/capillary_wave/merrcz.f > CMakeFiles/capillary_wave_app.dir/capillary_wave/merrcz.f.i
 
 CMakeFiles/capillary_wave_app.dir/capillary_wave/merrcz.f.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling Fortran source to assembly CMakeFiles/capillary_wave_app.dir/capillary_wave/merrcz.f.s"
-	/usr/local/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /Users/yczhang/Desktop/capillary_wave/capillary_wave/merrcz.f -o CMakeFiles/capillary_wave_app.dir/capillary_wave/merrcz.f.s
+	/usr/local/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/CapillaryWaveSolutionC/capillary_wave/merrcz.f -o CMakeFiles/capillary_wave_app.dir/capillary_wave/merrcz.f.s
 
 # Object files for target capillary_wave_app
 capillary_wave_app_OBJECTS = \
@@ -141,7 +141,7 @@ capillary_wave_app: CMakeFiles/capillary_wave_app.dir/build.make
 capillary_wave_app: /usr/local/lib/libgsl.a
 capillary_wave_app: /usr/local/lib/libgslcblas.a
 capillary_wave_app: CMakeFiles/capillary_wave_app.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/Users/yczhang/Desktop/capillary_wave/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX executable capillary_wave_app"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/CapillaryWaveSolutionC/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX executable capillary_wave_app"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/capillary_wave_app.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -153,6 +153,6 @@ CMakeFiles/capillary_wave_app.dir/clean:
 .PHONY : CMakeFiles/capillary_wave_app.dir/clean
 
 CMakeFiles/capillary_wave_app.dir/depend:
-	cd /Users/yczhang/Desktop/capillary_wave/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /Users/yczhang/Desktop/capillary_wave /Users/yczhang/Desktop/capillary_wave /Users/yczhang/Desktop/capillary_wave/build /Users/yczhang/Desktop/capillary_wave/build /Users/yczhang/Desktop/capillary_wave/build/CMakeFiles/capillary_wave_app.dir/DependInfo.cmake --color=$(COLOR)
+	cd /Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/CapillaryWaveSolutionC/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/CapillaryWaveSolutionC /Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/CapillaryWaveSolutionC /Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/CapillaryWaveSolutionC/build /Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/CapillaryWaveSolutionC/build /Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/CapillaryWaveSolutionC/build/CMakeFiles/capillary_wave_app.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/capillary_wave_app.dir/depend
 

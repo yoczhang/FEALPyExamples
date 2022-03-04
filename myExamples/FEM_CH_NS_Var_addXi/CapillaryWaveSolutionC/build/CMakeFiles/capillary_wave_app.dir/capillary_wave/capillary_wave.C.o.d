@@ -1,5 +1,5 @@
 CMakeFiles/capillary_wave_app.dir/capillary_wave/capillary_wave.C.o: \
-  /Users/yczhang/Desktop/capillary_wave/capillary_wave/capillary_wave.C \
+  /Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/CapillaryWaveSolutionC/capillary_wave/capillary_wave.C \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/iostream \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/__config \
   /Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk/usr/include/pthread.h \
@@ -249,5 +249,5 @@ CMakeFiles/capillary_wave_app.dir/capillary_wave/capillary_wave.C.o: \
   /usr/local/include/gsl/gsl_complex.h \
   /usr/local/include/gsl/gsl_errno.h \
   /usr/local/include/gsl/gsl_complex_math.h \
-  /Users/yczhang/Desktop/capillary_wave/capillary_wave/dmath_util.h \
-  /Users/yczhang/Desktop/capillary_wave/capillary_wave/dmath.h
+  /Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/CapillaryWaveSolutionC/capillary_wave/dmath_util.h \
+  /Users/yczhang/Documents/FEALPy/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/CapillaryWaveSolutionC/capillary_wave/dmath.h
