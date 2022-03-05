@@ -60,7 +60,7 @@ sigma = 1.
 eta = 8e-3
 epsilon = 3./(2*np.sqrt(2))*sigma*eta
 
-pdePars = {'m': 5e-5, 'epsilon': epsilon, 'eta': eta, 'dt_min': dt_min, 'timeScheme': '1stOrder'}  # value of parameters
+pdePars = {'m': 2e-5, 'epsilon': epsilon, 'eta': eta, 'dt_min': dt_min, 'timeScheme': '1stOrder'}  # value of parameters
 varCoeff = {'rho0': rho0, 'rho1': rho1, 'nu0': nu0, 'nu1': nu1}
 pde = CapillaryWaveSolution(t0, T)  # create pde model
 pde.setPDEParameters(pdePars)
