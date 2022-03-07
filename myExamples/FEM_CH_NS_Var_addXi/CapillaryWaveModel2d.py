@@ -27,6 +27,7 @@ from fealpy.boundarycondition import DirichletBC
 from FEM_CH_NS_Model2d import FEM_CH_NS_Model2d
 import numpy.polynomial as poly
 from scipy.io import loadmat
+import matplotlib.pyplot as plt
 
 
 class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
@@ -113,6 +114,9 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
             def init_solution_CH(p):
                 return pde.initial_CH(p)
             uh[:] = self.space.interpolation(init_solution_CH)
+            fig = plt.figure()
+            axes = fig.gca(projection='3d')
+            uh.add_plot(axes, cmap='rainbow')
 
             def init_velocity0(p):
                 # return pde.velocity_NS(p, 0)[..., 0]
