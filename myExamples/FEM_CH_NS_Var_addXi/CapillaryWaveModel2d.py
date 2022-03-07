@@ -59,7 +59,7 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         self.rho_bar_n = 0  # 此项在 `decoupled_NS_addXi_Solver_T1stOrder()` 中更新: 为了获得第 n 时间层的取值 (在 `update_mu_and_Xi()` 会用到).
         self.nu_bar_n = 0  # 此项在 `decoupled_NS_addXi_Solver_T1stOrder()` 中更新: 为了获得第 n 时间层的取值 (在 `update_mu_and_Xi()` 会用到).
         self.R_n = 0.  # 此项在 `update_mu_and_Xi()` 中更新.
-        self.C0 = 100.  # 此项在 `update_mu_and_Xi()` 中, 以保证 E_n = \int H(\phi) + C0 > 0.
+        self.C0 = 1.e3  # 此项在 `update_mu_and_Xi()` 中, 以保证 E_n = \int H(\phi) + C0 > 0.
         self.Xi = 1.  # 此项在 `update_mu_and_Xi()` 中更新.
         self.s, self.alpha = self.set_CH_Coeff(dt_minimum=self.dt_min)
 
@@ -104,8 +104,8 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         print('    # #################################### #')
 
         print('    # ------------ parameters ------------ #')
-        print('    s = %.4e,  alpha = %.4e,  m = %.4e,  epsilon = %.4e,  eta = %.4e'
-              % (self.s, self.alpha, self.pde.m, self.pde.epsilon, self.pde.eta))
+        print('    s = %.4e,  alpha = %.4e,  m = %.4e,  epsilon = %.4e,  eta = %.4e, C0 = %f'
+              % (self.s, self.alpha, self.pde.m, self.pde.epsilon, self.pde.eta, self.C0))
         print('    t0 = %.4e,  T = %.4e, dt = %.4e' % (timemesh[0], timemesh[-1], dt))
         print(' ')
 
