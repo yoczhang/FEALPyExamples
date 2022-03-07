@@ -114,9 +114,11 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
             def init_solution_CH(p):
                 return pde.initial_CH(p)
             uh[:] = self.space.interpolation(init_solution_CH)
-            fig = plt.figure()
-            axes = fig.gca(projection='3d')
-            uh.add_plot(axes, cmap='rainbow')
+            # fig = plt.figure()
+            # axes = fig.gca(projection='3d')
+            # axes = uh.add_plot(axes, cmap='rainbow')
+            # axes.view_init(elev=90, azim=0)  # 改变绘制图像的视角,即相机的位置,azim沿着z轴旋转，elev沿着y轴
+            # plt.show()
 
             def init_velocity0(p):
                 # return pde.velocity_NS(p, 0)[..., 0]
