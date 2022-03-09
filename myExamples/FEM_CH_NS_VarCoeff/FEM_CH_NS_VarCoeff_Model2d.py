@@ -74,7 +74,9 @@ class FEM_CH_NS_VarCoeff_Model2d(FEM_CH_NS_Model2d):
         # for cell-integration
         grad_ph_val = self.space.grad_value(ph, self.c_bcs)  # (NQ,NC,GD)
         uh_val = self.space.value(uh, self.c_bcs)  # (NQ,NC)
-        uh_val_f = self.space.value(uh, self.f_bcs)[..., self.DirCellIdx_NS]  # (NQ,NDir)
+        uh_val_f = self.space.value(uh, self.f_bcs)[..., self.DirEdgeIdx_NS]  # (NQ,NDir)
+        #    |___ TODO: 为什么是 [..., self.DirCellIdx_NS] 而不是 [..., self.DirEdgeIdx_NS]?? 应该是个 bug ??
+        #              |___ TODO: 2022-03-08 改为 [..., self.DirEdgeIdx_NS]
         grad_uh_val = self.space.grad_value(uh, self.c_bcs)  # (NQ,NC,GD)
         vel0_val = self.vspace.value(vel0, self.c_bcs)  # (NQ,NC)
         vel1_val = self.vspace.value(vel1, self.c_bcs)  # (NQ,NC)

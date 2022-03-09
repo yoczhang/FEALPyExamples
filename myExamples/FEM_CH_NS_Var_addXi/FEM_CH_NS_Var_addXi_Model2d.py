@@ -318,7 +318,9 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         # |--- ph, uh, vel0, vel1 are the (n)-th time step values
         grad_ph_val = self.space.grad_value(ph, self.c_bcs)  # (NQ,NC,GD)
         uh_val = self.space.value(uh, self.c_bcs)  # (NQ,NC)
-        # uh_val_f = self.space.value(uh, self.f_bcs)[..., self.DirCellIdx_NS]  # (NQ,NDir)
+        # uh_val_f = self.space.value(uh, self.f_bcs)[..., self.DirEdgeIdx_NS]  # (NQ,NDir)
+        #    |___ TODO: 为什么是 [..., self.DirCellIdx_NS] 而不是 [..., self.DirEdgeIdx_NS]?? 应该是个 bug ??
+        #              |___ TODO: 2022-03-08 改为 [..., self.DirEdgeIdx_NS]
         # grad_uh_val = self.space.grad_value(uh, self.c_bcs)  # (NQ,NC,GD)
         vel0_val = self.vspace.value(vel0, self.c_bcs)  # (NQ,NC)
         vel1_val = self.vspace.value(vel1, self.c_bcs)  # (NQ,NC)
@@ -330,10 +332,14 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         #     |___ so, in order to distinguish, here used the `uh_last_*` to denote the (n)-th time step values.
         uh_last_part0_val = self.space.value(uh_last_part0, self.c_bcs)  # (NQ,NC)
         grad_uh_last_part0_val = self.space.grad_value(uh_last_part0, self.c_bcs)  # (NQ,NC,GD)
-        uh_last_part0_val_f = self.space.value(uh_last_part0, self.f_bcs)[..., self.DirCellIdx_NS]  # (NQ,NDir)
+        uh_last_part0_val_f = self.space.value(uh_last_part0, self.f_bcs)[..., self.DirEdgeIdx_NS]  # (NQ,NDir)
+        #    |___ TODO: 为什么是 [..., self.DirCellIdx_NS] 而不是 [..., self.DirEdgeIdx_NS]?? 应该是个 bug ??
+        #              |___ TODO: 2022-03-08 改为 [..., self.DirEdgeIdx_NS]
         uh_last_part1_val = self.space.value(uh_last_part1, self.c_bcs)  # (NQ,NC)
         grad_uh_last_part1_val = self.space.grad_value(uh_last_part1, self.c_bcs)  # (NQ,NC,GD)
-        uh_last_part1_val_f = self.space.value(uh_last_part1, self.f_bcs)[..., self.DirCellIdx_NS]  # (NQ,NDir)
+        uh_last_part1_val_f = self.space.value(uh_last_part1, self.f_bcs)[..., self.DirEdgeIdx_NS]  # (NQ,NDir)
+        #    |___ TODO: 为什么是 [..., self.DirCellIdx_NS] 而不是 [..., self.DirEdgeIdx_NS]?? 应该是个 bug ??
+        #              |___ TODO: 2022-03-08 改为 [..., self.DirEdgeIdx_NS]
 
         nolinear_val = self.NSNolinearTerm(vel0, vel1, self.c_bcs)  # (NQ,NC,GD)
         velDir_val = pde.dirichlet_NS(self.f_pp_Dir_NS, next_t)  # (NQ,NDir,GD)
@@ -445,6 +451,7 @@ class FEM_CH_NS_Var_addXi_Model2d(FEM_CH_NS_Model2d):
         plsm = 1. / rho_min * self.StiffMatrix
 
         # |--- 3. Method I: The following code is right! Pressure satisfies \int_\Omega p = 0
+        #      |___ TODO: 检验这个处理 pressure 的方式是否正确?
         basis_int = self.space.integral_basis()
         plsm_temp = bmat([[plsm, basis_int.reshape(-1, 1)], [basis_int, None]], format='csr')
         prv_part0 = np.r_[prv_part0, 0]
