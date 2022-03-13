@@ -77,6 +77,11 @@ class CapillaryWaveSolution:
         mesh = TriangleMesh(node, cell)
         return mesh
 
+    # def customized_mesh(self):
+    #     box = self.box
+    #     mesh = MF.boxmesh2d(box, nx=10, ny=20, meshtype='tri')
+    #     return mesh
+
     def time_mesh(self, dt):
         n = int(np.ceil((self.T - self.t0) / dt))
         dt = (self.T - self.t0) / n

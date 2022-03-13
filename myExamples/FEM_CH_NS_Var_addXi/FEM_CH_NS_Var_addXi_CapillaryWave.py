@@ -32,7 +32,7 @@ import matplotlib.pyplot as plt
 
 # |--- begin setting
 d = 2  # the dimension
-p = 3  # the polynomial order
+p = 2  # the polynomial order
 # n = 2  # the number of refine mesh
 
 # |--- time and mesh setting

@@ -22,12 +22,12 @@ import pyamg
 # maxit = int(sys.argv[3])
 # d = int(sys.argv[4])
 p = 2
-n = 1
+n = 3
 maxit = 4
 d = 2
 
 if d == 2:
-    from fealpy.pde.poisson_2d import CosCosData as PDE
+    from poisson_2d import CosCosData as PDE
 elif d == 3:
     from fealpy.pde.poisson_3d import CosCosCosData as PDE
 
