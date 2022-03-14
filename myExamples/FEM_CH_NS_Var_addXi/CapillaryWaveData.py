@@ -25,6 +25,7 @@ class CapillaryWaveSolution:
         self.haveTrueSolution = True
         self.box = self.box_settings()
         self.mesh = self.customized_mesh()
+        self.domainVolume = 0
 
     def setPDEParameters(self, parameters):
         for k, v in parameters.items():
@@ -33,6 +34,7 @@ class CapillaryWaveSolution:
 
     def box_settings(self):
         box = [0, 1, -1, 1]
+        self.domainVolume = (box[1] - box[0]) * (box[3] - box[2])
         return box
 
     # def customized_mesh(self):
