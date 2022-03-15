@@ -117,7 +117,7 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
             # fig = plt.figure()
             # axes = fig.gca(projection='3d')
             # axes = uh.add_plot(axes, cmap='rainbow')
-            # axes.view_init(elev=90, azim=0)  # 改变绘制图像的视角,即相机的位置,azim沿着z轴旋转，elev沿着y轴
+            # axes.view_init(elev=90, azim=0)  # 改变绘制图像的视角, 即相机的位置, azim沿着z轴旋转，elev沿着y轴
             # plt.show()
 
             def init_velocity0(p):
@@ -130,10 +130,11 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
                 return 0. * p[..., 0]
             vel1[:] = self.vspace.interpolation(init_velocity1)
 
-            def init_pressure(p):
-                # return pde.pressure_NS(p, 0)
-                return 0. * p[..., 0]
-            ph[:] = self.space.interpolation(init_pressure)
+            # def init_pressure(p):
+            #     # return pde.pressure_NS(p, 0)
+            #     return 0. * p[..., 0]
+            # ph[:] = self.space.interpolation(init_pressure)
+            ph[:] = self.get_init_pressure(uh)
 
         # # time-looping
         print('    # ------------ begin the time-looping ------------ #')
@@ -214,8 +215,8 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         rho0 = pde.rho0
         rho1 = pde.rho1
         init_uh_val = self.space.value(init_uh, self.c_bcs)  # (NQ,NC)
-        init_rho = (rho0 - rho1)/2. * init_uh_val + (rho0 + rho1)/2.
-        grad_free_energy_c = self.pde.epsilon / self.pde.eta ** 2 * self.grad_free_energy_at_cells(init_uh_val, self.c_bcs)  # (NQ,NC,2)
+        init_rho = (rho0 - rho1)/2. * init_uh_val + (rho0 + rho1)/2.  # (NQ,NC)
+        grad_free_energy_c = self.pde.epsilon / self.pde.eta ** 2 * self.grad_free_energy_at_cells(init_uh, self.c_bcs)  # (NQ,NC,2)
         if self.p < 3:
             CH_term_val0 = init_uh_val * grad_free_energy_c[..., 0]  # (NQ,NC)
             CH_term_val1 = init_uh_val * grad_free_energy_c[..., 1]  # (NQ,NC)
