@@ -21,7 +21,7 @@ import os, sys
 os.chdir(sys.path[0])
 
 print(os.getcwd())
-mfile = loadmat('./CapillaryWaveMesh_1.mat')
+mfile = loadmat('./CapillaryWaveMesh_2.mat')
 node = mfile['node']
 cell = mfile['elem']
 mesh = TriangleMesh(node, cell)
@@ -42,8 +42,8 @@ Nrefine = 2
 
 node = mesh.node
 cell = mesh.ds.cell_to_node()
-np.save('./WaveMeshNode_mat2', node)
-np.save('./WaveMeshCell_mat2', cell)
+np.save('./WaveMeshNode_mat3', node)
+np.save('./WaveMeshCell_mat3', cell)
 
 # fig = plt.figure()
 # axes = fig.gca()

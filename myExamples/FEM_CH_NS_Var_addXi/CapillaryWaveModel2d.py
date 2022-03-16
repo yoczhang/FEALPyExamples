@@ -60,9 +60,9 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         self.rho_bar_n = 0  # 此项在 `decoupled_NS_addXi_Solver_T1stOrder()` 中更新: 为了获得第 n 时间层的取值 (在 `update_mu_and_Xi()` 会用到).
         self.nu_bar_n = 0  # 此项在 `decoupled_NS_addXi_Solver_T1stOrder()` 中更新: 为了获得第 n 时间层的取值 (在 `update_mu_and_Xi()` 会用到).
         self.R_n = 0.  # 此项在 `update_mu_and_Xi()` 中更新.
-        self.C0 = 1.e3  # 此项在 `update_mu_and_Xi()` 中, 以保证 E_n = \int H(\phi) + C0 > 0.
+        self.C0 = 1.e5  # 此项在 `update_mu_and_Xi()` 中, 以保证 E_n = \int H(\phi) + C0 > 0.
         self.Xi = 1.  # 此项在 `update_mu_and_Xi()` 中更新.
-        self.s, self.alpha = self.set_CH_Coeff(dt_minimum=self.dt_min)
+        self.s, self.alpha = self.set_CH_Coeff(dt_minimum=self.dt_min/10)
 
         if hasattr(self, 'idxNotPeriodicEdge') is False:
             self.idxPeriodicEdge0, self.idxPeriodicEdge1, self.idxNotPeriodicEdge = self.set_periodic_edge()
@@ -130,10 +130,6 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
                 return 0. * p[..., 0]
             vel1[:] = self.vspace.interpolation(init_velocity1)
 
-            # def init_pressure(p):
-            #     # return pde.pressure_NS(p, 0)
-            #     return 0. * p[..., 0]
-            # ph[:] = self.space.interpolation(init_pressure)
             ph[:] = self.get_init_pressure(uh)
 
         # # time-looping
@@ -233,7 +229,6 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         plsm = self.space.stiff_matrix()
         temp0 = f_val_NS[..., 0] - CH_term_val0  # (NQ,NC)
         temp1 = f_val_NS[..., 1] - CH_term_val1  # (NQ,NC)
-
         cell_int = (np.einsum('i, ij, ijk, j->jk', self.c_ws, temp0, self.gphi_c[..., 0], self.cellmeasure)
                     + np.einsum('i, ij, ijk, j->jk', self.c_ws, temp1, self.gphi_c[..., 1], self.cellmeasure))  # (NC,ldof)
         prv = np.zeros((self.dof.number_of_global_dofs(),), dtype=self.ftype)  # (Npdof,)
