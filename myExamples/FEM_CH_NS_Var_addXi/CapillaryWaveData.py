@@ -74,9 +74,15 @@ class CapillaryWaveSolution:
     def customized_mesh(self):
         # node = np.load('WaveMeshNode1.npy')
         # cell = np.load('WaveMeshCell1.npy')
-        node = np.load('./CapillaryWaveMesh/WaveMeshNode_mat2.npy')  # WaveMeshNode_mat1 是新构造的网格
-        cell = np.load('./CapillaryWaveMesh/WaveMeshCell_mat2.npy')
+        print('\n')
+        print('# --------------------- in CapillaryWaveData code --------------------- #')
+        nodename = 'WaveMeshNode_mat2.npy'
+        cellname = 'WaveMeshCell_mat2.npy'
+        node = np.load('./CapillaryWaveMesh/' + nodename)  # WaveMeshNode_mat1 是新构造的网格
+        cell = np.load('./CapillaryWaveMesh/' + cellname)
         mesh = TriangleMesh(node, cell)
+        print('Mesh-cell-name = %s,  ||  Number-of-mesh-cells = %d' % (cellname, mesh.number_of_cells()))
+        print('# --------------------------------------------------------------------- #')
         return mesh
 
     # def customized_mesh(self):

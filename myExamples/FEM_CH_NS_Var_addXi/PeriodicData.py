@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 # ---
 # @Software: PyCharm
-# @File: CH_NS_VarCoeff_Data.py
+# @File: PeriodicData.py
 # @Author: Yongchao Zhang
 # @Institution: Northwest University, Xi'an, Shaanxi, China
 # @E-mail: yoczhang@126.com, yoczhang@nwu.edu.cn
 # @Site: 
-# @Time: Dec 19, 2021
+# @Time: Mar 17, 2022
 # ---
 
 import numpy as np
@@ -17,7 +17,7 @@ from numpy import pi, sin, cos, exp
 # from CH_NS_Data import CH_NS_Data_truesolution
 
 
-class CH_NS_VarCoeff_truesolution:
+class PeriodicData:
     def __init__(self, t0, T):
         self.t0 = t0
         self.T = T
@@ -115,7 +115,13 @@ class CH_NS_VarCoeff_truesolution:
         x = p[..., 0]
         y = p[..., 1]
 
-        val = -m*(-4*epsilon*pi**4*sin(t)*cos(pi*x)*cos(pi*y) - 2*epsilon*pi**2*(sin(t)**2*cos(pi*x)**2*cos(pi*y)**2 - 1)*sin(t)*cos(pi*x)*cos(pi*y)/eta**2 + 6*epsilon*pi**2*sin(t)**3*sin(pi*x)**2*cos(pi*x)*cos(pi*y)**3/eta**2 + 6*epsilon*pi**2*sin(t)**3*sin(pi*y)**2*cos(pi*x)**3*cos(pi*y)/eta**2 - 4*epsilon*pi**2*sin(t)**3*cos(pi*x)**3*cos(pi*y)**3/eta**2) - pi*sin(t)**2*sin(pi*x)**2*cos(pi*y)**2 + pi*sin(t)**2*sin(pi*y)**2*cos(pi*x)**2 + cos(t)*cos(pi*x)*cos(pi*y)
+        val = -m * (-4 * epsilon * pi ** 4 * sin(t) * cos(pi * x) * cos(pi * y) - 2 * epsilon * pi ** 2 * (
+                    sin(t) ** 2 * cos(pi * x) ** 2 * cos(pi * y) ** 2 - 1) * sin(t) * cos(pi * x) * cos(
+            pi * y) / eta ** 2 + 6 * epsilon * pi ** 2 * sin(t) ** 3 * sin(pi * x) ** 2 * cos(pi * x) * cos(
+            pi * y) ** 3 / eta ** 2 + 6 * epsilon * pi ** 2 * sin(t) ** 3 * sin(pi * y) ** 2 * cos(pi * x) ** 3 * cos(
+            pi * y) / eta ** 2 - 4 * epsilon * pi ** 2 * sin(t) ** 3 * cos(pi * x) ** 3 * cos(pi * y) ** 3 / eta ** 2) - pi * sin(
+            t) ** 2 * sin(pi * x) ** 2 * cos(pi * y) ** 2 + pi * sin(t) ** 2 * sin(pi * y) ** 2 * cos(pi * x) ** 2 + cos(t) * cos(
+            pi * x) * cos(pi * y)
         return val
 
     # # --- the Navier-Stokes data
@@ -127,8 +133,8 @@ class CH_NS_VarCoeff_truesolution:
         # cos = np.cos
         # sin = np.sin
         val = np.zeros(p.shape, dtype=np.float)
-        val[..., 0] = sin(pi*x)*cos(pi*y)*sin(t)
-        val[..., 1] = -cos(pi*x)*sin(pi*y)*sin(t)
+        val[..., 0] = sin(pi * x) * cos(pi * y) * sin(t)
+        val[..., 1] = -cos(pi * x) * sin(pi * y) * sin(t)
         return val
 
     @cartesian
@@ -136,8 +142,8 @@ class CH_NS_VarCoeff_truesolution:
         x = p[..., 0]
         y = p[..., 1]
         val = np.zeros(p.shape, dtype=np.float)
-        val[..., 0] = pi*sin(t)*cos(pi*x)*cos(pi*y)
-        val[..., 1] = -pi*sin(t)*sin(pi*x)*sin(pi*y)
+        val[..., 0] = pi * sin(t) * cos(pi * x) * cos(pi * y)
+        val[..., 1] = -pi * sin(t) * sin(pi * x) * sin(pi * y)
         return val
 
     @cartesian
@@ -145,8 +151,8 @@ class CH_NS_VarCoeff_truesolution:
         x = p[..., 0]
         y = p[..., 1]
         val = np.zeros(p.shape, dtype=np.float)
-        val[..., 0] = pi*sin(t)*sin(pi*x)*sin(pi*y)
-        val[..., 1] = -pi*sin(t)*cos(pi*x)*cos(pi*y)
+        val[..., 0] = pi * sin(t) * sin(pi * x) * sin(pi * y)
+        val[..., 1] = -pi * sin(t) * cos(pi * x) * cos(pi * y)
         return val
 
     @cartesian
@@ -190,25 +196,17 @@ class CH_NS_VarCoeff_truesolution:
         x = p[..., 0]
         y = p[..., 1]
 
-        val = sin(pi*x)*sin(pi*y)*cos(t)
+        val = sin(pi * x) * sin(pi * y) * cos(t)
         return val
 
     @cartesian
-    def source_NS(self, p, t, epsilon, eta, m, rho0, rho1, nu0, nu1, stressC):
+    def source_NS(self, p, t, epsilon, eta, m, rho0, rho1, nu0, nu1):
         x = p[..., 0]
         y = p[..., 1]
         val = np.zeros(p.shape, dtype=np.float)
-        # --- the velocity stress term: \nabla u + (\nabla u)^T
-        # val[..., 0] = m*pi*(-rho0/2 + rho1/2)*(-2*epsilon*pi**3*sin(t)*sin(pi*x)*cos(pi*y) - epsilon*pi*(sin(t)**2*cos(pi*x)**2*cos(pi*y)**2 - 1)*sin(t)*sin(pi*x)*cos(pi*y)/eta**2 - 2*epsilon*pi*sin(t)**3*sin(pi*x)*cos(pi*x)**2*cos(pi*y)**3/eta**2)*sin(t)*cos(pi*x)*cos(pi*y) - m*pi*(-rho0/2 + rho1/2)*(-2*epsilon*pi**3*sin(t)*sin(pi*y)*cos(pi*x) - epsilon*pi*(sin(t)**2*cos(pi*x)**2*cos(pi*y)**2 - 1)*sin(t)*sin(pi*y)*cos(pi*x)/eta**2 - 2*epsilon*pi*sin(t)**3*sin(pi*y)*cos(pi*x)**3*cos(pi*y)**2/eta**2)*sin(t)*sin(pi*x)*sin(pi*y) + 2*pi**2*(nu0/2 - nu1/2)*sin(t)**2*sin(pi*x)*cos(pi*x)*cos(pi*y)**2 + 2*pi**2*(nu0/2 + nu1/2 + (nu0/2 - nu1/2)*sin(t)*cos(pi*x)*cos(pi*y))*sin(t)*sin(pi*x)*cos(pi*y) + pi*sin(pi*y)*cos(t)*cos(pi*x) + (pi*sin(t)**2*sin(pi*x)*sin(pi*y)**2*cos(pi*x) + pi*sin(t)**2*sin(pi*x)*cos(pi*x)*cos(pi*y)**2)*(rho0/2 + rho1/2 + (rho0/2 - rho1/2)*sin(t)*cos(pi*x)*cos(pi*y)) + (rho0/2 + rho1/2 + (rho0/2 - rho1/2)*sin(t)*cos(pi*x)*cos(pi*y))*sin(pi*x)*cos(t)*cos(pi*y) + (-2*epsilon*pi**3*sin(t)*sin(pi*x)*cos(pi*y) - epsilon*pi*(sin(t)**2*cos(pi*x)**2*cos(pi*y)**2 - 1)*sin(t)*sin(pi*x)*cos(pi*y)/eta**2 - 2*epsilon*pi*sin(t)**3*sin(pi*x)*cos(pi*x)**2*cos(pi*y)**3/eta**2)*sin(t)*cos(pi*x)*cos(pi*y)
-        # val[..., 1] = m*pi*(-rho0/2 + rho1/2)*(-2*epsilon*pi**3*sin(t)*sin(pi*x)*cos(pi*y) - epsilon*pi*(sin(t)**2*cos(pi*x)**2*cos(pi*y)**2 - 1)*sin(t)*sin(pi*x)*cos(pi*y)/eta**2 - 2*epsilon*pi*sin(t)**3*sin(pi*x)*cos(pi*x)**2*cos(pi*y)**3/eta**2)*sin(t)*sin(pi*x)*sin(pi*y) - m*pi*(-rho0/2 + rho1/2)*(-2*epsilon*pi**3*sin(t)*sin(pi*y)*cos(pi*x) - epsilon*pi*(sin(t)**2*cos(pi*x)**2*cos(pi*y)**2 - 1)*sin(t)*sin(pi*y)*cos(pi*x)/eta**2 - 2*epsilon*pi*sin(t)**3*sin(pi*y)*cos(pi*x)**3*cos(pi*y)**2/eta**2)*sin(t)*cos(pi*x)*cos(pi*y) - 2*pi**2*(nu0/2 - nu1/2)*sin(t)**2*sin(pi*y)*cos(pi*x)**2*cos(pi*y) - 2*pi**2*(nu0/2 + nu1/2 + (nu0/2 - nu1/2)*sin(t)*cos(pi*x)*cos(pi*y))*sin(t)*sin(pi*y)*cos(pi*x) + pi*sin(pi*x)*cos(t)*cos(pi*y) + (pi*sin(t)**2*sin(pi*x)**2*sin(pi*y)*cos(pi*y) + pi*sin(t)**2*sin(pi*y)*cos(pi*x)**2*cos(pi*y))*(rho0/2 + rho1/2 + (rho0/2 - rho1/2)*sin(t)*cos(pi*x)*cos(pi*y)) - (rho0/2 + rho1/2 + (rho0/2 - rho1/2)*sin(t)*cos(pi*x)*cos(pi*y))*sin(pi*y)*cos(t)*cos(pi*x) + (-2*epsilon*pi**3*sin(t)*sin(pi*y)*cos(pi*x) - epsilon*pi*(sin(t)**2*cos(pi*x)**2*cos(pi*y)**2 - 1)*sin(t)*sin(pi*y)*cos(pi*x)/eta**2 - 2*epsilon*pi*sin(t)**3*sin(pi*y)*cos(pi*x)**3*cos(pi*y)**2/eta**2)*sin(t)*cos(pi*x)*cos(pi*y)
-
-        # --- the velocity stress term: 0.5*(\nabla u + (\nabla u)^T)
-        # --- This is wrong !!!
-        # # val[..., 0] = m*pi*(-rho0/2 + rho1/2)*(-2*epsilon*pi**3*sin(t)*sin(pi*x)*cos(pi*y) - epsilon*pi*(sin(t)**2*cos(pi*x)**2*cos(pi*y)**2 - 1)*sin(t)*sin(pi*x)*cos(pi*y)/eta**2 - 2*epsilon*pi*sin(t)**3*sin(pi*x)*cos(pi*x)**2*cos(pi*y)**3/eta**2)*sin(t)*cos(pi*x)*cos(pi*y) - m*pi*(-rho0/2 + rho1/2)*(-2*epsilon*pi**3*sin(t)*sin(pi*y)*cos(pi*x) - epsilon*pi*(sin(t)**2*cos(pi*x)**2*cos(pi*y)**2 - 1)*sin(t)*sin(pi*y)*cos(pi*x)/eta**2 - 2*epsilon*pi*sin(t)**3*sin(pi*y)*cos(pi*x)**3*cos(pi*y)**2/eta**2)*sin(t)*sin(pi*x)*sin(pi*y) + pi**2*(nu0/2 - nu1/2)*sin(t)**2*sin(pi*x)*cos(pi*x)*cos(pi*y)**2 + pi**2*(nu0/2 + nu1/2 + (nu0/2 - nu1/2)*sin(t)*cos(pi*x)*cos(pi*y))*sin(t)*sin(pi*x)*cos(pi*y) + pi*sin(pi*y)*cos(t)*cos(pi*x) + (pi*sin(t)**2*sin(pi*x)*sin(pi*y)**2*cos(pi*x) + pi*sin(t)**2*sin(pi*x)*cos(pi*x)*cos(pi*y)**2)*(rho0/2 + rho1/2 + (rho0/2 - rho1/2)*sin(t)*cos(pi*x)*cos(pi*y)) + (rho0/2 + rho1/2 + (rho0/2 - rho1/2)*sin(t)*cos(pi*x)*cos(pi*y))*sin(pi*x)*cos(t)*cos(pi*y) + (-2*epsilon*pi**3*sin(t)*sin(pi*x)*cos(pi*y) - epsilon*pi*(sin(t)**2*cos(pi*x)**2*cos(pi*y)**2 - 1)*sin(t)*sin(pi*x)*cos(pi*y)/eta**2 - 2*epsilon*pi*sin(t)**3*sin(pi*x)*cos(pi*x)**2*cos(pi*y)**3/eta**2)*sin(t)*cos(pi*x)*cos(pi*y)
-        # # val[..., 1] = m*pi*(-rho0/2 + rho1/2)*(-2*epsilon*pi**3*sin(t)*sin(pi*x)*cos(pi*y) - epsilon*pi*(sin(t)**2*cos(pi*x)**2*cos(pi*y)**2 - 1)*sin(t)*sin(pi*x)*cos(pi*y)/eta**2 - 2*epsilon*pi*sin(t)**3*sin(pi*x)*cos(pi*x)**2*cos(pi*y)**3/eta**2)*sin(t)*sin(pi*x)*sin(pi*y) - m*pi*(-rho0/2 + rho1/2)*(-2*epsilon*pi**3*sin(t)*sin(pi*y)*cos(pi*x) - epsilon*pi*(sin(t)**2*cos(pi*x)**2*cos(pi*y)**2 - 1)*sin(t)*sin(pi*y)*cos(pi*x)/eta**2 - 2*epsilon*pi*sin(t)**3*sin(pi*y)*cos(pi*x)**3*cos(pi*y)**2/eta**2)*sin(t)*cos(pi*x)*cos(pi*y) - pi**2*(nu0/2 - nu1/2)*sin(t)**2*sin(pi*y)*cos(pi*x)**2*cos(pi*y) - pi**2*(nu0/2 + nu1/2 + (nu0/2 - nu1/2)*sin(t)*cos(pi*x)*cos(pi*y))*sin(t)*sin(pi*y)*cos(pi*x) + pi*sin(pi*x)*cos(t)*cos(pi*y) + (pi*sin(t)**2*sin(pi*x)**2*sin(pi*y)*cos(pi*y) + pi*sin(t)**2*sin(pi*y)*cos(pi*x)**2*cos(pi*y))*(rho0/2 + rho1/2 + (rho0/2 - rho1/2)*sin(t)*cos(pi*x)*cos(pi*y)) - (rho0/2 + rho1/2 + (rho0/2 - rho1/2)*sin(t)*cos(pi*x)*cos(pi*y))*sin(pi*y)*cos(t)*cos(pi*x) + (-2*epsilon*pi**3*sin(t)*sin(pi*y)*cos(pi*x) - epsilon*pi*(sin(t)**2*cos(pi*x)**2*cos(pi*y)**2 - 1)*sin(t)*sin(pi*y)*cos(pi*x)/eta**2 - 2*epsilon*pi*sin(t)**3*sin(pi*y)*cos(pi*x)**3*cos(pi*y)**2/eta**2)*sin(t)*cos(pi*x)*cos(pi*y)
-
         # --- the velocity stress term: stressC*1.0*(\nabla u + (\nabla u)^T)
         # --- stressC may take 1.0 or 0.5
+        stressC = 1.
         val[..., 0] = m*pi*(-rho0/2 + rho1/2)*(-2*epsilon*pi**3*sin(t)*sin(pi*x)*cos(pi*y) - epsilon*pi*(sin(t)**2*cos(pi*x)**2*cos(pi*y)**2 - 1)*sin(t)*sin(pi*x)*cos(pi*y)/eta**2 - 2*epsilon*pi*sin(t)**3*sin(pi*x)*cos(pi*x)**2*cos(pi*y)**3/eta**2)*sin(t)*cos(pi*x)*cos(pi*y) - m*pi*(-rho0/2 + rho1/2)*(-2*epsilon*pi**3*sin(t)*sin(pi*y)*cos(pi*x) - epsilon*pi*(sin(t)**2*cos(pi*x)**2*cos(pi*y)**2 - 1)*sin(t)*sin(pi*y)*cos(pi*x)/eta**2 - 2*epsilon*pi*sin(t)**3*sin(pi*y)*cos(pi*x)**3*cos(pi*y)**2/eta**2)*sin(t)*sin(pi*x)*sin(pi*y) + 2*pi**2*stressC*(nu0/2 - nu1/2)*sin(t)**2*sin(pi*x)*cos(pi*x)*cos(pi*y)**2 + 2*pi**2*stressC*(nu0/2 + nu1/2 + (nu0/2 - nu1/2)*sin(t)*cos(pi*x)*cos(pi*y))*sin(t)*sin(pi*x)*cos(pi*y) + pi*sin(pi*y)*cos(t)*cos(pi*x) + (pi*sin(t)**2*sin(pi*x)*sin(pi*y)**2*cos(pi*x) + pi*sin(t)**2*sin(pi*x)*cos(pi*x)*cos(pi*y)**2)*(rho0/2 + rho1/2 + (rho0/2 - rho1/2)*sin(t)*cos(pi*x)*cos(pi*y)) + (rho0/2 + rho1/2 + (rho0/2 - rho1/2)*sin(t)*cos(pi*x)*cos(pi*y))*sin(pi*x)*cos(t)*cos(pi*y) + (-2*epsilon*pi**3*sin(t)*sin(pi*x)*cos(pi*y) - epsilon*pi*(sin(t)**2*cos(pi*x)**2*cos(pi*y)**2 - 1)*sin(t)*sin(pi*x)*cos(pi*y)/eta**2 - 2*epsilon*pi*sin(t)**3*sin(pi*x)*cos(pi*x)**2*cos(pi*y)**3/eta**2)*sin(t)*cos(pi*x)*cos(pi*y)
         val[..., 1] = m*pi*(-rho0/2 + rho1/2)*(-2*epsilon*pi**3*sin(t)*sin(pi*x)*cos(pi*y) - epsilon*pi*(sin(t)**2*cos(pi*x)**2*cos(pi*y)**2 - 1)*sin(t)*sin(pi*x)*cos(pi*y)/eta**2 - 2*epsilon*pi*sin(t)**3*sin(pi*x)*cos(pi*x)**2*cos(pi*y)**3/eta**2)*sin(t)*sin(pi*x)*sin(pi*y) - m*pi*(-rho0/2 + rho1/2)*(-2*epsilon*pi**3*sin(t)*sin(pi*y)*cos(pi*x) - epsilon*pi*(sin(t)**2*cos(pi*x)**2*cos(pi*y)**2 - 1)*sin(t)*sin(pi*y)*cos(pi*x)/eta**2 - 2*epsilon*pi*sin(t)**3*sin(pi*y)*cos(pi*x)**3*cos(pi*y)**2/eta**2)*sin(t)*cos(pi*x)*cos(pi*y) - 2*pi**2*stressC*(nu0/2 - nu1/2)*sin(t)**2*sin(pi*y)*cos(pi*x)**2*cos(pi*y) - 2*pi**2*stressC*(nu0/2 + nu1/2 + (nu0/2 - nu1/2)*sin(t)*cos(pi*x)*cos(pi*y))*sin(t)*sin(pi*y)*cos(pi*x) + pi*sin(pi*x)*cos(t)*cos(pi*y) + (pi*sin(t)**2*sin(pi*x)**2*sin(pi*y)*cos(pi*y) + pi*sin(t)**2*sin(pi*y)*cos(pi*x)**2*cos(pi*y))*(rho0/2 + rho1/2 + (rho0/2 - rho1/2)*sin(t)*cos(pi*x)*cos(pi*y)) - (rho0/2 + rho1/2 + (rho0/2 - rho1/2)*sin(t)*cos(pi*x)*cos(pi*y))*sin(pi*y)*cos(t)*cos(pi*x) + (-2*epsilon*pi**3*sin(t)*sin(pi*y)*cos(pi*x) - epsilon*pi*(sin(t)**2*cos(pi*x)**2*cos(pi*y)**2 - 1)*sin(t)*sin(pi*y)*cos(pi*x)/eta**2 - 2*epsilon*pi*sin(t)**3*sin(pi*y)*cos(pi*x)**3*cos(pi*y)**2/eta**2)*sin(t)*cos(pi*x)*cos(pi*y)
         return val
@@ -230,5 +228,3 @@ class CH_NS_VarCoeff_truesolution:
         x = p[..., 0]
         val = 0 * x
         return val
-
-

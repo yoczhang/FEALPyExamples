@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 # ---
 # @Software: PyCharm
-# @File: CapillaryWaveModel2d.py
+# @File: PeriodicModel2d.py
 # @Author: Yongchao Zhang
 # @Institution: Northwest University, Xi'an, Shaanxi, China
 # @E-mail: yoczhang@126.com, yoczhang@nwu.edu.cn
 # @Site: 
-# @Time: Jan 31, 2022
+# @Time: Mar 17, 2022
 # ---
 
 __doc__ = """
@@ -30,7 +30,7 @@ from scipy.io import loadmat
 import matplotlib.pyplot as plt
 
 
-class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
+class PeriodicModel2d(FEM_CH_NS_Model2d):
     """
     注意:
         本程序所参考的数值格式是按照 $D(u)=\nabla u + \nabla u^T$ 来写的,
@@ -38,7 +38,7 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         所以为了保证和数值格式的一致性, 本程序也是严格按照 $D(u)=\nabla u + \nabla u^T$ 来编写的.
     """
     def __init__(self, pde, mesh, p, dt):
-        super(CapillaryWaveModel2d, self).__init__(pde, mesh, p, dt)
+        super(PeriodicModel2d, self).__init__(pde, mesh, p, dt)
         self.wh_part0 = self.space.function()
         self.wh_part1 = self.space.function()
         self.uh_part0 = self.space.function()
@@ -112,46 +112,29 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
 
         if pde.haveTrueSolution:
             def init_solution_CH(p):
-                return pde.initial_CH(p)
+                return pde.solution_CH(p, 0)
             uh[:] = self.space.interpolation(init_solution_CH)
-            # fig = plt.figure()
-            # axes = fig.gca(projection='3d')
-            # axes = uh.add_plot(axes, cmap='rainbow')
-            # axes.view_init(elev=90, azim=0)  # 改变绘制图像的视角, 即相机的位置, azim沿着z轴旋转，elev沿着y轴
-            # plt.show()
 
             def init_velocity0(p):
-                # return pde.velocity_NS(p, 0)[..., 0]
-                return 0. * p[..., 0]
+                return pde.velocity_NS(p, 0)[..., 0]
             vel0[:] = self.vspace.interpolation(init_velocity0)
 
             def init_velocity1(p):
-                # return pde.velocity_NS(p, 0)[..., 1]
-                return 0. * p[..., 0]
+                return pde.velocity_NS(p, 0)[..., 1]
             vel1[:] = self.vspace.interpolation(init_velocity1)
 
-            ph[:] = self.get_init_pressure(uh)
+            def init_pressure(p):
+                return pde.pressure_NS(p, 0)
+            ph[:] = self.space.interpolation(init_pressure)
 
         # # time-looping
         print('    # ------------ begin the time-looping ------------ #')
-        time_position_Xi = np.zeros((NT, 3), np.float)
         currt_t = timemesh[0]
-        position = self.get_position_of_uh_at_zero(uh[:], 0.01)  # 最初的位置为振幅 0.01
-        time_position_Xi[0, 0] = currt_t
-        time_position_Xi[0, 1] = position
-        time_position_Xi[0, 2] = 1.
-
         self.uh_part0[:] = uh[:]
         #    |___ 这里只赋值 uh_part0, 首先在下面的时间循环中赋值给 self.uh_last_part0,
         #         |___ 接着是为了 `第一次` 计算 self.rho_bar_n 与 self.nu_bar_n 时直接取到 uh 的初始值.
         uh_last = uh.copy()
-        print('    currt_t = %.4e, position = %.9e, Xi = %.9e' % (currt_t, position, 1.))
-
-        try:
-            displace_byC = np.loadtxt('./CapillaryWaveMesh/displace_byC.dat', dtype=np.float64)
-            displace_byM = np.loadtxt('CapillaryWaveMesh/displace_byM.dat', dtype=np.float64)
-        except IOError:
-            print("There is no var: 'displace_byM' or 'displace_byC'")
+        print('    currt_t = %.4e, Xi = %.9e' % (currt_t, 1.))
 
         for nt in range(NT - 1):
             currt_t = timemesh[nt]
@@ -175,70 +158,21 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
             vel0[:] = self.vel0_part0[:] + Xi * self.vel0_part1[:]
             vel1[:] = self.vel1_part0[:] + Xi * self.vel1_part1[:]
 
-            # |--- get the position y-coord of `uh == 0`
-            position = self.get_position_of_uh_at_zero(uh[:], position)
-            time_position_Xi[nt + 1, 0] = next_t
-            time_position_Xi[nt + 1, 1] = position
-            time_position_Xi[nt + 1, 2] = Xi
-            # print('    end of one-looping')
-
             if nt % max([int(NT / NT), 1]) == 0:
-                # print('    currt_t = %.4e' % currt_t)
-
-                if 'displace_byM' in vars().keys():
-                    print('    currt_t = %.4e, position = %.9e, M-Py = %.9e, Xi = %.9e'
-                          % (next_t, position, displace_byM[nt + 1, 1] - position, Xi))
-                else:
-                    print('    currt_t = %.4e, position = %.9e, Xi = %.9e' % (next_t, position, Xi))
-
+                print('    currt_t = %.4e, Xi = %.9e' % (next_t, Xi))
                 uh_l2err, uh_h1err, vel_l2err, vel_h1err, ph_l2err = self.currt_error(uh, vel0, vel1, ph, timemesh[nt])
-                if np.isnan(uh_l2err) | np.isnan(uh_h1err) | np.isnan(vel_l2err) | np.isnan(vel_h1err) | np.isnan(
-                        ph_l2err):
+                if np.isnan(uh_l2err) | np.isnan(uh_h1err) | np.isnan(vel_l2err) | np.isnan(vel_h1err) | np.isnan(ph_l2err):
                     print('Some error is nan: breaking the program')
                     break
         print('    # ------------ end the time-looping ------------ #\n')
 
-        # # --- errors
+        # # |--- errors
         uh_l2err, uh_h1err, vel_l2err, vel_h1err, ph_l2err = self.currt_error(uh, vel0, vel1, ph, timemesh[-1])
         print('    # ------------ the last errors ------------ #')
         print('    uh_l2err = %.4e, uh_h1err = %.4e' % (uh_l2err, uh_h1err))
         print('    vel_l2err = %.4e, vel_h1err = %.4e, ph_l2err = %.4e' % (vel_l2err, vel_h1err, ph_l2err))
 
-        return time_position_Xi
-
-    def get_init_pressure(self, init_uh):
-        pde = self.pde
-        rho0 = pde.rho0
-        rho1 = pde.rho1
-        init_uh_val = self.space.value(init_uh, self.c_bcs)  # (NQ,NC)
-        init_rho = (rho0 - rho1)/2. * init_uh_val + (rho0 + rho1)/2.  # (NQ,NC)
-        grad_free_energy_c = self.pde.epsilon / self.pde.eta ** 2 * self.grad_free_energy_at_cells(init_uh, self.c_bcs)  # (NQ,NC,2)
-        if self.p < 3:
-            CH_term_val0 = init_uh_val * grad_free_energy_c[..., 0]  # (NQ,NC)
-            CH_term_val1 = init_uh_val * grad_free_energy_c[..., 1]  # (NQ,NC)
-        elif self.p == 3:
-            phi_xxx, phi_yyy, phi_yxx, phi_xyy = self.cb.get_highorder_diff(self.c_bcs, order='3rd-order')  # (NQ,NC,ldof)
-            grad_x_laplace_uh = -self.pde.epsilon * np.einsum('ijk, jk->ij', phi_xxx + phi_xyy, init_uh[self.cell2dof])  # (NQ,NC)
-            grad_y_laplace_uh = -self.pde.epsilon * np.einsum('ijk, jk->ij', phi_yxx + phi_yyy, init_uh[self.cell2dof])  # (NQ,NC)
-            CH_term_val0 = init_uh_val * (grad_x_laplace_uh + grad_free_energy_c[..., 0])  # (NQ,NC)
-            CH_term_val1 = init_uh_val * (grad_y_laplace_uh + grad_free_energy_c[..., 1])  # (NQ,NC)
-        else:
-            raise ValueError("The polynomial order p should be <= 3.")
-
-        f_val_NS = pde.source_NS(self.c_pp, 0, init_rho)  # (NQ,NC,GD)
-        plsm = self.space.stiff_matrix()
-        temp0 = f_val_NS[..., 0] - CH_term_val0  # (NQ,NC)
-        temp1 = f_val_NS[..., 1] - CH_term_val1  # (NQ,NC)
-        cell_int = (np.einsum('i, ij, ijk, j->jk', self.c_ws, temp0, self.gphi_c[..., 0], self.cellmeasure)
-                    + np.einsum('i, ij, ijk, j->jk', self.c_ws, temp1, self.gphi_c[..., 1], self.cellmeasure))  # (NC,ldof)
-        prv = np.zeros((self.dof.number_of_global_dofs(),), dtype=self.ftype)  # (Npdof,)
-        np.add.at(prv, self.cell2dof, cell_int)
-
-        basis_int = self.space.integral_basis()
-        plsm_temp = bmat([[plsm, basis_int.reshape(-1, 1)], [basis_int, None]], format='csr')
-        prv = np.r_[prv, 0]
-        ph = spsolve(plsm_temp, prv)[:-1]  # we have added one additional dof
-        return ph
+        return uh_l2err, uh_h1err, vel_l2err, vel_h1err, ph_l2err
 
     def decoupled_CH_addXi_Solver_T1stOrder(self, uh, wh, vel0, vel1, next_t):
         """
@@ -269,7 +203,7 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
 
         Neumann = pde.neumann_CH(self.f_pp_Neu_CH, next_t, self.nNeu_CH)  # (NQ,NE)
         LaplaceNeumann = pde.laplace_neumann_CH(self.f_pp_Neu_CH, next_t, self.nNeu_CH)  # (NQ,NE)
-        f_val_CH = pde.source_CH(self.c_pp, next_t)  # (NQ,NC)
+        f_val_CH = pde.source_CH(self.c_pp, next_t, pde.m, pde.epsilon, pde.eta)  # (NQ,NC)
 
         # |--- get the auxiliary equation Right-hand-side-Vector
         aux_rv_part0 = np.zeros((self.dof.number_of_global_dofs(),), dtype=self.ftype)  # (Ndof,)
@@ -509,16 +443,13 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         curl_vel_f = grad_vel1_f[..., 0] - grad_vel0_f[..., 1]  # (NQ,NDir)
 
         # |--- Dirichlet faces integration of 1/dt*(auxVel, \nabla q)_\Omega = -1/dt*<vel\cdot n, q>_\Gamma for part0
-        dir_int0_forpart0 = -1 / self.dt * np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, velDir_val, nDir_NS, self.phi_f,
-                                                     self.DirEdgeMeasure_NS)  # (NDir,fldof)
+        dir_int0_forpart0 = -1 / self.dt * np.einsum('i, ijk, jk, ijn, j->jn', self.f_ws, velDir_val, nDir_NS, self.phi_f, self.DirEdgeMeasure_NS)  # (NDir,fldof)
         # |--- Dirichlet faces integration of -<eta_n * n x curl_vel, \nabla q>_\Gamma =
-        dir_int1_forpart1 = -(np.einsum('i, j, ij, jin, j->jn', self.f_ws, nDir_NS[:, 1], eta_n_f * curl_vel_f, self.gphi_f[..., 0],
-                                        self.DirEdgeMeasure_NS)
-                              + np.einsum('i, j, ij, jin, j->jn', self.f_ws, -nDir_NS[:, 0], eta_n_f * curl_vel_f, self.gphi_f[..., 1],
-                                          self.DirEdgeMeasure_NS))  # (NDir,cldof)
+        dir_int1_forpart1 = -(np.einsum('i, j, ij, jin, j->jn', self.f_ws, nDir_NS[:, 1], eta_n_f * curl_vel_f, self.gphi_f[..., 0], self.DirEdgeMeasure_NS)
+                              + np.einsum('i, j, ij, jin, j->jn', self.f_ws, -nDir_NS[:, 0], eta_n_f * curl_vel_f, self.gphi_f[..., 1], self.DirEdgeMeasure_NS))  # (NDir,cldof)
 
         # for cell integration
-        f_val_NS = pde.source_NS(self.c_pp, next_t, self.rho_bar_n)  # (NQ,NC,GD)
+        f_val_NS = pde.source_NS(self.c_pp, next_t, pde.epsilon, pde.eta, m, rho0, rho1, nu0, nu1)  # (NQ,NC,GD)
         temp = (1. / rho_bar_n_axis * f_val_NS + 1. / self.dt * np.array([vel0_val, vel1_val]).transpose((1, 2, 0))
                 + (1. / rho_min - 1. / rho_bar_n_axis) * grad_ph_val)  # (NQ,NC,2)
         cell_int0_forpart0 = np.einsum('i, ijs, ijks, j->jk', self.c_ws, temp, self.gphi_c, self.cellmeasure)  # (NC,cldof)
@@ -570,8 +501,7 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
 
         def solve_auxVel_part0(whichIdx):
             auxVRV = np.zeros((self.vdof.number_of_global_dofs(),), dtype=self.ftype)  # (Nvdof,)
-            VRVtemp = (1. / rho_bar_n * f_val_NS[..., whichIdx] + 1. / self.dt * vel_val[whichIdx]
-                       - 1. / rho_min * grad_ph_part0_val[..., whichIdx]
+            VRVtemp = (1. / rho_bar_n * f_val_NS[..., whichIdx] + 1. / self.dt * vel_val[whichIdx] - 1. / rho_min * grad_ph_part0_val[..., whichIdx]
                        + (1. / rho_min - 1. / rho_bar_n) * grad_ph_val[..., whichIdx])  # (NQ,NC)
             cellInt = np.einsum('i, ij, ijk, j->jk', self.c_ws, VRVtemp, self.vphi_c, self.cellmeasure)  # (NC,clodf)
             np.add.at(auxVRV, self.vcell2dof, cellInt)
@@ -760,8 +690,8 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         # # ------------------------------ # #
         # # --- to update the Xi value --- # #
         # # ------------------------------ # #
-        f_val_CH = self.pde.source_CH(self.c_pp, next_t)
-        f_val_NS = self.pde.source_NS(self.c_pp, next_t, self.rho_bar_n)  # (NQ,NC,GD)
+        f_val_CH = pde.source_CH(self.c_pp, next_t, pde.m, pde.epsilon, pde.eta)  # (NQ,NC)
+        f_val_NS = pde.source_NS(self.c_pp, next_t, pde.epsilon, pde.eta, m, pde.rho0, pde.rho1, pde.nu0, pde.nu1)  # (NQ,NC,GD)
 
         def integral_cell(X):
             # |--- X.shape: (NQ,NC)
@@ -865,7 +795,7 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         bd_mid = mid_coor[idxBdEdge, :]
 
         isPeriodicEdge0 = np.abs(bd_mid[:, 0] - 0.0) < 1e-8
-        isPeriodicEdge1 = np.abs(bd_mid[:, 0] - 1.0) < 1e-8
+        isPeriodicEdge1 = np.abs(bd_mid[:, 0] - 2.0) < 1e-8
         notPeriodicEdge = ~(isPeriodicEdge0 + isPeriodicEdge1)
         idxPeriodicEdge0 = idxBdEdge[isPeriodicEdge0]  # (NE_Peri,)
         idxPeriodicEdge1 = idxBdEdge[isPeriodicEdge1]  # (NE_Peri,)
@@ -963,47 +893,3 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         #    |___ lhsM 中第 periodicDof1 行: 第 periodicDof0 列为 1, 第 periodicDof1 列为 -1.
 
         return rhsVec0, rhsVec1, lhsM
-
-    def get_position_of_uh_at_zero(self, uh, criterion=None):
-        """
-
-        :param uh:
-        :param criterion: 给定的一个 '准则' 值, 最后返回与 `criterion` 最靠近的那个值.
-                          criterion 应该选取上一步的值, 保证 '本步与上一步的值' 变化最小.
-        :return:
-        """
-        periodicDof0 = self.periodicDof0
-        #   |___ 需要注意的是, periodicDof0[0] 到 periodicDof0[-1] 的顺序必须是使得
-        #   |___ self.dof.interpolation_points()[periodicDof0, 1] 从小达到的顺序, 这个过程我们已经在 set_boundaryDofs() 中实现了.
-
-        uh_p = uh[periodicDof0]
-        zero_dof = periodicDof0[abs(uh_p - 0.) < 1e-8]
-        if np.any(zero_dof):
-            zero_dof = min(zero_dof)
-            coord = self.dof.interpolation_points()[zero_dof, 1]
-            return coord
-        else:
-            half_indicator = np.int((self.p + 1)/2) + np.mod(self.p + 1, 2)
-            uh_p_negative = np.max(uh_p[uh_p[:] < 0])
-            uh_p_positive = np.min(uh_p[uh_p[:] > 0])
-
-            negative_indicator, = np.nonzero(uh_p == uh_p_negative)[0]
-            positive_indicator, = np.nonzero(uh_p == uh_p_positive)[0]
-            dof_negative_indicator = periodicDof0[(negative_indicator + 1 - half_indicator):(negative_indicator + 1)]
-            dof_positive_indicator = periodicDof0[positive_indicator:(positive_indicator + half_indicator)]
-            dof_indicator = np.hstack([dof_negative_indicator, dof_positive_indicator])
-
-            coord = self.dof.interpolation_points()[dof_indicator, 1]
-            uh_val = uh[dof_indicator]
-
-            thePoly = poly.Polynomial.fit(coord, uh_val, deg=self.p)  # 通过给定的 coord 和 uh_val, 拟合一维 self.p-阶的多项式
-
-            if criterion is not None:
-                roots = np.real(thePoly.roots())
-                return roots[np.abs(roots - criterion).argmin()]
-            else:
-                roots = abs(np.real(thePoly.roots()))
-                argsort = np.argsort(roots)
-                roots = roots[argsort]
-                return roots[0]
-
