@@ -84,7 +84,7 @@ for i in range(N_T):
     print('i = ', i)
     print('# -------------------------------------------------- #')
     # NN = int(1./h_space[i]) + 1
-    NN = 50
+    NN = 128
     print('    In new looping, NN = ', NN)
     mesh = MF.boxmesh2d(box, nx=NN, ny=NN, meshtype='tri')
     if time_scheme == 1:
