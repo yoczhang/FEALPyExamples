@@ -1,0 +1,332 @@
+/Users/yczhang/opt/anaconda3/envs/fealpy/bin/python /Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/FEM_CH_NS_Var_addXi_periodic.py
+
+# ------------ in FEM_CH_NS_Var_addXi_periodic code ------------ #
+# ------------ the initial parameters ------------ #
+p =  2
+t0 = 0.0000e+00,  T = 5.0000e-01
+dt_space =  [0.1     0.05    0.025   0.0125  0.00625]
+domain box =  [0, 1, 0, 1]
+rho0 = 1.0000e+00,  rho1 = 3.0000e+00
+nu0 = 1.0000e-02,  nu1 = 2.0000e-02, 
+# #
+PDE has new domain box =  [0, 2, -1, 1]
+
+# *********************************************************************** # 
+
+# ------------ in the time-mesh circle ------------ #
+i =  0
+# -------------------------------------------------- #
+    In new looping, NN =  128
+run serial_construct_matrix with time: 0.9415869189999999
+run serial_construct_matrix with time: 0.11438586899999992
+run serial_construct_matrix with time: 2.3289997689999997
+run serial_construct_matrix with time: 0.24694983100000023
+    |___ In `set_CH_Coeff()`: self.dt_min = 6.2500e-03, dt_minimum = 6.2500e-03, (dt_min/dt_minimum = 1.0000e+00)
+    |___ In `set_CH_Coeff()`: self.dt_min = 6.2500e-03, dt_minimum = 6.2500e-04, (dt_min/dt_minimum = 1.0000e+01)
+    # #################################### #
+            Time 1st-order scheme
+    # #################################### #
+    # ------------ parameters ------------ #
+    s = 8.0000e+01,  alpha = -1.2520e+02,  m = 1.0000e-03,  epsilon = 1.0000e-03,  eta = 1.0000e-01, C0 = 100000.000000
+    t0 = 0.0000e+00,  T = 5.0000e-01, dt = 1.0000e-01
+ 
+    # ------------ begin the time-looping ------------ #
+    currt_t = 0.0000e+00, Xi = 1.000000000e+00
+    currt_t = 1.0000e-01, Xi = 1.000000001e+00
+    currt_t = 2.0000e-01, Xi = 1.000000006e+00
+    currt_t = 3.0000e-01, Xi = 1.000000041e+00
+    currt_t = 4.0000e-01, Xi = 1.000000146e+00
+    currt_t = 5.0000e-01, Xi = 1.000000376e+00
+    # ------------ end the time-looping ------------ #
+
+    # ------------ the last errors ------------ #
+    uh_l2err = 9.1781e-02, uh_h1err = 5.0112e-01
+    vel_l2err = 1.5138e-02, vel_h1err = 1.1736e-01, ph_l2err = 7.7037e-02
+
+# *********************************************************************** # 
+
+# ------------ in the time-mesh circle ------------ #
+i =  1
+# -------------------------------------------------- #
+    In new looping, NN =  128
+run serial_construct_matrix with time: 0.8619613099999697
+run serial_construct_matrix with time: 0.0960488579999037
+run serial_construct_matrix with time: 2.2015050960000053
+run serial_construct_matrix with time: 0.22374270600005275
+    |___ In `set_CH_Coeff()`: self.dt_min = 6.2500e-03, dt_minimum = 6.2500e-03, (dt_min/dt_minimum = 1.0000e+00)
+    |___ In `set_CH_Coeff()`: self.dt_min = 6.2500e-03, dt_minimum = 6.2500e-04, (dt_min/dt_minimum = 1.0000e+01)
+    # #################################### #
+            Time 1st-order scheme
+    # #################################### #
+    # ------------ parameters ------------ #
+    s = 8.0000e+01,  alpha = -2.5079e+02,  m = 1.0000e-03,  epsilon = 1.0000e-03,  eta = 1.0000e-01, C0 = 100000.000000
+    t0 = 0.0000e+00,  T = 5.0000e-01, dt = 5.0000e-02
+ 
+    # ------------ begin the time-looping ------------ #
+    currt_t = 0.0000e+00, Xi = 1.000000000e+00
+    currt_t = 5.0000e-02, Xi = 1.000000000e+00
+    currt_t = 1.0000e-01, Xi = 9.999999999e-01
+    currt_t = 1.5000e-01, Xi = 1.000000000e+00
+    currt_t = 2.0000e-01, Xi = 1.000000002e+00
+    currt_t = 2.5000e-01, Xi = 1.000000007e+00
+    currt_t = 3.0000e-01, Xi = 1.000000015e+00
+    currt_t = 3.5000e-01, Xi = 1.000000030e+00
+    currt_t = 4.0000e-01, Xi = 1.000000053e+00
+    currt_t = 4.5000e-01, Xi = 1.000000087e+00
+    currt_t = 5.0000e-01, Xi = 1.000000132e+00
+    # ------------ end the time-looping ------------ #
+
+    # ------------ the last errors ------------ #
+    uh_l2err = 5.0510e-02, uh_h1err = 2.8308e-01
+    vel_l2err = 7.7808e-03, vel_h1err = 6.3011e-02, ph_l2err = 4.5943e-02
+
+# *********************************************************************** # 
+
+# ------------ in the time-mesh circle ------------ #
+i =  2
+# -------------------------------------------------- #
+    In new looping, NN =  128
+run serial_construct_matrix with time: 0.8649770819997684
+run serial_construct_matrix with time: 0.09723222699994949
+run serial_construct_matrix with time: 2.1140320229997087
+run serial_construct_matrix with time: 0.22274481300019033
+    |___ In `set_CH_Coeff()`: self.dt_min = 6.2500e-03, dt_minimum = 6.2500e-03, (dt_min/dt_minimum = 1.0000e+00)
+    |___ In `set_CH_Coeff()`: self.dt_min = 6.2500e-03, dt_minimum = 6.2500e-04, (dt_min/dt_minimum = 1.0000e+01)
+    # #################################### #
+            Time 1st-order scheme
+    # #################################### #
+    # ------------ parameters ------------ #
+    s = 8.0000e+01,  alpha = -5.0316e+02,  m = 1.0000e-03,  epsilon = 1.0000e-03,  eta = 1.0000e-01, C0 = 100000.000000
+    t0 = 0.0000e+00,  T = 5.0000e-01, dt = 2.5000e-02
+ 
+    # ------------ begin the time-looping ------------ #
+    currt_t = 0.0000e+00, Xi = 1.000000000e+00
+    currt_t = 2.5000e-02, Xi = 1.000000000e+00
+    currt_t = 5.0000e-02, Xi = 9.999999999e-01
+    currt_t = 7.5000e-02, Xi = 9.999999998e-01
+    currt_t = 1.0000e-01, Xi = 9.999999998e-01
+    currt_t = 1.2500e-01, Xi = 9.999999998e-01
+    currt_t = 1.5000e-01, Xi = 9.999999999e-01
+    currt_t = 1.7500e-01, Xi = 1.000000000e+00
+    currt_t = 2.0000e-01, Xi = 1.000000000e+00
+    currt_t = 2.2500e-01, Xi = 1.000000001e+00
+    currt_t = 2.5000e-01, Xi = 1.000000002e+00
+    currt_t = 2.7500e-01, Xi = 1.000000003e+00
+    currt_t = 3.0000e-01, Xi = 1.000000004e+00
+    currt_t = 3.2500e-01, Xi = 1.000000006e+00
+    currt_t = 3.5000e-01, Xi = 1.000000009e+00
+    currt_t = 3.7500e-01, Xi = 1.000000012e+00
+    currt_t = 4.0000e-01, Xi = 1.000000016e+00
+    currt_t = 4.2500e-01, Xi = 1.000000020e+00
+    currt_t = 4.5000e-01, Xi = 1.000000026e+00
+    currt_t = 4.7500e-01, Xi = 1.000000032e+00
+    currt_t = 5.0000e-01, Xi = 1.000000039e+00
+    # ------------ end the time-looping ------------ #
+
+    # ------------ the last errors ------------ #
+    uh_l2err = 2.6625e-02, uh_h1err = 1.5163e-01
+    vel_l2err = 3.9671e-03, vel_h1err = 3.2882e-02, ph_l2err = 2.4619e-02
+
+# *********************************************************************** # 
+
+# ------------ in the time-mesh circle ------------ #
+i =  3
+# -------------------------------------------------- #
+    In new looping, NN =  128
+run serial_construct_matrix with time: 0.8538313580002068
+run serial_construct_matrix with time: 0.09506716400028381
+run serial_construct_matrix with time: 2.1174515540005814
+run serial_construct_matrix with time: 0.2221944220000296
+    |___ In `set_CH_Coeff()`: self.dt_min = 6.2500e-03, dt_minimum = 6.2500e-03, (dt_min/dt_minimum = 1.0000e+00)
+    |___ In `set_CH_Coeff()`: self.dt_min = 6.2500e-03, dt_minimum = 6.2500e-04, (dt_min/dt_minimum = 1.0000e+01)
+    # #################################### #
+            Time 1st-order scheme
+    # #################################### #
+    # ------------ parameters ------------ #
+    s = 8.0000e+01,  alpha = -1.0128e+03,  m = 1.0000e-03,  epsilon = 1.0000e-03,  eta = 1.0000e-01, C0 = 100000.000000
+    t0 = 0.0000e+00,  T = 5.0000e-01, dt = 1.2500e-02
+ 
+    # ------------ begin the time-looping ------------ #
+    currt_t = 0.0000e+00, Xi = 1.000000000e+00
+    currt_t = 1.2500e-02, Xi = 1.000000000e+00
+    currt_t = 2.5000e-02, Xi = 1.000000000e+00
+    currt_t = 3.7500e-02, Xi = 9.999999999e-01
+    currt_t = 5.0000e-02, Xi = 9.999999999e-01
+    currt_t = 6.2500e-02, Xi = 9.999999999e-01
+    currt_t = 7.5000e-02, Xi = 9.999999999e-01
+    currt_t = 8.7500e-02, Xi = 9.999999998e-01
+    currt_t = 1.0000e-01, Xi = 9.999999998e-01
+    currt_t = 1.1250e-01, Xi = 9.999999998e-01
+    currt_t = 1.2500e-01, Xi = 9.999999998e-01
+    currt_t = 1.3750e-01, Xi = 9.999999998e-01
+    currt_t = 1.5000e-01, Xi = 9.999999998e-01
+    currt_t = 1.6250e-01, Xi = 9.999999998e-01
+    currt_t = 1.7500e-01, Xi = 9.999999999e-01
+    currt_t = 1.8750e-01, Xi = 9.999999999e-01
+    currt_t = 2.0000e-01, Xi = 1.000000000e+00
+    currt_t = 2.1250e-01, Xi = 1.000000000e+00
+    currt_t = 2.2500e-01, Xi = 1.000000000e+00
+    currt_t = 2.3750e-01, Xi = 1.000000000e+00
+    currt_t = 2.5000e-01, Xi = 1.000000000e+00
+    currt_t = 2.6250e-01, Xi = 1.000000000e+00
+    currt_t = 2.7500e-01, Xi = 1.000000001e+00
+    currt_t = 2.8750e-01, Xi = 1.000000001e+00
+    currt_t = 3.0000e-01, Xi = 1.000000001e+00
+    currt_t = 3.1250e-01, Xi = 1.000000001e+00
+    currt_t = 3.2500e-01, Xi = 1.000000002e+00
+    currt_t = 3.3750e-01, Xi = 1.000000002e+00
+    currt_t = 3.5000e-01, Xi = 1.000000002e+00
+    currt_t = 3.6250e-01, Xi = 1.000000003e+00
+    currt_t = 3.7500e-01, Xi = 1.000000003e+00
+    currt_t = 3.8750e-01, Xi = 1.000000004e+00
+    currt_t = 4.0000e-01, Xi = 1.000000004e+00
+    currt_t = 4.1250e-01, Xi = 1.000000005e+00
+    currt_t = 4.2500e-01, Xi = 1.000000005e+00
+    currt_t = 4.3750e-01, Xi = 1.000000006e+00
+    currt_t = 4.5000e-01, Xi = 1.000000007e+00
+    currt_t = 4.6250e-01, Xi = 1.000000008e+00
+    currt_t = 4.7500e-01, Xi = 1.000000009e+00
+    currt_t = 4.8750e-01, Xi = 1.000000010e+00
+    currt_t = 5.0000e-01, Xi = 1.000000011e+00
+    # ------------ end the time-looping ------------ #
+
+    # ------------ the last errors ------------ #
+    uh_l2err = 1.3689e-02, uh_h1err = 7.8675e-02
+    vel_l2err = 2.0077e-03, vel_h1err = 1.6846e-02, ph_l2err = 1.2375e-02
+
+# *********************************************************************** # 
+
+# ------------ in the time-mesh circle ------------ #
+i =  4
+# -------------------------------------------------- #
+    In new looping, NN =  128
+run serial_construct_matrix with time: 0.8504452369998035
+run serial_construct_matrix with time: 0.09931119400062016
+run serial_construct_matrix with time: 2.1966653750005207
+run serial_construct_matrix with time: 0.21713590699982888
+    |___ In `set_CH_Coeff()`: self.dt_min = 6.2500e-03, dt_minimum = 6.2500e-03, (dt_min/dt_minimum = 1.0000e+00)
+    |___ In `set_CH_Coeff()`: self.dt_min = 6.2500e-03, dt_minimum = 6.2500e-04, (dt_min/dt_minimum = 1.0000e+01)
+    # #################################### #
+            Time 1st-order scheme
+    # #################################### #
+    # ------------ parameters ------------ #
+    s = 8.0000e+01,  alpha = -2.0527e+03,  m = 1.0000e-03,  epsilon = 1.0000e-03,  eta = 1.0000e-01, C0 = 100000.000000
+    t0 = 0.0000e+00,  T = 5.0000e-01, dt = 6.2500e-03
+ 
+    # ------------ begin the time-looping ------------ #
+    currt_t = 0.0000e+00, Xi = 1.000000000e+00
+    currt_t = 6.2500e-03, Xi = 1.000000000e+00
+    currt_t = 1.2500e-02, Xi = 1.000000000e+00
+    currt_t = 1.8750e-02, Xi = 1.000000000e+00
+    currt_t = 2.5000e-02, Xi = 1.000000000e+00
+    currt_t = 3.1250e-02, Xi = 1.000000000e+00
+    currt_t = 3.7500e-02, Xi = 1.000000000e+00
+    currt_t = 4.3750e-02, Xi = 9.999999999e-01
+    currt_t = 5.0000e-02, Xi = 9.999999999e-01
+    currt_t = 5.6250e-02, Xi = 9.999999999e-01
+    currt_t = 6.2500e-02, Xi = 9.999999999e-01
+    currt_t = 6.8750e-02, Xi = 9.999999999e-01
+    currt_t = 7.5000e-02, Xi = 9.999999999e-01
+    currt_t = 8.1250e-02, Xi = 9.999999999e-01
+    currt_t = 8.7500e-02, Xi = 9.999999999e-01
+    currt_t = 9.3750e-02, Xi = 9.999999999e-01
+    currt_t = 1.0000e-01, Xi = 9.999999999e-01
+    currt_t = 1.0625e-01, Xi = 9.999999999e-01
+    currt_t = 1.1250e-01, Xi = 9.999999999e-01
+    currt_t = 1.1875e-01, Xi = 9.999999999e-01
+    currt_t = 1.2500e-01, Xi = 9.999999999e-01
+    currt_t = 1.3125e-01, Xi = 9.999999999e-01
+    currt_t = 1.3750e-01, Xi = 9.999999999e-01
+    currt_t = 1.4375e-01, Xi = 9.999999999e-01
+    currt_t = 1.5000e-01, Xi = 9.999999999e-01
+    currt_t = 1.5625e-01, Xi = 9.999999999e-01
+    currt_t = 1.6250e-01, Xi = 9.999999999e-01
+    currt_t = 1.6875e-01, Xi = 9.999999999e-01
+    currt_t = 1.7500e-01, Xi = 9.999999999e-01
+    currt_t = 1.8125e-01, Xi = 9.999999999e-01
+    currt_t = 1.8750e-01, Xi = 9.999999999e-01
+    currt_t = 1.9375e-01, Xi = 9.999999999e-01
+    currt_t = 2.0000e-01, Xi = 9.999999999e-01
+    currt_t = 2.0625e-01, Xi = 9.999999999e-01
+    currt_t = 2.1250e-01, Xi = 9.999999999e-01
+    currt_t = 2.1875e-01, Xi = 9.999999999e-01
+    currt_t = 2.2500e-01, Xi = 9.999999999e-01
+    currt_t = 2.3125e-01, Xi = 9.999999999e-01
+    currt_t = 2.3750e-01, Xi = 1.000000000e+00
+    currt_t = 2.4375e-01, Xi = 1.000000000e+00
+    currt_t = 2.5000e-01, Xi = 1.000000000e+00
+    currt_t = 2.5625e-01, Xi = 1.000000000e+00
+    currt_t = 2.6250e-01, Xi = 1.000000000e+00
+    currt_t = 2.6875e-01, Xi = 1.000000000e+00
+    currt_t = 2.7500e-01, Xi = 1.000000000e+00
+    currt_t = 2.8125e-01, Xi = 1.000000000e+00
+    currt_t = 2.8750e-01, Xi = 1.000000000e+00
+    currt_t = 2.9375e-01, Xi = 1.000000000e+00
+    currt_t = 3.0000e-01, Xi = 1.000000000e+00
+    currt_t = 3.0625e-01, Xi = 1.000000000e+00
+    currt_t = 3.1250e-01, Xi = 1.000000000e+00
+    currt_t = 3.1875e-01, Xi = 1.000000000e+00
+    currt_t = 3.2500e-01, Xi = 1.000000000e+00
+    currt_t = 3.3125e-01, Xi = 1.000000000e+00
+    currt_t = 3.3750e-01, Xi = 1.000000000e+00
+    currt_t = 3.4375e-01, Xi = 1.000000000e+00
+    currt_t = 3.5000e-01, Xi = 1.000000001e+00
+    currt_t = 3.5625e-01, Xi = 1.000000001e+00
+    currt_t = 3.6250e-01, Xi = 1.000000001e+00
+    currt_t = 3.6875e-01, Xi = 1.000000001e+00
+    currt_t = 3.7500e-01, Xi = 1.000000001e+00
+    currt_t = 3.8125e-01, Xi = 1.000000001e+00
+    currt_t = 3.8750e-01, Xi = 1.000000001e+00
+    currt_t = 3.9375e-01, Xi = 1.000000001e+00
+    currt_t = 4.0000e-01, Xi = 1.000000001e+00
+    currt_t = 4.0625e-01, Xi = 1.000000001e+00
+    currt_t = 4.1250e-01, Xi = 1.000000001e+00
+    currt_t = 4.1875e-01, Xi = 1.000000001e+00
+    currt_t = 4.2500e-01, Xi = 1.000000001e+00
+    currt_t = 4.3125e-01, Xi = 1.000000001e+00
+    currt_t = 4.3750e-01, Xi = 1.000000002e+00
+    currt_t = 4.4375e-01, Xi = 1.000000002e+00
+    currt_t = 4.5000e-01, Xi = 1.000000002e+00
+    currt_t = 4.5625e-01, Xi = 1.000000002e+00
+    currt_t = 4.6250e-01, Xi = 1.000000002e+00
+    currt_t = 4.6875e-01, Xi = 1.000000002e+00
+    currt_t = 4.7500e-01, Xi = 1.000000002e+00
+    currt_t = 4.8125e-01, Xi = 1.000000002e+00
+    currt_t = 4.8750e-01, Xi = 1.000000002e+00
+    currt_t = 4.9375e-01, Xi = 1.000000003e+00
+    currt_t = 5.0000e-01, Xi = 1.000000003e+00
+    # ------------ end the time-looping ------------ #
+
+    # ------------ the last errors ------------ #
+    uh_l2err = 6.9439e-03, uh_h1err = 4.0111e-02
+    vel_l2err = 1.0112e-03, vel_h1err = 8.5406e-03, ph_l2err = 5.8764e-03
+# ------------ the error-table ------------ #
+\begin{table}[!htdp]
+\begin{tabular}[c]{|c|c|c|c|c|c|}\hline
+dt & 0.1     & 0.05    & 0.025   & 0.0125  & 0.00625
+\\\hline
+$|| u - u_h||_0$ & 9.1781e-02 & 5.0510e-02 & 2.6625e-02 & 1.3689e-02 & 6.9439e-03
+\\\hline
+Order & -- & 0.86 & 0.92 & 0.96 & 0.98
+\\\hline
+$||\nabla u - \nabla u_h||_0$ & 5.0112e-01 & 2.8308e-01 & 1.5163e-01 & 7.8675e-02 & 4.0111e-02
+\\\hline
+Order & -- & 0.82 & 0.9  & 0.95 & 0.97
+\\\hline
+$|| vel - vel_h||_0$ & 1.5138e-02 & 7.7808e-03 & 3.9671e-03 & 2.0077e-03 & 1.0112e-03
+\\\hline
+Order & -- & 0.96 & 0.97 & 0.98 & 0.99
+\\\hline
+$||\nabla vel - \nabla vel_h||_0$ & 1.1736e-01 & 6.3011e-02 & 3.2882e-02 & 1.6846e-02 & 8.5406e-03
+\\\hline
+Order & -- & 0.9  & 0.94 & 0.96 & 0.98
+\\\hline
+|| p - p_h ||_0 & 7.7037e-02 & 4.5943e-02 & 2.4619e-02 & 1.2375e-02 & 5.8764e-03
+\\\hline
+Order & -- & 0.75 & 0.9  & 0.99 & 1.07
+\\\hline
+\end{tabular}
+\end{table}
+# ------------ end of the file ------------ #
+
+Process finished with exit code 0

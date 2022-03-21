@@ -62,7 +62,7 @@ class PeriodicModel2d(FEM_CH_NS_Model2d):
         self.R_n = 0.  # 此项在 `update_mu_and_Xi()` 中更新.
         self.C0 = 1.e5  # 此项在 `update_mu_and_Xi()` 中, 以保证 E_n = \int H(\phi) + C0 > 0.
         self.Xi = 1.  # 此项在 `update_mu_and_Xi()` 中更新.
-        self.s, self.alpha = self.set_CH_Coeff(dt_minimum=self.dt_min/10)
+        self.s, self.alpha = self.set_CH_Coeff(dt_minimum=self.dt_min)
 
         if hasattr(self, 'idxNotPeriodicEdge') is False:
             self.idxPeriodicEdge0, self.idxPeriodicEdge1, self.idxNotPeriodicEdge = self.set_periodic_edge()
@@ -123,9 +123,11 @@ class PeriodicModel2d(FEM_CH_NS_Model2d):
                 return pde.velocity_NS(p, 0)[..., 1]
             vel1[:] = self.vspace.interpolation(init_velocity1)
 
-            def init_pressure(p):
-                return pde.pressure_NS(p, 0)
-            ph[:] = self.space.interpolation(init_pressure)
+            # def init_pressure(p):
+            #     return pde.pressure_NS(p, 0)
+            # ph[:] = self.space.interpolation(init_pressure)
+
+            ph[:] = self.get_init_pressure(uh)
 
         # # time-looping
         print('    # ------------ begin the time-looping ------------ #')
@@ -171,8 +173,41 @@ class PeriodicModel2d(FEM_CH_NS_Model2d):
         print('    # ------------ the last errors ------------ #')
         print('    uh_l2err = %.4e, uh_h1err = %.4e' % (uh_l2err, uh_h1err))
         print('    vel_l2err = %.4e, vel_h1err = %.4e, ph_l2err = %.4e' % (vel_l2err, vel_h1err, ph_l2err))
-
         return uh_l2err, uh_h1err, vel_l2err, vel_h1err, ph_l2err
+
+    def get_init_pressure(self, init_uh):
+        pde = self.pde
+        rho0 = pde.rho0
+        rho1 = pde.rho1
+        init_uh_val = self.space.value(init_uh, self.c_bcs)  # (NQ,NC)
+        init_rho = (rho0 - rho1) / 2. * init_uh_val + (rho0 + rho1) / 2.  # (NQ,NC)
+        grad_free_energy_c = self.pde.epsilon / self.pde.eta ** 2 * self.grad_free_energy_at_cells(init_uh, self.c_bcs)  # (NQ,NC,2)
+        if self.p < 3:
+            CH_term_val0 = init_uh_val * grad_free_energy_c[..., 0]  # (NQ,NC)
+            CH_term_val1 = init_uh_val * grad_free_energy_c[..., 1]  # (NQ,NC)
+        elif self.p == 3:
+            phi_xxx, phi_yyy, phi_yxx, phi_xyy = self.cb.get_highorder_diff(self.c_bcs, order='3rd-order')  # (NQ,NC,ldof)
+            grad_x_laplace_uh = -self.pde.epsilon * np.einsum('ijk, jk->ij', phi_xxx + phi_xyy, init_uh[self.cell2dof])  # (NQ,NC)
+            grad_y_laplace_uh = -self.pde.epsilon * np.einsum('ijk, jk->ij', phi_yxx + phi_yyy, init_uh[self.cell2dof])  # (NQ,NC)
+            CH_term_val0 = init_uh_val * (grad_x_laplace_uh + grad_free_energy_c[..., 0])  # (NQ,NC)
+            CH_term_val1 = init_uh_val * (grad_y_laplace_uh + grad_free_energy_c[..., 1])  # (NQ,NC)
+        else:
+            raise ValueError("The polynomial order p should be <= 3.")
+
+        f_val_NS = pde.source_NS(self.c_pp, 0, init_rho)  # (NQ,NC,GD)
+        plsm = self.space.stiff_matrix()
+        temp0 = f_val_NS[..., 0] - CH_term_val0  # (NQ,NC)
+        temp1 = f_val_NS[..., 1] - CH_term_val1  # (NQ,NC)
+        cell_int = (np.einsum('i, ij, ijk, j->jk', self.c_ws, temp0, self.gphi_c[..., 0], self.cellmeasure)
+                    + np.einsum('i, ij, ijk, j->jk', self.c_ws, temp1, self.gphi_c[..., 1], self.cellmeasure))  # (NC,ldof)
+        prv = np.zeros((self.dof.number_of_global_dofs(),), dtype=self.ftype)  # (Npdof,)
+        np.add.at(prv, self.cell2dof, cell_int)
+
+        basis_int = self.space.integral_basis()
+        plsm_temp = bmat([[plsm, basis_int.reshape(-1, 1)], [basis_int, None]], format='csr')
+        prv = np.r_[prv, 0]
+        ph = spsolve(plsm_temp, prv)[:-1]  # we have added one additional dof
+        return ph
 
     def decoupled_CH_addXi_Solver_T1stOrder(self, uh, wh, vel0, vel1, next_t):
         """
