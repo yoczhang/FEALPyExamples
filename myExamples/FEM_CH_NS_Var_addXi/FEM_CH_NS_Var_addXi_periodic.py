@@ -29,7 +29,7 @@ from PrintLogger import make_print_to_file
 from to_show import show_error_table
 
 # --- logging --- #
-# make_print_to_file(filename='FEM_CH_NS_Var_addXi_periodic', setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
+make_print_to_file(filename='FEM_CH_NS_Var_addXi_periodic', setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
 
 daytime = datetime.datetime.now().strftime('%Y%m%d')
 hourtime = datetime.datetime.now().strftime("%H%M%S")
@@ -93,7 +93,7 @@ for i in range(N_T):
     print('i = ', i)
     print('# -------------------------------------------------- #')
     # NN = int(1./h_space[i]) + 1
-    NN = 64
+    NN = 128
     print('    In new looping, NN = ', NN)
     mesh = MF.boxmesh2d(box, nx=NN, ny=NN, meshtype='tri')
     if time_scheme == 1:
