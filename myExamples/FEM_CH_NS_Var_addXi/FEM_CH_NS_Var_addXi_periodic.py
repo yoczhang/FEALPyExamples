@@ -18,6 +18,8 @@ The fealpy-FEM program for Variable-Coefficient coupled Cahn-Hilliard-Navier-Sto
 """
 
 import numpy as np
+import sys
+import datetime
 import matplotlib.pyplot as plt
 from PeriodicData import PeriodicData
 from PeriodicModel2d import PeriodicModel2d
@@ -28,6 +30,13 @@ from to_show import show_error_table
 
 # --- logging --- #
 # make_print_to_file(filename='FEM_CH_NS_Var_addXi_periodic', setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
+
+daytime = datetime.datetime.now().strftime('%Y%m%d')
+hourtime = datetime.datetime.now().strftime("%H%M%S")
+syslog = sys.platform + '-' + daytime + '-' + hourtime
+print('\n# ---------------- the code is beginning --------------- #')
+print('# ------------ FEM_CH_NS_Var_addXi_periodic ------------ #')
+print('the OS and day-hour is: ', syslog)
 
 # --- begin setting --- #
 d = 2  # the dimension
