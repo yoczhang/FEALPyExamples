@@ -17,6 +17,7 @@ add the solver for \\xi.
 """
 
 import numpy as np
+import sys
 # from fealpy.mesh import MeshFactory as MF
 # from fealpy.mesh.HalfEdgeMesh2d import HalfEdgeMesh2d
 from PrintLogger import make_print_to_file
@@ -26,9 +27,16 @@ from CapillaryWaveModel2d import CapillaryWaveModel2d
 import matplotlib  # 为了解决画图时采用 GUI (plt.show()) 的形式时, python3.8 崩溃的情况.
 matplotlib.use("TkAgg")  # 为了解决画图时采用 GUI (plt.show()) 的形式时, python3.8 崩溃的情况.
 import matplotlib.pyplot as plt
+import datetime
 
 # |--- logging
 # make_print_to_file(filename='FEM_CH_NS_Var_addXi_CapillaryWave', setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
+
+daytime = datetime.datetime.now().strftime('%Y%m%d')
+hourtime = datetime.datetime.now().strftime("%H%M%S")
+syslog = sys.platform + '-' + daytime + '-' + hourtime
+print('\n# ------------ the code is beginning ------------ #')
+print('the OS and day-hour is: ', syslog)
 
 # |--- begin setting
 d = 2  # the dimension
