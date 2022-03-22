@@ -203,8 +203,9 @@ class compute_basis:
         elif order in ['1order', '1-order', '1st-order', 'all-1st-order']:
             return phi_x_val, phi_y_val
         else:
-            return phi_val[..., np.newaxis, :], phi_x_val, phi_y_val, phi_xy_val, phi_xx_val, phi_yy_val, phi_xxx_val, \
-                   phi_yyy_val, phi_yxx_val, phi_xyy_val
+            # return phi_val[..., np.newaxis, :], phi_x_val, phi_y_val, phi_xy_val, phi_xx_val, phi_yy_val, phi_xxx_val, \
+            #        phi_yyy_val, phi_yxx_val, phi_xyy_val
+            raise ValueError("The basis diff-order should be <= 3.")
 
 
 # |--- to test ---| #

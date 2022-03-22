@@ -138,6 +138,18 @@ class PeriodicData:
         return val
 
     @cartesian
+    def partial_t_velocity_NS(self, p, t):
+        x = p[..., 0]
+        y = p[..., 1]
+        # pi = np.pi
+        # cos = np.cos
+        # sin = np.sin
+        val = np.zeros(p.shape, dtype=np.float)
+        val[..., 0] = sin(pi * x) * cos(pi * y) * cos(t)
+        val[..., 1] = -cos(pi * x) * sin(pi * y) * cos(t)
+        return val
+
+    @cartesian
     def grad_velocity0_NS(self, p, t):
         x = p[..., 0]
         y = p[..., 1]

@@ -21,36 +21,38 @@ import os, sys
 os.chdir(sys.path[0])
 
 print(os.getcwd())
-mfile = loadmat('./CapillaryWaveMesh_3.mat')
+mfile = loadmat('./CapillaryWaveMesh_4.mat')
 node = mfile['node']
 cell = mfile['elem']
 mesh = TriangleMesh(node, cell)
 mesh = HalfEdgeMesh2d.from_mesh(mesh, NV=3)
 
-Nrefine = 2
-# for k in range(Nrefine):
-#     bc = mesh.cell_barycenter()
-#     NC = mesh.number_of_cells()
-#     cellstart = mesh.ds.cellstart
-#     isMarkedCell = np.zeros(NC + cellstart, dtype=np.bool_)
-#     isMarkedCell[cellstart:] = abs(bc[:, 1] - 0.) < 0.015
-#     # mesh.refine_triangle_rg(isMarkedCell)
-#     mesh.refine_triangle_nvb(isMarkedCell)
-#     bc1 = mesh.cell_barycenter()
-#     NC1 = mesh.number_of_cells()
-#     cc, = np.nonzero(abs(bc[:, 1] - 0.) < 0.015)
+toRefineDomain = [0.022, ]
+Nrefine = len(toRefineDomain)
+for k in range(Nrefine):
+    bc = mesh.cell_barycenter()
+    NC = mesh.number_of_cells()
+    cellstart = mesh.ds.cellstart
+    isMarkedCell = np.zeros(NC + cellstart, dtype=np.bool_)
+    isMarkedCell[cellstart:] = abs(bc[:, 1] - 0.) < toRefineDomain[k]
+    mesh.refine_triangle_rg(isMarkedCell)
+    # mesh.refine_triangle_nvb(isMarkedCell)
+    print('mesh.number_of_cells() = ', mesh.number_of_cells())
+    # bc1 = mesh.cell_barycenter()
+    # NC1 = mesh.number_of_cells()
+    # cc, = np.nonzero(abs(bc[:, 1] - 0.) < 0.015)
 
-node = mesh.node
-cell = mesh.ds.cell_to_node()
-np.save('./WaveMeshNode_mat4', node)
-np.save('./WaveMeshCell_mat4', cell)
+# node = mesh.node
+# cell = mesh.ds.cell_to_node()
+# np.save('./WaveMeshNode_mat5', node)
+# np.save('./WaveMeshCell_mat5', cell)
 
-# fig = plt.figure()
-# axes = fig.gca()
-# mesh.add_plot(axes)
-# # mesh.find_cell(axes, showindex=True)
-# plt.show()
-# plt.close()
+fig = plt.figure()
+axes = fig.gca()
+mesh.add_plot(axes)
+# mesh.find_cell(axes, showindex=True)
+plt.show()
+plt.close()
 
 print('end of the file')
 
