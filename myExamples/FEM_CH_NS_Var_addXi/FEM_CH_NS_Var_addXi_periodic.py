@@ -50,7 +50,7 @@ box = [0, 1, 0, 1]
 # mesh = MF.boxmesh2d(box, nx=NN, ny=NN, meshtype='tri')
 
 start = 0  # (1/2)^0
-stop = 1  # (1/2)^4
+stop = 4  # (1/2)^4
 N_T = stop - start + 1
 dt_space = 1e-1 * np.logspace(start, stop, N_T, base=1/2)
 dt_min = min(dt_space)
