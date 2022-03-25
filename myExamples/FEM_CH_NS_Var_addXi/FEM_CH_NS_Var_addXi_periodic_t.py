@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ---
 # @Software: PyCharm
-# @File: FEM_CH_NS_Var_addXi_periodic.py
+# @File: FEM_CH_NS_Var_addXi_periodic_t.py
 # @Author: Yongchao Zhang
 # @Institution: Northwest University, Xi'an, Shaanxi, China
 # @E-mail: yoczhang@126.com, yoczhang@nwu.edu.cn
@@ -15,6 +15,7 @@ __doc__ = """
 The fealpy-FEM program for Variable-Coefficient coupled Cahn-Hilliard-Navier-Stokes equation, 
 1. add the solver for \\xi.
 2. check periodic boundary condition.
+3. check t.
 """
 
 import numpy as np

@@ -70,7 +70,9 @@ mesh = HalfEdgeMesh2d.from_mesh(mesh, NV=3)
 # # plt.show()
 # # plt.close()
 
-toRefineDomain = [0.03, 0.03]
+x_measure = 1./24
+y_measure = 0.03
+toRefineDomain = [y_measure, y_measure, 0.03]
 Nrefine = len(toRefineDomain)
 for k in range(Nrefine):
     bc = mesh.cell_barycenter()
@@ -79,33 +81,40 @@ for k in range(Nrefine):
     isMarkedCell = np.zeros(NC + cellstart, dtype=np.bool_)
     cellmeasure = mesh.entity_measure('cell')
     if k == 0:
-        current_cell = find_special_refined_cell(mesh, 1./24, 0.03)
+        current_cell = find_special_refined_cell(mesh, x_measure, y_measure)
         isMarkedCell[current_cell + 1] = True
         mesh.refine_triangle_nvb(isMarkedCell)
         node = np.array(mesh.node)
         cell = mesh.ds.cell_to_node()
         mesh = TriangleMesh(node, cell)
         mesh = HalfEdgeMesh2d.from_mesh(mesh, NV=3)
-    else:
+    elif k == 1:
         isMarkedCell[cellstart:] = abs(bc[:, 1] - 0.) <= toRefineDomain[k]
         mesh.refine_triangle_rg(isMarkedCell)
+        node = np.array(mesh.node)
+        cell = mesh.ds.cell_to_node()
+        mesh = TriangleMesh(node, cell)
+        mesh = HalfEdgeMesh2d.from_mesh(mesh, NV=3)
+    else:
+        isMarkedCell[cellstart:] = abs(bc[:, 1] - 0.) <= toRefineDomain[k]
+        mesh.refine_triangle_nvb(isMarkedCell)
 
-    print('mesh.number_of_cells() = ', mesh.number_of_cells())
+    print('k = %d, mesh.number_of_cells() = %d' % (k, mesh.number_of_cells()))
     # bc1 = mesh.cell_barycenter()
     # NC1 = mesh.number_of_cells()
     # cc, = np.nonzero(abs(bc[:, 1] - 0.) < 0.015)
 
-node = mesh.node
-cell = mesh.ds.cell_to_node()
-np.save('./WaveMeshNode_mat5', node)
-np.save('./WaveMeshCell_mat5', cell)
+# node = mesh.node
+# cell = mesh.ds.cell_to_node()
+# np.save('./WaveMeshNode_mat5', node)
+# np.save('./WaveMeshCell_mat5', cell)
 
-# fig = plt.figure()
-# axes = fig.gca()
-# mesh.add_plot(axes)
-# # mesh.find_cell(axes, showindex=True)
-# plt.show()
-# plt.close()
+fig = plt.figure()
+axes = fig.gca()
+mesh.add_plot(axes)
+# mesh.find_cell(axes, showindex=True)
+plt.show()
+plt.close()
 
 print('end of the file')
 
