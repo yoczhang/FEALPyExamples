@@ -40,7 +40,7 @@ print('the OS and day-hour is: ', syslog)
 
 # |--- begin setting
 d = 2  # the dimension
-p = 2  # the polynomial order
+p = 1  # the polynomial order
 # n = 2  # the number of refine mesh
 
 # |--- time and mesh setting

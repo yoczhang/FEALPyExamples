@@ -42,16 +42,16 @@ class CapillaryWaveSolution:
     #     # mesh = MF.boxmesh2d(box, nx=10, ny=20, meshtype='tri')
     #     # mesh = HalfEdgeMesh2d.from_mesh(mesh, NV=3)  # 三角形网格的单边数据结构
     #
-        # cell = np.array([[0, 1, 3], [4, 3, 1], [4, 1, 5], [2, 5, 1],
-        #                  [6, 3, 7], [4, 7, 3], [4, 5, 7], [8, 7, 5],
-        #                  [6, 7, 9], [10, 9, 7], [10, 7, 11], [8, 11, 7],
-        #                  [12, 9, 13], [10, 13, 9], [10, 11, 13], [14, 13, 11]], dtype=np.int)
-        # node = np.array([[0, -1], [0.5, -1], [1, -1],
-        #                  [0, -0.5], [0.5, -0.5], [1, -0.5],
-        #                  [0, 0], [0.5, 0], [1, 0],
-        #                  [0, 0.5], [0.5, 0.5], [1, 0.5],
-        #                  [0, 1], [0.5, 1], [1, 1]], dtype=np.float)
-        # mesh = TriangleMesh(node, cell)
+    #     cell = np.array([[0, 1, 3], [4, 3, 1], [4, 1, 5], [2, 5, 1],
+    #                      [6, 3, 7], [4, 7, 3], [4, 5, 7], [8, 7, 5],
+    #                      [6, 7, 9], [10, 9, 7], [10, 7, 11], [8, 11, 7],
+    #                      [12, 9, 13], [10, 13, 9], [10, 11, 13], [14, 13, 11]], dtype=np.int)
+    #     node = np.array([[0, -1], [0.5, -1], [1, -1],
+    #                      [0, -0.5], [0.5, -0.5], [1, -0.5],
+    #                      [0, 0], [0.5, 0], [1, 0],
+    #                      [0, 0.5], [0.5, 0.5], [1, 0.5],
+    #                      [0, 1], [0.5, 1], [1, 1]], dtype=np.float)
+    #     mesh = TriangleMesh(node, cell)
     #     mesh = HalfEdgeMesh2d.from_mesh(mesh, NV=3)
     #     mesh.uniform_refine(2)
     #
@@ -69,6 +69,9 @@ class CapillaryWaveSolution:
     #             tt = tt / 2.
     #     # |--- 下面做一下网格结构的转换, 因为目前 HalfEdgeMesh2d 对 p>1 时有 bug
     #     mesh = TriangleMesh(mesh.node, mesh.entity('cell'))
+    #     cellname = 'self-construct'
+    #     print('Mesh-cell-name = %s,  ||  Number-of-mesh-cells = %d' % (cellname, mesh.number_of_cells()))
+    #     print('# --------------------------------------------------------------------- #')
     #     return mesh
 
     def customized_mesh(self):
@@ -76,13 +79,30 @@ class CapillaryWaveSolution:
         # cell = np.load('WaveMeshCell1.npy')
         print('\n')
         print('# --------------------- in CapillaryWaveData code --------------------- #')
-        nodename = 'WaveMeshNode1.npy'
-        cellname = 'WaveMeshCell1.npy'
-        # nodename = 'WaveMeshNode_mat2.npy'
-        # cellname = 'WaveMeshCell_mat2.npy'
+        # nodename = 'WaveMeshNode1.npy'
+        # cellname = 'WaveMeshCell1.npy'
+        nodename = 'WaveMeshNode_mat6.npy'
+        cellname = 'WaveMeshCell_mat6.npy'
         node = np.load('./CapillaryWaveMesh/' + nodename)  # WaveMeshNode_mat1 是新构造的网格
         cell = np.load('./CapillaryWaveMesh/' + cellname)
         mesh = TriangleMesh(node, cell)
+
+        # # |--- other test ---|
+        # mesh = HalfEdgeMesh2d.from_mesh(mesh, NV=3)
+        # cb = mesh.entity_barycenter('cell')
+        # cb_y = cb[:, 1]
+        # em = mesh.entity_measure('edge')
+        # NC = mesh.number_of_cells()
+        # cellstart = mesh.ds.cellstart
+        # isMarkedCell = np.zeros(NC + cellstart, dtype=np.bool_)
+        # isMarkedCell[cellstart:] = abs(cb_y - 0.) < 6 * min(em)
+        # mesh.refine_triangle_nvb(isMarkedCell)
+        # node = mesh.node
+        # cell = mesh.ds.cell_to_node()
+        # np.save('./WaveMeshNode_mat6', node)
+        # np.save('./WaveMeshCell_mat6', cell)
+        # # |--- other test ---|
+
         print('Mesh-cell-name = %s,  ||  Number-of-mesh-cells = %d' % (cellname, mesh.number_of_cells()))
         print('# --------------------------------------------------------------------- #')
         return mesh
