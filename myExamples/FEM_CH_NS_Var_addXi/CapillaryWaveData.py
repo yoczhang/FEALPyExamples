@@ -87,7 +87,12 @@ class CapillaryWaveSolution:
         cell = np.load('./CapillaryWaveMesh/' + cellname)
         mesh = TriangleMesh(node, cell)
 
-        # # |--- other test ---|
+        # # |--- to get the 'WaveMeshNode_mat6' mesh ---|
+        # nodename = 'WaveMeshNode1.npy'
+        # cellname = 'WaveMeshCell1.npy'
+        # node = np.load('./CapillaryWaveMesh/' + nodename)  # WaveMeshNode_mat1 是新构造的网格
+        # cell = np.load('./CapillaryWaveMesh/' + cellname)
+        # mesh = TriangleMesh(node, cell)
         # mesh = HalfEdgeMesh2d.from_mesh(mesh, NV=3)
         # cb = mesh.entity_barycenter('cell')
         # cb_y = cb[:, 1]
@@ -101,7 +106,7 @@ class CapillaryWaveSolution:
         # cell = mesh.ds.cell_to_node()
         # np.save('./WaveMeshNode_mat6', node)
         # np.save('./WaveMeshCell_mat6', cell)
-        # # |--- other test ---|
+        # # |--- to get the 'WaveMeshNode_mat6' mesh ---|
 
         print('Mesh-cell-name = %s,  ||  Number-of-mesh-cells = %d' % (cellname, mesh.number_of_cells()))
         print('# --------------------------------------------------------------------- #')
