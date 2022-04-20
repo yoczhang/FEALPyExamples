@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ---
 # @Software: PyCharm
-# @File: CocurrentFlowModel2d.py
+# @File: CoCurrentFlowModel2d.py
 # @Author: Yongchao Zhang
 # @Institution: Northwest University, Xi'an, Shaanxi, China
 # @E-mail: yoczhang@126.com, yoczhang@nwu.edu.cn
@@ -28,7 +28,7 @@ from fealpy.boundarycondition import DirichletBC
 from FEM_CH_NS_Model2d import FEM_CH_NS_Model2d
 
 
-class CocurrentFlowModel2d(FEM_CH_NS_Model2d):
+class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
     """
         注意:
             本程序所参考的数值格式是按照 $D(u)=\nabla u + \nabla u^T$ 来写的,
@@ -37,7 +37,7 @@ class CocurrentFlowModel2d(FEM_CH_NS_Model2d):
         """
 
     def __init__(self, pde, mesh, p, dt):
-        super(CocurrentFlowModel2d, self).__init__(pde, mesh, p, dt)
+        super(CoCurrentFlowModel2d, self).__init__(pde, mesh, p, dt)
         self.wh_part0 = self.space.function()
         self.wh_part1 = self.space.function()
         self.uh_part0 = self.space.function()
@@ -251,16 +251,16 @@ class CocurrentFlowModel2d(FEM_CH_NS_Model2d):
         # |--- uh_last_part* are also the (n)-th time step values,
         #     |___ since, in the CH_solver, the all `uh_part*` will be updated to (n+1)-th values,
         #     |___ so, in order to distinguish, here used the `uh_last_*` to denote the (n)-th time step values.
-        uh_last_part0_val = self.space.value(uh_last_part0, self.c_bcs)  # (NQ,NC)
-        grad_uh_last_part0_val = self.space.grad_value(uh_last_part0, self.c_bcs)  # (NQ,NC,GD)
-        uh_last_part0_val_f = self.space.value(uh_last_part0, self.f_bcs)[..., self.DirEdgeIdx_NS]  # (NQ,NDir)
-        #    |___ TODO: 为什么是 [..., self.DirCellIdx_NS] 而不是 [..., self.DirEdgeIdx_NS]?? 应该是个 bug ??
-        #              |___ TODO: 2022-03-08 改为 [..., self.DirEdgeIdx_NS]
-        uh_last_part1_val = self.space.value(uh_last_part1, self.c_bcs)  # (NQ,NC)
-        grad_uh_last_part1_val = self.space.grad_value(uh_last_part1, self.c_bcs)  # (NQ,NC,GD)
-        uh_last_part1_val_f = self.space.value(uh_last_part1, self.f_bcs)[..., self.DirEdgeIdx_NS]  # (NQ,NDir)
-        #    |___ TODO: 为什么是 [..., self.DirCellIdx_NS] 而不是 [..., self.DirEdgeIdx_NS]?? 应该是个 bug ??
-        #              |___ TODO: 2022-03-08 改为 [..., self.DirEdgeIdx_NS]
+        # uh_last_part0_val = self.space.value(uh_last_part0, self.c_bcs)  # (NQ,NC)
+        # grad_uh_last_part0_val = self.space.grad_value(uh_last_part0, self.c_bcs)  # (NQ,NC,GD)
+        # uh_last_part0_val_f = self.space.value(uh_last_part0, self.f_bcs)[..., self.DirEdgeIdx_NS]  # (NQ,NDir)
+        # #    |___ TODO: 为什么是 [..., self.DirCellIdx_NS] 而不是 [..., self.DirEdgeIdx_NS]?? 应该是个 bug ??
+        # #              |___ TODO: 2022-03-08 改为 [..., self.DirEdgeIdx_NS]
+        # uh_last_part1_val = self.space.value(uh_last_part1, self.c_bcs)  # (NQ,NC)
+        # grad_uh_last_part1_val = self.space.grad_value(uh_last_part1, self.c_bcs)  # (NQ,NC,GD)
+        # uh_last_part1_val_f = self.space.value(uh_last_part1, self.f_bcs)[..., self.DirEdgeIdx_NS]  # (NQ,NDir)
+        # #    |___ TODO: 为什么是 [..., self.DirCellIdx_NS] 而不是 [..., self.DirEdgeIdx_NS]?? 应该是个 bug ??
+        # #              |___ TODO: 2022-03-08 改为 [..., self.DirEdgeIdx_NS]
 
         nolinear_val = self.NSNolinearTerm(vel0, vel1, self.c_bcs)  # (NQ,NC,GD)
         velDir_val = pde.dirichlet_NS(self.f_pp_Dir_NS, next_t)  # (NQ,NDir,GD)
@@ -464,7 +464,6 @@ class CocurrentFlowModel2d(FEM_CH_NS_Model2d):
         vel1_part1[:] = solve_Vel_part1(1)
 
 
-
     def set_periodic_edge(self):
         """
         :return: idxPeriodicEdge0, 表示区域网格 `左侧` 的边
@@ -478,7 +477,7 @@ class CocurrentFlowModel2d(FEM_CH_NS_Model2d):
         bd_mid = mid_coor[idxBdEdge, :]
 
         isPeriodicEdge0 = np.abs(bd_mid[:, 0] - 0.0) < 1e-8
-        isPeriodicEdge1 = np.abs(bd_mid[:, 0] - 1.0) < 1e-8
+        isPeriodicEdge1 = np.abs(bd_mid[:, 0] - 0.8) < 1e-8
         notPeriodicEdge = ~(isPeriodicEdge0 + isPeriodicEdge1)
         idxPeriodicEdge0 = idxBdEdge[isPeriodicEdge0]  # (NE_Peri,)
         idxPeriodicEdge1 = idxBdEdge[isPeriodicEdge1]  # (NE_Peri,)
