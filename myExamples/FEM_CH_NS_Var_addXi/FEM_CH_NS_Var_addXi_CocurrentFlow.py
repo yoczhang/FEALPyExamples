@@ -19,7 +19,7 @@ add the solver for \\xi.
 import numpy as np
 import matplotlib.pyplot as plt
 from CH_NS_VarCoeff_Data import CH_NS_VarCoeff_truesolution
-from FEM_CH_NS_Var_addXi_Model2d import FEM_CH_NS_Var_addXi_Model2d
+from CocurrentFlowModel2d import CocurrentFlowModel2d
 from fealpy.mesh import MeshFactory as MF
 from PrintLogger import make_print_to_file
 # from fealpy.tools.show import showmultirate, show_error_table
@@ -88,7 +88,7 @@ for i in range(N_T):
     print('    In new looping, NN = ', NN)
     mesh = MF.boxmesh2d(box, nx=NN, ny=NN, meshtype='tri')
     if time_scheme == 1:
-        ch = FEM_CH_NS_Var_addXi_Model2d(pde, mesh, p, dt_space[i])
+        ch = CocurrentFlowModel2d(pde, mesh, p, dt_space[i])
         uh_l2err, uh_h1err, vel_l2err, vel_h1err, ph_l2err = ch.CH_NS_addXi_Solver_T1stOrder()
     else:
         raise ValueError("There has no other time-scheme")
