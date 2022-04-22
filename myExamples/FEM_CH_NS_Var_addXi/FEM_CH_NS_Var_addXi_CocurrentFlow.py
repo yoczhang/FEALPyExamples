@@ -53,7 +53,7 @@ epsilon = 3./(2*np.sqrt(2))*sigma*eta
 
 pdePars = {'m': 1e-5, 'epsilon': epsilon, 'eta': eta, 'dt_min': dt_min, 'timeScheme': '1stOrder'}  # value of parameters
 varCoeff = {'rho0': rho0, 'rho1': rho1, 'nu0': nu0, 'nu1': nu1}
-pde = CoCurrentFlowTrueSolution(t0, T, -0.01)  # create pde model
+pde = CoCurrentFlowTrueSolution(t0, T, K=-0.01, r0=0.5, r1=1., nu0=nu0, nu1=nu1)  # create pde model
 pde.setPDEParameters(pdePars)
 pde.setPDEParameters(varCoeff)
 mesh = pde.mesh

@@ -24,16 +24,20 @@ import matplotlib.pyplot as plt
 
 
 class CoCurrentFlowTrueSolution:
-    def __init__(self, t0, T, K, r0, r1):
+    def __init__(self, t0, T, K=-0.01, r0=0.5, r1=1., nu0=None, nu1=None):
         self.t0 = t0
         self.T = T
         self.K = K  # for the rhs of NS-equation
         self.r0 = r0
         self.r1 = r1
+        self.nu0 = nu0
+        self.nu1 = nu1
         self.haveTrueSolution = True
         self.box = self.box_settings()
         self.mesh = self.customized_mesh()
         self.domainVolume = 0
+        self.domain0_cellIdx, self.domain1_cellIdx = self.get_domain_cellIdx()
+        self.aver_vel = self.get_aver_vel()
 
     def setPDEParameters(self, parameters):
         for k, v in parameters.items():
@@ -61,6 +65,17 @@ class CoCurrentFlowTrueSolution:
         n = int(np.ceil((self.T - self.t0) / dt))
         dt = (self.T - self.t0) / n
         return np.linspace(self.t0, self.T, num=n + 1), dt
+
+    def get_domain_cellIdx(self):
+        mesh = self.mesh
+        NC = mesh.number_of_cells()
+        allCellIdx = np.arange(NC)
+        r0 = self.r0
+        bc = mesh.entity_barycenter('cell')  # (NC,2) barycenter of cells
+
+        domain0_cellIdx, = np.nonzero(abs(bc[..., 1]) < r0)
+        domain1_cellIdx = np.setdiff1d(allCellIdx, domain0_cellIdx)
+        return domain0_cellIdx, domain1_cellIdx
 
     @cartesian
     def solution_CH(self, p, eta):
@@ -126,14 +141,46 @@ class CoCurrentFlowTrueSolution:
 
     @cartesian
     def source_CH(self, p, t):
-
         val = 0. * p[..., 0]
         return val
 
     # |--- the Navier-Stokes data
     @cartesian
+    def get_aver_vel(self):
+        K = self.K
+        r0 = self.r0
+        r1 = self.r1
+        aver_vel = K * r1 ** 2 / (8 * r0) * (r0 ** 4 / r1 ** 4 * (nu1 / nu0 - 1) + 1)
+        return aver_vel
+
+
+    @cartesian
     def velocity_NS(self, p, t):
+        domain0_cellIdx = self.domain0_cellIdx
+        domain1_cellIdx = self.domain1_cellIdx
+        # nu0 = self.nu0 if hasattr(self, 'nu0') else ValueError("In 'CoCurrentFlowData' no 'nu0' attribute.")
+        # nu1 = self.nu1 if hasattr(self, 'nu1') else ValueError("In 'CoCurrentFlowData' no 'nu1' attribute.")
+        nu0 = self.nu0
+        nu1 = self.nu1
+        r0 = self.r0
+        r1 = self.r1
+        K = self.K
+        aver_vel = self.aver_vel
+
+        x = p[..., 0]  # (NQ,NC)
+        y = p[..., 1]  # (NQ,NC)
+
+        def domain0_vel(y):
+            vel = aver_vel * 2 * (1 - (r0/r1)**2 + nu1/nu0*(r0**2 - y**2)/r1**2) / (r0**4/r1**4 * (nu1/nu0 - 1) + 1)
+            return vel
+
+        def domain1_vel(y):
+            vel = aver_vel * 2 * (1 - y**2/r1**2) / (r0**4/r1**4 * (nu1/nu0 - 1) + 1)
+            return vel
+
         val = np.zeros(p.shape, dtype=np.float)
+        val[:, domain0_cellIdx, 0] = domain0_vel(y[:, domain0_cellIdx])
+        val[:, domain1_cellIdx, 0] = domain1_vel(y[:, domain1_cellIdx])
         return val
 
     @cartesian
@@ -159,16 +206,6 @@ class CoCurrentFlowTrueSolution:
         :param rho_bar_n: (NQ,NC) the approximation of rho
         :return:
         """
-
-        mesh = self.mesh
-        NC = mesh.number_of_cells()
-        allCellIdx = np.arange(NC)
-        r0 =self.r0
-        r1 = self.r1
-        bc = mesh.entity_barycenter('cell')  # (NC,2) barycenter of cells
-
-        domain0_cellIdx =
-
 
         val = np.ones(p.shape, dtype=np.float)  # (NQ,NC,2)
         # val[..., 0] = val[..., 0] * rho_bar_n * grav[0]
