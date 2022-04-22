@@ -40,10 +40,6 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
         super(CoCurrentFlowModel2d, self).__init__(pde, mesh, p, dt)
         self.wh_part0 = self.space.function()
         self.wh_part1 = self.space.function()
-        self.uh_part0 = self.space.function()
-        self.uh_part1 = self.space.function()
-        self.uh_last_part0 = self.space.function()
-        self.uh_last_part1 = self.space.function()
         self.ph_part0 = self.space.function()
         self.ph_part1 = self.space.function()
         self.vel0_part0 = self.vspace.function()
@@ -55,11 +51,11 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
         self.auxVel0_part1 = self.vspace.function()
         self.auxVel1_part1 = self.vspace.function()
 
-        self.grad_mu_val = 0.  # 此项在 `update_mu_and_Xi()` 中更新.
-        self.rho_bar_n = 0  # 此项在 `decoupled_NS_addXi_Solver_T1stOrder()` 中更新: 为了获得第 n 时间层的取值 (在 `update_mu_and_Xi()` 会用到).
-        self.nu_bar_n = 0  # 此项在 `decoupled_NS_addXi_Solver_T1stOrder()` 中更新: 为了获得第 n 时间层的取值 (在 `update_mu_and_Xi()` 会用到).
-        self.R_n = 0.  # 此项在 `update_mu_and_Xi()` 中更新.
-        self.C0 = 1.e5  # 此项在 `update_mu_and_Xi()` 中, 以保证 E_n = \int H(\phi) + C0 > 0.
+        self.grad_mu_val = np.empty((2,2))  # 此项在 `update_mu_and_Xi()` 中更新.
+        self.rho_bar_n = 0.  # 此项在 `decoupled_NS_addXi_Solver_T1stOrder()` 中更新: 为了获得第 n 时间层的取值 (在 `update_mu_and_Xi()` 会用到).
+        self.nu_bar_n = 0.  # 此项在 `decoupled_NS_addXi_Solver_T1stOrder()` 中更新: 为了获得第 n 时间层的取值 (在 `update_mu_and_Xi()` 会用到).
+        self.R_n = 1.  # 此项在 `update_mu_and_Xi()` 中更新.
+        self.C0 = 1.  # 此项在 `update_mu_and_Xi()` 中, 以保证 E_n = \int H(\phi) + C0 > 0.
         self.Xi = 1.  # 此项在 `update_mu_and_Xi()` 中更新.
         self.s, self.alpha = self.set_CH_Coeff(dt_minimum=self.dt_min)
 
@@ -128,27 +124,14 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
 
         # # time-looping
         print('    # ------------ begin the time-looping ------------ #')
-        self.uh_part0[:] = uh[:]
-        #    |___ 这里只赋值 uh_part0, 首先在下面的时间循环中赋值给 self.uh_last_part0,
-        #         |___ 接着是为了 `第一次` 计算 self.rho_bar_n 与 self.nu_bar_n 时直接取到 uh 的初始值.
-        uh_last = uh.copy()
         for nt in range(NT - 1):
             currt_t = timemesh[nt]
             next_t = currt_t + dt
 
-            # # --- decoupled solvers, updated the discrete-solutions to the next-time
-            self.uh_last_part0[:] = self.uh_part0[:]
-            self.uh_last_part1[:] = self.uh_part1[:]
-            # print('        |___ decoupled Cahn-Hilliard Solver(Time-1st-order): ')
-            self.decoupled_CH_addXi_Solver_T1stOrder(uh, wh, vel0, vel1, next_t)
-            # print('        -----------------------------------------------')
-            # print('        |___ decoupled Navier-Stokes Solver(Time-1st-order): ')
-            self.decoupled_NS_addXi_Solver_T1stOrder(vel0, vel1, ph, uh, uh_last, next_t)
+            self.decoupled_NS_addXi_Solver_T1stOrder(vel0, vel1, ph, uh, next_t)
             Xi = self.update_mu_and_Xi(uh, next_t)
 
             # |--- update the values
-            uh_last[:] = uh[:]
-            uh[:] = self.uh_part0[:] + Xi * self.uh_part1[:]
             wh[:] = self.wh_part0[:] + Xi * self.wh_part1[:]
             ph[:] = self.ph_part0[:] + Xi * self.ph_part1[:]
             vel0[:] = self.vel0_part0[:] + Xi * self.vel0_part1[:]
@@ -184,14 +167,13 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
         """
         pass
 
-    def decoupled_NS_addXi_Solver_T1stOrder(self, vel0, vel1, ph, uh, uh_last, next_t):
+    def decoupled_NS_addXi_Solver_T1stOrder(self, vel0, vel1, ph, uh, next_t):
         """
         The decoupled-Navier-Stokes-solver for the all system.
         :param vel0: The fist-component of velocity: stored the n-th(time) value, and to update the (n+1)-th value.
         :param vel1: The second-component of velocity: stored the n-th(time) value, and to update the (n+1)-th value.
         :param ph: The pressure: stored the n-th(time) value, and to update the (n+1)-th value.
         :param uh: The n-th(time) value of the solution of Cahn-Hilliard equation.
-        :param uh_last: The (n-1)-th(time) value of the solution of Cahn-Hilliard equation.
         :param next_t: The next-time.
         :return: Updated vel0, vel1, ph.
 
@@ -201,8 +183,6 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
             所以为了保证和数值格式的一致性, 本程序也是严格按照 $D(u)=\nabla u + \nabla u^T$ 来编写的.
         """
 
-        uh_last_part0 = self.uh_last_part0
-        uh_last_part1 = self.uh_last_part1
         ph_part0 = self.ph_part0
         ph_part1 = self.ph_part1
         vel0_part0 = self.vel0_part0
@@ -248,20 +228,6 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
         grad_vel0_val = self.vspace.grad_value(vel0, self.c_bcs)  # (NQ,NC,GD)
         grad_vel1_val = self.vspace.grad_value(vel1, self.c_bcs)  # (NQ,NC,GD)
 
-        # |--- uh_last_part* are also the (n)-th time step values,
-        #     |___ since, in the CH_solver, the all `uh_part*` will be updated to (n+1)-th values,
-        #     |___ so, in order to distinguish, here used the `uh_last_*` to denote the (n)-th time step values.
-        # uh_last_part0_val = self.space.value(uh_last_part0, self.c_bcs)  # (NQ,NC)
-        # grad_uh_last_part0_val = self.space.grad_value(uh_last_part0, self.c_bcs)  # (NQ,NC,GD)
-        # uh_last_part0_val_f = self.space.value(uh_last_part0, self.f_bcs)[..., self.DirEdgeIdx_NS]  # (NQ,NDir)
-        # #    |___ TODO: 为什么是 [..., self.DirCellIdx_NS] 而不是 [..., self.DirEdgeIdx_NS]?? 应该是个 bug ??
-        # #              |___ TODO: 2022-03-08 改为 [..., self.DirEdgeIdx_NS]
-        # uh_last_part1_val = self.space.value(uh_last_part1, self.c_bcs)  # (NQ,NC)
-        # grad_uh_last_part1_val = self.space.grad_value(uh_last_part1, self.c_bcs)  # (NQ,NC,GD)
-        # uh_last_part1_val_f = self.space.value(uh_last_part1, self.f_bcs)[..., self.DirEdgeIdx_NS]  # (NQ,NDir)
-        # #    |___ TODO: 为什么是 [..., self.DirCellIdx_NS] 而不是 [..., self.DirEdgeIdx_NS]?? 应该是个 bug ??
-        # #              |___ TODO: 2022-03-08 改为 [..., self.DirEdgeIdx_NS]
-
         nolinear_val = self.NSNolinearTerm(vel0, vel1, self.c_bcs)  # (NQ,NC,GD)
         velDir_val = pde.dirichlet_NS(self.f_pp_Dir_NS, next_t)  # (NQ,NDir,GD)
         f_val_NS = pde.source_NS(self.c_pp, next_t, pde.epsilon, pde.eta, m, rho0, rho1, nu0, nu1, 1.0)  # (NQ,NC,GD)
@@ -270,45 +236,24 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
 
         # |--- grad-free-energy: \nabla h(phi)
         #     |___ where h(phi) = epsilon/eta^2*phi*(phi^2-1)
-        grad_free_energy_c = pde.epsilon / pde.eta ** 2 * self.grad_free_energy_at_cells(uh_last, self.c_bcs)  # (NQ,NC,2)
+        grad_free_energy_c = pde.epsilon / pde.eta ** 2 * self.grad_free_energy_at_cells(uh, self.c_bcs)  # (NQ,NC,2)
 
         # |--- the CH_term: uh_val * (-epsilon*\nabla\Delta uh_val + \nabla free_energy)
         if self.p < 3:
             grad_x_laplace_uh = np.zeros(grad_free_energy_c[..., 0].shape)
             grad_y_laplace_uh = np.zeros(grad_free_energy_c[..., 0].shape)
-            # CH_term_val0 = uh_val * grad_free_energy_c[..., 0]  # (NQ,NC)
-            # CH_term_val1 = uh_val * grad_free_energy_c[..., 1]  # (NQ,NC)
         elif self.p == 3:
             phi_xxx, phi_yyy, phi_yxx, phi_xyy = self.cb.get_highorder_diff(self.c_bcs, order='3rd-order')  # (NQ,NC,ldof)
             grad_x_laplace_uh = -pde.epsilon * np.einsum('ijk, jk->ij', phi_xxx + phi_xyy, uh[self.cell2dof])  # (NQ,NC)
             grad_y_laplace_uh = -pde.epsilon * np.einsum('ijk, jk->ij', phi_yxx + phi_yyy, uh[self.cell2dof])  # (NQ,NC)
-            # CH_term_val0 = uh_val * (grad_x_laplace_uh + grad_free_energy_c[..., 0])  # (NQ,NC)
-            # CH_term_val1 = uh_val * (grad_y_laplace_uh + grad_free_energy_c[..., 1])  # (NQ,NC)
         else:
             raise ValueError("The polynomial order p should be <= 3.")
-
-        # |--- Computing `grad_mu_val`, we will list two methods to get `grad_mu_val`:
-        #      |___ 这里 `grad_mu_val` 的计算方式对 velocity 和 pressure 收敛阶的情况影响还是比较明显的,
-        #           |___ 经过测试, 第二种方法 (即 Method II) 有较好的收敛阶.
-        # |--- Method I: 此处, 主要是想利用第 (n)-th 时间层的计算结果, 见 `update_mu_and_Xi(uh, next_t)`,
-        #                |___  由 \nabla(mu^n) = \nabla((mu_0)^n) + Xi*\nabla((mu_1)^n) 的值, 直接拿过来用.
-        # if pde.t0 + self.dt == next_t:
-        #     # |--- For the init-value, just using init-method to get.
-        #     grad_mu_val = np.array([grad_x_laplace_uh + grad_free_energy_c[..., 0],
-        #                             grad_y_laplace_uh + grad_free_energy_c[..., 1]]).transpose([1, 2, 0])  # (NQ,NC,2)
-        # else:
-        #     grad_mu_val = self.grad_mu_val
 
         # |--- Method II: 此处, 既然 phi^n 和 phi^{n-1} 都是已知的,
         #                 |___ 那么直接利用 mu^n=-lambda\Delta(phi^n)+h(phi^{n-1}), 计算 \nabla(mu^n).
         grad_mu_val = np.array([grad_x_laplace_uh + grad_free_energy_c[..., 0],
                                 grad_y_laplace_uh + grad_free_energy_c[..., 1]]).transpose([1, 2, 0])  # (NQ,NC,2)
-
-        # |--- test: Method III:
-        # grad_uh_last_val = self.space.grad_value(uh_last, self.c_bcs)
-        # grad_uh_val = self.space.grad_value(uh, self.c_bcs)
-        # grad_mu_val = (self.s * (grad_uh_val - grad_uh_last_val) + self.Xi *
-        #                np.array([grad_free_energy_c[..., 0], grad_free_energy_c[..., 1]]).transpose([1, 2, 0]))
+        self.grad_mu_val = grad_mu_val
 
         # |--- update the variable coefficients
         self.rho_bar_n = (rho0 + rho1) / 2. + (rho0 - rho1) / 2. * uh_val  # (NQ,NC)
@@ -463,6 +408,132 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
         vel0_part1[:] = solve_Vel_part1(0)
         vel1_part1[:] = solve_Vel_part1(1)
 
+    def update_mu_and_Xi(self, uh, next_t):
+        """
+        Compute the discretization two parts of `mu = -epsilon *\\Delta\\phi + h(\\phi)` at cells' c_bcs.
+        ---
+        :param uh: the (n)-th time step value.
+        :param next_t:
+        :return:
+        """
+
+        space = self.space
+        vspace = self.vspace
+        c_bcs = self.c_bcs
+
+        # |--- all the *_part* is the (n+1)-th time step values
+        vel0_part0 = self.vel0_part0
+        vel1_part0 = self.vel1_part0
+        vel0_part1 = self.vel0_part1
+        vel1_part1 = self.vel1_part1
+        auxVel0_part0 = self.auxVel0_part0
+        auxVel1_part0 = self.auxVel1_part0
+        auxVel0_part1 = self.auxVel0_part1
+        auxVel1_part1 = self.auxVel1_part1
+
+        # |--- the values at cell-quad-points
+        vel0_part0_val = vspace.value(vel0_part0, c_bcs)  # (NQ,NC)
+        vel1_part0_val = vspace.value(vel1_part0, c_bcs)  # (NQ,NC)
+        vel0_part1_val = vspace.value(vel0_part1, c_bcs)  # (NQ,NC)
+        vel1_part1_val = vspace.value(vel1_part1, c_bcs)  # (NQ,NC)
+        grad_vel0_part0_val = vspace.grad_value(vel0_part0, c_bcs)  # (NQ,NC,GD)
+        grad_vel1_part0_val = vspace.grad_value(vel1_part0, c_bcs)  # (NQ,NC,GD)
+        grad_vel0_part1_val = vspace.grad_value(vel0_part1, c_bcs)  # (NQ,NC,GD)
+        grad_vel1_part1_val = vspace.grad_value(vel1_part1, c_bcs)  # (NQ,NC,GD)
+        auxVel0_part0_val = vspace.value(auxVel0_part0, c_bcs)  # (NQ,NC)
+        auxVel1_part0_val = vspace.value(auxVel1_part0, c_bcs)  # (NQ,NC)
+        auxVel0_part1_val = vspace.value(auxVel0_part1, c_bcs)  # (NQ,NC)
+        auxVel1_part1_val = vspace.value(auxVel1_part1, c_bcs)  # (NQ,NC)
+
+        # |--- some coefficients
+        pde = self.pde
+        m = pde.m
+        epsilon = pde.epsilon
+        eta = pde.eta
+        c_ws = self.c_ws
+        cellmeasure = self.cellmeasure
+        dt = self.dt
+        rho_bar_n = self.rho_bar_n
+        rho_bar_next = rho_bar_n  # (NQ,NC)
+        nu_bar_n = self.nu_bar_n
+
+        # |--- the (n)-th time step value
+        uh_val = space.value(uh, c_bcs)  # (NQ,NC)
+        vel0_val = vspace.value(self.vel0, c_bcs)
+        vel1_val = vspace.value(self.vel1, c_bcs)
+        grad_mu_val = self.grad_mu_val
+
+        # # ------------------------------ # #
+        # # --- to update the Xi value --- # #
+        # # ------------------------------ # #
+        f_val_NS = self.pde.source_NS(self.c_pp, next_t, epsilon, eta, m, pde.rho0, pde.rho1, pde.nu0, pde.nu1, 1.)  # (NQ,NC,GD)
+
+        def integral_cell(X):
+            # |--- X.shape: (NQ,NC)
+            return np.einsum('i, ij, j->', c_ws, X, cellmeasure)  # (1,)
+
+        # def grad_x_grad(grad_X, grad_Y):
+        #     # |--- grad_X.shape: (NQ,NC,GD)
+        #     GD = grad_X.shape[-1]
+        #     return np.sum(grad_X * grad_Y, axis=GD)  # (NQ,NC)
+
+        def Du_x_Du(grad_X0, grad_X1, grad_Y0, grad_Y1):
+            # |--- grad_X0.shape: (NQ,NC,GD)
+            Du_X = [2 * grad_X0[..., 0], grad_X0[..., 1] + grad_X1[..., 0], grad_X0[..., 1] + grad_X1[..., 0], 2 * grad_X1[..., 1]]
+            Du_Y = [2 * grad_Y0[..., 0], grad_Y0[..., 1] + grad_Y1[..., 0], grad_Y0[..., 1] + grad_Y1[..., 0], 2 * grad_Y1[..., 1]]
+            return Du_X[0] * Du_Y[0] + Du_X[1] * Du_Y[1] + Du_X[2] * Du_Y[2] + Du_X[3] * Du_Y[3]  # (NQ,NC)
+
+        # |--- compute the coefficients of \Xi
+        B_VC0 = (1./(2*dt) * integral_cell(rho_bar_next * (vel0_part0_val**2 + vel1_part0_val**2))
+                 - 1./(2*dt) * integral_cell(rho_bar_n * (vel0_val**2 + vel1_val**2))
+                 + 1./(2*dt) * integral_cell(rho_bar_n * ((auxVel0_part0_val - vel0_val)**2 + (auxVel1_part0_val - vel1_val)**2))
+                 + 1./2 * integral_cell(nu_bar_n * Du_x_Du(grad_vel0_part0_val, grad_vel1_part0_val,
+                                                           grad_vel0_part0_val, grad_vel1_part0_val))
+                 + 1./(2*dt) * integral_cell(rho_bar_n * ((vel0_part0_val - auxVel0_part0_val)**2
+                                                          + (vel1_part0_val - auxVel1_part0_val)**2))
+                 - integral_cell(f_val_NS[..., 0] * auxVel0_part0_val + f_val_NS[..., 1] * auxVel1_part0_val)
+                 )  # (1,)
+        B_VC1 = (1./dt * integral_cell(rho_bar_next * (vel0_part0_val * vel0_part1_val + vel1_part0_val * vel1_part1_val))
+                 + 1./dt * integral_cell(rho_bar_n * ((auxVel0_part0_val - vel0_val) * auxVel0_part1_val
+                                                      + (auxVel1_part0_val - vel1_val) * auxVel1_part1_val))
+                 + integral_cell(nu_bar_n * Du_x_Du(grad_vel0_part0_val, grad_vel1_part0_val, grad_vel0_part1_val, grad_vel1_part1_val))
+                 + 1./dt * integral_cell(rho_bar_n * ((vel0_part0_val - auxVel0_part0_val) * (vel0_part1_val - auxVel0_part1_val)
+                                                      + (vel1_part0_val - auxVel1_part0_val) * (vel1_part1_val - auxVel1_part1_val)))
+                 - integral_cell(f_val_NS[..., 0] * auxVel0_part1_val + f_val_NS[..., 1] * auxVel1_part1_val)
+                 + integral_cell(uh_val * grad_mu_val[..., 0] * auxVel0_part0_val
+                                 + uh_val * grad_mu_val[..., 1] * auxVel1_part0_val)
+                 )  # (1,)
+        B_VC2 = (1./(2*dt) * integral_cell(rho_bar_next * (vel0_part1_val**2 + vel1_part1_val**2))
+                 + 1./(2*dt) * integral_cell(rho_bar_n * (auxVel0_part1_val**2 + auxVel1_part1_val**2))
+                 + 1./2 * integral_cell(nu_bar_n * Du_x_Du(grad_vel0_part1_val, grad_vel1_part1_val,
+                                                           grad_vel0_part1_val, grad_vel1_part1_val))
+                 + 1./(2*dt) * integral_cell(rho_bar_n * ((vel0_part1_val - auxVel0_part1_val)**2
+                                                          + (vel1_part1_val - auxVel1_part1_val)**2))
+                 + integral_cell(uh_val * grad_mu_val[..., 0] * auxVel0_part1_val
+                                 + uh_val * grad_mu_val[..., 1] * auxVel1_part1_val)
+                 )  # (1,)
+
+        # |--- given the R_n
+        R_n = self.R_n
+
+        # |--- f_Xi = (2./dt + B_VC2) * Xi^3 + (-2./dt * R_n + B_VC1) * Xi^2 + B_VC0 * Xi
+        def f_Xi(X):
+            return (2. / dt + B_VC2) * X**3 + (-2. / dt * R_n + B_VC1) * X**2 + B_VC0 * X
+
+        def diff_f_Xi(X):
+            return 3 * (2. / dt + B_VC2) * X**2 + 2 * (-2. / dt * R_n + B_VC1) * X + B_VC0
+
+        def Newton_iteration(tol, x0):
+            err = 1.
+            while err > tol:
+                xn = x0 - 1./diff_f_Xi(x0) * f_Xi(x0)
+                err = np.abs(xn - x0)
+                x0 = xn
+            return x0
+        Xi = Newton_iteration(1.e-9, 1.)
+        self.R_n = Xi
+        self.Xi = Xi
+        return Xi
 
     def set_periodic_edge(self):
         """

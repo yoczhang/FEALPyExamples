@@ -24,10 +24,12 @@ import matplotlib.pyplot as plt
 
 
 class CoCurrentFlowTrueSolution:
-    def __init__(self, t0, T, K):
+    def __init__(self, t0, T, K, r0, r1):
         self.t0 = t0
         self.T = T
         self.K = K  # for the rhs of NS-equation
+        self.r0 = r0
+        self.r1 = r1
         self.haveTrueSolution = True
         self.box = self.box_settings()
         self.mesh = self.customized_mesh()
@@ -39,7 +41,7 @@ class CoCurrentFlowTrueSolution:
         return None
 
     def box_settings(self):
-        box = [0, 1, -1, 1]
+        box = [0, 0.8, -1, 1]
         self.domainVolume = (box[1] - box[0]) * (box[3] - box[2])
         return box
 
@@ -49,17 +51,11 @@ class CoCurrentFlowTrueSolution:
         nodename = 'CoCurrentMeshNode.npy'
         cellname = 'CoCurrentMeshCell.npy'
         node = np.load('./CoCurrentFlowMesh/' + nodename)
-        cell = np.load('./CoCurrentFlowMesh/' + nodename)
+        cell = np.load('./CoCurrentFlowMesh/' + cellname)
         mesh = TriangleMesh(node, cell)
-
         print('Mesh-cell-name = %s,  ||  Number-of-mesh-cells = %d' % (cellname, mesh.number_of_cells()))
         print('# --------------------------------------------------------------------- #')
         return mesh
-
-    # def customized_mesh(self):
-    #     box = self.box
-    #     mesh = MF.boxmesh2d(box, nx=10, ny=20, meshtype='tri')
-    #     return mesh
 
     def time_mesh(self, dt):
         n = int(np.ceil((self.T - self.t0) / dt))
@@ -67,10 +63,11 @@ class CoCurrentFlowTrueSolution:
         return np.linspace(self.t0, self.T, num=n + 1), dt
 
     @cartesian
-    def solution_CH(self, p, t):
+    def solution_CH(self, p, eta):
         x = p[..., 0]
         y = p[..., 1]
-        u = 0 * x
+
+        u = -tanh((abs(y) - self.r0)/(np.sqrt(2)*eta))
         return u
 
     @cartesian
@@ -157,12 +154,21 @@ class CoCurrentFlowTrueSolution:
     @cartesian
     def source_NS(self, p, t, rho_bar_n):
         """
-
         :param p: (NQ,NC,GD) the physical Gauss points
         :param t:
         :param rho_bar_n: (NQ,NC) the approximation of rho
         :return:
         """
+
+        mesh = self.mesh
+        NC = mesh.number_of_cells()
+        allCellIdx = np.arange(NC)
+        r0 =self.r0
+        r1 = self.r1
+        bc = mesh.entity_barycenter('cell')  # (NC,2) barycenter of cells
+
+        domain0_cellIdx =
+
 
         val = np.ones(p.shape, dtype=np.float)  # (NQ,NC,2)
         # val[..., 0] = val[..., 0] * rho_bar_n * grav[0]
