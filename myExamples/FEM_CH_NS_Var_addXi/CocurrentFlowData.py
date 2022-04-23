@@ -150,7 +150,7 @@ class CoCurrentFlowTrueSolution:
         K = self.K
         r0 = self.r0
         r1 = self.r1
-        aver_vel = K * r1 ** 2 / (8 * r0) * (r0 ** 4 / r1 ** 4 * (nu1 / nu0 - 1) + 1)
+        aver_vel = K * r1 ** 2 / (8 * nu1) * (r0 ** 4 / r1 ** 4 * (nu1 / nu0 - 1) + 1)
         return aver_vel
 
 
