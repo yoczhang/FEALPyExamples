@@ -107,20 +107,18 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
 
         if pde.haveTrueSolution:
             def init_solution_CH(p):
-                return pde.solution_CH(p, 0)
+                return pde.solution_CH(p)
             uh[:] = self.space.interpolation(init_solution_CH)
 
             def init_velocity0(p):
-                return pde.velocity_NS(p, 0)[..., 0]
+                return 0. * p[..., 0]
             vel0[:] = self.vspace.interpolation(init_velocity0)
 
             def init_velocity1(p):
-                return pde.velocity_NS(p, 0)[..., 1]
+                return 0. * p[..., 0]
             vel1[:] = self.vspace.interpolation(init_velocity1)
 
-            def init_pressure(p):
-                return pde.pressure_NS(p, 0)
-            ph[:] = self.space.interpolation(init_pressure)
+            ph[:] = self.get_init_pressure()
 
         # # time-looping
         print('    # ------------ begin the time-looping ------------ #')
@@ -140,20 +138,36 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
 
             if nt % max([int(NT / 5), 1]) == 0:
                 print('    currt_t = %.4e' % currt_t)
-                uh_l2err, uh_h1err, vel_l2err, vel_h1err, ph_l2err = self.currt_error(uh, vel0, vel1, ph, timemesh[nt])
-                if np.isnan(uh_l2err) | np.isnan(uh_h1err) | np.isnan(vel_l2err) | np.isnan(vel_h1err) | np.isnan(
-                        ph_l2err):
+                uh_l2err = self.space.integralalg.L2_error(pde.zero_func[..., 0], uh)
+                v0_l2err_NS = self.vspace.integralalg.L2_error(pde.zero_func[..., 0], vel0)
+                v1_l2err_NS = self.vspace.integralalg.L2_error(pde.zero_func[..., 0], vel1)
+                ph_l2err = self.space.integralalg.L2_error(pde.zero_func[..., 0], ph)
+                vel_l2err = np.sqrt(v0_l2err_NS**2 + v1_l2err_NS**2)
+                if np.isnan(uh_l2err) | np.isnan(vel_l2err) | np.isnan(ph_l2err):
                     print('Some error is nan: breaking the program')
                     break
         print('    # ------------ end the time-looping ------------ #\n')
 
-        # # --- errors
-        uh_l2err, uh_h1err, vel_l2err, vel_h1err, ph_l2err = self.currt_error(uh, vel0, vel1, ph, timemesh[-1])
-        print('    # ------------ the last errors ------------ #')
-        print('    uh_l2err = %.4e, uh_h1err = %.4e' % (uh_l2err, uh_h1err))
-        print('    vel_l2err = %.4e, vel_h1err = %.4e, ph_l2err = %.4e' % (vel_l2err, vel_h1err, ph_l2err))
+        v_ip_coord = self.vspace.interpolation_points()  # (vNdof,2)
+        val0_at_0 = np.zeros([len(self.vPeriodicDof0)+2, 2], dtype=np.float)
+        val0_at_0[1:-1, 0] = vel0[self.vPeriodicDof0]
+        val0_at_0[1:-1, 1] = v_ip_coord[self.vPeriodicDof0, 1]
+        val0_at_0[0, 1] = -1.
+        val0_at_0[-1, 1] = 1.
+        return val0_at_0
 
-        return uh_l2err, uh_h1err, vel_l2err, vel_h1err, ph_l2err
+    def get_init_pressure(self):
+        plsm = self.space.stiff_matrix()
+        f_val_NS = self.pde.source_NS(self.c_pp)  # (NQ,NC,GD)
+        cell_int = np.einsum('i, ijm, ijkm, j->jk', self.c_ws, f_val_NS, self.gphi_c, self.cellmeasure)  # (NC,ldof)
+        prv = np.zeros((self.dof.number_of_global_dofs(),), dtype=self.ftype)  # (Npdof,)
+        np.add.at(prv, self.cell2dof, cell_int)
+
+        basis_int = self.space.integral_basis()
+        plsm_temp = bmat([[plsm, basis_int.reshape(-1, 1)], [basis_int, None]], format='csr')
+        prv = np.r_[prv, 0]
+        ph = spsolve(plsm_temp, prv)[:-1]  # we have added one additional dof
+        return ph
 
     def decoupled_CH_addXi_Solver_T1stOrder(self, uh, wh, vel0, vel1, next_t):
         """
@@ -230,9 +244,7 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
 
         nolinear_val = self.NSNolinearTerm(vel0, vel1, self.c_bcs)  # (NQ,NC,GD)
         velDir_val = pde.dirichlet_NS(self.f_pp_Dir_NS, next_t)  # (NQ,NDir,GD)
-        f_val_NS = pde.source_NS(self.c_pp, next_t, pde.epsilon, pde.eta, m, rho0, rho1, nu0, nu1, 1.0)  # (NQ,NC,GD)
-        # Neumann_0 = pde.neumann_0_NS(self.f_pp_Neu_NS, next_t, self.nNeu_NS)  # (NQ,NE)
-        # Neumann_1 = pde.neumann_1_NS(self.f_pp_Neu_NS, next_t, self.nNeu_NS)  # (NQ,NE)
+        f_val_NS = pde.source_NS(self.c_pp)  # (NQ,NC,GD)
 
         # |--- grad-free-energy: \nabla h(phi)
         #     |___ where h(phi) = epsilon/eta^2*phi*(phi^2-1)
@@ -276,10 +288,9 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
         vel_grad_mat = [[grad_vel0_val[..., 0], grad_vel0_val[..., 1]],
                         [grad_vel1_val[..., 0], grad_vel1_val[..., 1]]]
         rho_bar_n_axis = rho_bar_n[..., np.newaxis]
-        G_VC = (1. / rho_bar_n_axis * (
+        G_VC = 1. / rho_bar_n_axis * (
                 -rho_bar_n_axis * nolinear_val - self.vec_div_mat(J_n, vel_grad_mat)
-                + self.vec_div_mat((nu0 - nu1) / 2. * grad_uh_val, vel_stress_mat)
-                - uh_val[..., np.newaxis] * grad_mu_val))  # (NQ,NC,2)
+                + self.vec_div_mat((nu0 - nu1) / 2. * grad_uh_val, vel_stress_mat))  # (NQ,NC,2)
 
         curl_vel = grad_vel1_val[..., 0] - grad_vel0_val[..., 1]  # (NQ,NC)
         curl_vel_f = grad_vel1_f[..., 0] - grad_vel0_f[..., 1]  # (NQ,NDir)
@@ -318,12 +329,18 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
 
         # |--- 3. Method I: The following code is right! Pressure satisfies \int_\Omega p = 0
         #      |___ TODO: 检验这个处理 pressure 的方式是否正确?
-        basis_int = self.space.integral_basis()
-        plsm_temp = bmat([[plsm, basis_int.reshape(-1, 1)], [basis_int, None]], format='csr')
         prv_part0 = np.r_[prv_part0, 0]
-        ph_part0[:] = spsolve(plsm_temp, prv_part0)[:-1]  # we have added one additional dof
         prv_part1 = np.r_[prv_part1, 0]
-        ph_part1[:] = spsolve(plsm_temp, prv_part1)[:-1]  # we have added one additional dof
+        if self.pPeriodicM_NS is None:
+            basis_int = self.space.integral_basis()
+            plsm_temp = bmat([[plsm, basis_int.reshape(-1, 1)], [basis_int, None]], format='csr')
+            prv_part0, prv_part1, pPeriodicM = self.set_periodicAlgebraicSystem(self.dof, prv_part0, prv_part1, plsm_temp)
+            self.pPeriodicM_NS = pPeriodicM.copy()
+        else:
+            pPeriodicM = self.pPeriodicM_NS
+            prv_part0, prv_part1, _ = self.set_periodicAlgebraicSystem(self.dof, prv_part0, prv_part1)
+        ph_part0[:] = spsolve(pPeriodicM, prv_part0)[:-1]  # we have added one additional dof
+        ph_part1[:] = spsolve(pPeriodicM, prv_part1)[:-1]  # we have added one additional dof
 
         # # ---------------------------------------- # #
         # # --- to update the aux-velocity value --- # #
@@ -345,7 +362,13 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
                        + (1. / rho_min - 1. / rho_bar_n) * grad_ph_val[..., whichIdx])  # (NQ,NC)
             cellInt = np.einsum('i, ij, ijk, j->jk', self.c_ws, VRVtemp, self.vphi_c, self.cellmeasure)  # (NC,clodf)
             np.add.at(auxVRV, self.vcell2dof, cellInt)
-            return spsolve(auxVLM, auxVRV).reshape(-1)
+            if self.vAuxPeriodicM_NS is None:
+                auxVRV, _, vAuxPeriodicM = self.set_periodicAlgebraicSystem(self.vdof, auxVRV, auxVRV.copy(), auxVLM)
+                self.vAuxPeriodicM_NS = vAuxPeriodicM.copy()
+            else:
+                vAuxPeriodicM = self.vAuxPeriodicM_NS
+                auxVRV, _, _ = self.set_periodicAlgebraicSystem(self.vdof, auxVRV, auxVRV.copy())
+            return spsolve(vAuxPeriodicM, auxVRV).reshape(-1)
         auxVel0_part0[:] = solve_auxVel_part0(0)
         auxVel1_part0[:] = solve_auxVel_part0(1)
 
@@ -355,12 +378,15 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
             VRVtemp = (-1. / rho_min * grad_ph_part1_val[..., whichIdx] + G_VC[..., whichIdx] + mask_eta_n[whichIdx] * curl_vel)  # (NQ,NC)
             cellInt0 = np.einsum('i, ij, ijk, j->jk', self.c_ws, VRVtemp, self.vphi_c, self.cellmeasure)  # (NC,clodf)
             cellInt1 = np.einsum('i, ij, ijk, j->jk', self.c_ws, eta_n * curl_vel,
-                                 (-1)**whichIdx * self.vgphi_c[..., mask_Idx], self.cellmeasure)  # (NC,clodf)
-            edgeInt = -np.einsum('i, j, ij, ijn, j->jn', self.f_ws, (-1)**whichIdx * nbdEdge[:, mask_Idx], eta_n_f * curl_vel_f,
-                                 self.vphi_f, self.bdEdgeMeasure)  # (NBE,vfldof)
+                                 (-1) ** whichIdx * self.vgphi_c[..., mask_Idx], self.cellmeasure)  # (NC,clodf)
+            edgeInt = -np.einsum('i, j, ij, ijn, j->jn', self.f_ws, (-1) ** whichIdx * nDir_NS[:, mask_Idx], eta_n_f * curl_vel_f,
+                                 self.vphi_f, self.DirEdgeMeasure_NS)  # (NBE,vfldof)
             np.add.at(auxVRV, self.vcell2dof, cellInt0 + cellInt1)
-            np.add.at(auxVRV, self.vface2dof[self.bdIndx, :], edgeInt)
-            return spsolve(auxVLM, auxVRV).reshape(-1)
+            np.add.at(auxVRV, self.vface2dof[self.DirEdgeIdx_NS, :], edgeInt)
+
+            vAuxPeriodicM = self.vAuxPeriodicM_NS
+            auxVRV, _, _ = self.set_periodicAlgebraicSystem(self.vdof, auxVRV, auxVRV.copy())
+            return spsolve(vAuxPeriodicM, auxVRV).reshape(-1)
         auxVel0_part1[:] = solve_auxVel_part1(0)
         auxVel1_part1[:] = solve_auxVel_part1(1)
 
@@ -386,7 +412,8 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
             np.add.at(VRV, self.vcell2dof, cellInt)
             V_BC = DirichletBC(self.vspace, dir_func[whichIdx], threshold=self.DirEdgeIdx_NS)
             VLM_Temp, VRV = V_BC.apply(VLM.copy(), VRV)
-            return spsolve(VLM_Temp, VRV).reshape(-1)
+            VRV, _, vOrgPeriodicM = self.set_periodicAlgebraicSystem(self.vdof, VRV, VRV.copy(), VLM_Temp)
+            return spsolve(vOrgPeriodicM, VRV).reshape(-1)
         vel0_part0[:] = solve_Vel_part0(0)
         vel1_part0[:] = solve_Vel_part0(1)
 
@@ -404,7 +431,8 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
             np.add.at(VRV, self.vcell2dof, cellInt0 + cellInt1)
             V_BC = DirichletBC(self.vspace, zero_func, threshold=self.DirEdgeIdx_NS)
             VLM_Temp, VRV = V_BC.apply(VLM.copy(), VRV)
-            return spsolve(VLM_Temp, VRV).reshape(-1)
+            VRV, _, vOrgPeriodicM = self.set_periodicAlgebraicSystem(self.vdof, VRV, VRV.copy(), VLM_Temp)
+            return spsolve(vOrgPeriodicM, VRV).reshape(-1)
         vel0_part1[:] = solve_Vel_part1(0)
         vel1_part1[:] = solve_Vel_part1(1)
 
@@ -500,8 +528,6 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
                  + 1./dt * integral_cell(rho_bar_n * ((vel0_part0_val - auxVel0_part0_val) * (vel0_part1_val - auxVel0_part1_val)
                                                       + (vel1_part0_val - auxVel1_part0_val) * (vel1_part1_val - auxVel1_part1_val)))
                  - integral_cell(f_val_NS[..., 0] * auxVel0_part1_val + f_val_NS[..., 1] * auxVel1_part1_val)
-                 + integral_cell(uh_val * grad_mu_val[..., 0] * auxVel0_part0_val
-                                 + uh_val * grad_mu_val[..., 1] * auxVel1_part0_val)
                  )  # (1,)
         B_VC2 = (1./(2*dt) * integral_cell(rho_bar_next * (vel0_part1_val**2 + vel1_part1_val**2))
                  + 1./(2*dt) * integral_cell(rho_bar_n * (auxVel0_part1_val**2 + auxVel1_part1_val**2))
@@ -509,8 +535,6 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
                                                            grad_vel0_part1_val, grad_vel1_part1_val))
                  + 1./(2*dt) * integral_cell(rho_bar_n * ((vel0_part1_val - auxVel0_part1_val)**2
                                                           + (vel1_part1_val - auxVel1_part1_val)**2))
-                 + integral_cell(uh_val * grad_mu_val[..., 0] * auxVel0_part1_val
-                                 + uh_val * grad_mu_val[..., 1] * auxVel1_part1_val)
                  )  # (1,)
 
         # |--- given the R_n

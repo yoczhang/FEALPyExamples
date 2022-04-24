@@ -86,53 +86,6 @@ class CoCurrentFlowTrueSolution:
         return u
 
     @cartesian
-    def gradient_CH(self, p, t):
-        val = np.zeros(p.shape, dtype=np.float64)
-        return val  # val.shape == p.shape
-
-    @cartesian
-    def initial_CH(self, p, eta=5.e-4):
-        eta = self.eta if hasattr(self, 'eta') else eta
-        u = self.solution_CH(p, eta)
-        return u
-
-    @cartesian
-    def neumann_CH(self, p, t, n):
-        """
-        Neumann boundary condition
-
-        Parameters
-        ----------
-
-        p: (NQ, NE, 2)
-        t: the time
-        n: (NE, 2)
-
-        grad*n : (NQ, NE)
-        """
-
-        val = 0. * p[..., 0]  # (NQ,NE)
-        return val
-
-    @cartesian
-    def laplace_neumann_CH(self, p, t, n):
-        """
-        Laplace Neumann boundary condition
-
-        Parameters
-        ----------
-
-        p: (NQ, NE, 2)
-        t: the time
-        n: (NE, 2)
-
-        grad(laplace u)*n : (NQ, NE)
-        """
-
-        val = 0. * p[..., 0]  # (NQ,NE)
-        return val
-
-    @cartesian
     def source_CH(self, p, t):
         val = 0. * p[..., 0]
         return val
@@ -206,6 +159,10 @@ class CoCurrentFlowTrueSolution:
 
     @cartesian
     def dirichlet_NS(self, p, t):
+        return np.zeros(p.shape, dtype=np.float)
+
+    @cartesian
+    def zero_func(self, p):
         return np.zeros(p.shape, dtype=np.float)
 
 

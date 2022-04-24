@@ -212,14 +212,14 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         rho1 = pde.rho1
         init_uh_val = self.space.value(init_uh, self.c_bcs)  # (NQ,NC)
         init_rho = (rho0 - rho1)/2. * init_uh_val + (rho0 + rho1)/2.  # (NQ,NC)
-        grad_free_energy_c = self.pde.epsilon / self.pde.eta ** 2 * self.grad_free_energy_at_cells(init_uh, self.c_bcs)  # (NQ,NC,2)
+        grad_free_energy_c = pde.epsilon / pde.eta ** 2 * self.grad_free_energy_at_cells(init_uh, self.c_bcs)  # (NQ,NC,2)
         if self.p < 3:
             CH_term_val0 = init_uh_val * grad_free_energy_c[..., 0]  # (NQ,NC)
             CH_term_val1 = init_uh_val * grad_free_energy_c[..., 1]  # (NQ,NC)
         elif self.p == 3:
             phi_xxx, phi_yyy, phi_yxx, phi_xyy = self.cb.get_highorder_diff(self.c_bcs, order='3rd-order')  # (NQ,NC,ldof)
-            grad_x_laplace_uh = -self.pde.epsilon * np.einsum('ijk, jk->ij', phi_xxx + phi_xyy, init_uh[self.cell2dof])  # (NQ,NC)
-            grad_y_laplace_uh = -self.pde.epsilon * np.einsum('ijk, jk->ij', phi_yxx + phi_yyy, init_uh[self.cell2dof])  # (NQ,NC)
+            grad_x_laplace_uh = -pde.epsilon * np.einsum('ijk, jk->ij', phi_xxx + phi_xyy, init_uh[self.cell2dof])  # (NQ,NC)
+            grad_y_laplace_uh = -pde.epsilon * np.einsum('ijk, jk->ij', phi_yxx + phi_yyy, init_uh[self.cell2dof])  # (NQ,NC)
             CH_term_val0 = init_uh_val * (grad_x_laplace_uh + grad_free_energy_c[..., 0])  # (NQ,NC)
             CH_term_val1 = init_uh_val * (grad_y_laplace_uh + grad_free_energy_c[..., 1])  # (NQ,NC)
         else:

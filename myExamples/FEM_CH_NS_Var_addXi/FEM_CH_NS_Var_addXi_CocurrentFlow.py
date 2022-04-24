@@ -43,12 +43,11 @@ time_scheme = 1  # 1 stands for 1st-order time-scheme; 2 is the 2nd-order time-s
 
 # |--- pde setting
 rho0 = 1.e-0
-nu0 = 1.e-2
 rho1 = 1.e-0
-nu1 = nu0 * rho1 / rho0
-sigma = 1.
-eta = 1e-2
-# eta = 8e-3
+nu0 = 1.e-2
+nu1 = 6 * nu0
+sigma = 0.
+eta = 5e-4
 epsilon = 3./(2*np.sqrt(2))*sigma*eta
 
 pdePars = {'m': 1e-5, 'epsilon': epsilon, 'eta': eta, 'dt_min': dt_min, 'timeScheme': '1stOrder'}  # value of parameters
