@@ -78,7 +78,7 @@ class CoCurrentFlowTrueSolution:
         return domain0_cellIdx, domain1_cellIdx
 
     @cartesian
-    def solution_CH(self, p, eta):
+    def solution_CH(self, p, eta=5.e-4):
         x = p[..., 0]
         y = p[..., 1]
 
@@ -91,16 +91,9 @@ class CoCurrentFlowTrueSolution:
         return val  # val.shape == p.shape
 
     @cartesian
-    def initial_CH(self, p, eta=5.e-3):
-        x = p[..., 0]
-        y = p[..., 1]
-        Lw = 1.
-        Kw = 2 * pi / Lw
-        H0 = 0.01
-
+    def initial_CH(self, p, eta=5.e-4):
         eta = self.eta if hasattr(self, 'eta') else eta
-
-        u = tanh((y - H0*cos(Kw*x))/(np.sqrt(2)*eta))
+        u = self.solution_CH(p, eta)
         return u
 
     @cartesian
@@ -150,9 +143,10 @@ class CoCurrentFlowTrueSolution:
         K = self.K
         r0 = self.r0
         r1 = self.r1
+        nu0 = self.nu0
+        nu1 = self.nu1
         aver_vel = K * r1 ** 2 / (8 * nu1) * (r0 ** 4 / r1 ** 4 * (nu1 / nu0 - 1) + 1)
         return aver_vel
-
 
     @cartesian
     def velocity_NS(self, p, t):
@@ -199,17 +193,15 @@ class CoCurrentFlowTrueSolution:
         return val
 
     @cartesian
-    def source_NS(self, p, t, rho_bar_n):
+    def source_NS(self, p):
         """
         :param p: (NQ,NC,GD) the physical Gauss points
-        :param t:
-        :param rho_bar_n: (NQ,NC) the approximation of rho
         :return:
         """
-
-        val = np.ones(p.shape, dtype=np.float)  # (NQ,NC,2)
-        # val[..., 0] = val[..., 0] * rho_bar_n * grav[0]
-        # val[..., 1] = val[..., 1] * rho_bar_n * grav[1]
+        K = self.K
+        val = np.zeros(p.shape, dtype=np.float)  # (NQ,NC,2)
+        val[..., 0] = val[..., 0] + K
+        val[..., 1] = val[..., 1]
         return val
 
     @cartesian
