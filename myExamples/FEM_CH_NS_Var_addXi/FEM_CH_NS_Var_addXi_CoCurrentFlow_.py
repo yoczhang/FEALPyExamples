@@ -27,7 +27,7 @@ from PrintLogger import make_print_to_file
 from to_show import show_error_table
 
 # --- logging --- #
-# make_print_to_file(filename='FEM_CH_NS_Var_addXi_check_t', setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
+# make_print_to_file(filename='FEM_CH_NS_Var_addXi_CoCurrent', setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
 
 # --- begin setting --- #
 d = 2  # the dimension
@@ -36,8 +36,8 @@ n = 2  # the number of refine mesh
 
 # |--- time and mesh setting
 t0 = 0.
-T = 0.1
-dt_space = [1.e-5, ]
+T = 1
+dt_space = [1.e-4, ]
 dt_min = min(dt_space)
 time_scheme = 1  # 1 stands for 1st-order time-scheme; 2 is the 2nd-order time-scheme
 

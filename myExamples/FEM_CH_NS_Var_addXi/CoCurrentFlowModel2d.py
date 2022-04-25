@@ -139,7 +139,7 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
             vel1[:] = self.vel1_part0[:] + Xi * self.vel1_part1[:]
             # print('    end of one-looping')
 
-            if nt % max([int(NT / 5), 1]) == 0:
+            if nt % max([int(NT / NT), 1]) == 0:
                 print('    currt_t = %.4e' % currt_t)
 
                 uh_l2err = self.space.integralalg.L2_error(pde.zero_func, uh)
