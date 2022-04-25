@@ -74,7 +74,16 @@ daytime = datetime.datetime.now().strftime('%Y%m%d')
 hourtime = datetime.datetime.now().strftime("%H%M%S")
 
 ccf = CoCurrentFlowModel2d(pde, mesh, p, dt_space[0])
-time_position_Xi = ccf.CH_NS_addXi_Solver_T1stOrder()
+val0_at_0 = ccf.CH_NS_addXi_Solver_T1stOrder()
+
+filename = './CoCurrentFlowMesh/val0_at_0' + '_' + daytime + '-' + hourtime
+np.save(filename + '.npy', val0_at_0)
+
+plt.figure()
+plt.plot(val0_at_0[:, 0], val0_at_0[:, 1])
+plt.xlabel("time")
+plt.ylabel("V")
+plt.savefig(filename + '.png')
 
 
 print('end of the `FEM_CH_NS_Var_addXi_CocurrentFlow` code')
