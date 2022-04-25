@@ -494,7 +494,7 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
         # # ------------------------------ # #
         # # --- to update the Xi value --- # #
         # # ------------------------------ # #
-        f_val_NS = self.pde.source_NS(self.c_pp, next_t, epsilon, eta, m, pde.rho0, pde.rho1, pde.nu0, pde.nu1, 1.)  # (NQ,NC,GD)
+        f_val_NS = self.pde.source_NS(self.c_pp)  # (NQ,NC,GD)
 
         def integral_cell(X):
             # |--- X.shape: (NQ,NC)
