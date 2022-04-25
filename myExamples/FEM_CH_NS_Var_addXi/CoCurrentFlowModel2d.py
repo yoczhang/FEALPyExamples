@@ -57,7 +57,6 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
         self.R_n = 1.  # 此项在 `update_mu_and_Xi()` 中更新.
         self.C0 = 1.  # 此项在 `update_mu_and_Xi()` 中, 以保证 E_n = \int H(\phi) + C0 > 0.
         self.Xi = 1.  # 此项在 `update_mu_and_Xi()` 中更新.
-        self.s, self.alpha = self.set_CH_Coeff(dt_minimum=self.dt_min)
 
         if hasattr(self, 'idxNotPeriodicEdge') is False:
             self.idxPeriodicEdge0, self.idxPeriodicEdge1, self.idxNotPeriodicEdge = self.set_periodic_edge()
@@ -68,12 +67,6 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
         self.vPeriodicDof0, self.vPeriodicDof1, self.vNotPeriodicDof = self.set_boundaryDofs(self.vdof)
         #   |___ the velocity-related variables periodic dofs (using (p+1)-order polynomial)
 
-        # |--- CH: setting algebraic system for periodic boundary condition
-        self.auxM_CH = self.StiffMatrix + (self.alpha + self.s / self.pde.epsilon) * self.MassMatrix  # csr_matrix
-        self.auxPeriodicM_CH = None
-        self.orgM_CH = self.StiffMatrix - self.alpha * self.MassMatrix  # csr_matrix
-        self.orgPeriodicM_CH = None
-
         # |--- NS: setting algebraic system for periodic boundary condition
         self.plsm = 1. / min(self.pde.rho0, self.pde.rho1) * self.StiffMatrix
         self.pPeriodicM_NS = None
@@ -83,6 +76,16 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
 
         self.VLM = 1. / self.dt * self.vel_MM + max(self.pde.nu0 / self.pde.rho0, self.pde.nu1 / self.pde.rho1) * self.vel_SM
         self.vOrgPeriodicM_NS = None
+
+    def set_CH_Coeff(self, dt_minimum=None):
+        """
+        This function is designed to pass the father-function in 'FEM_CH_NS_Model2d.py'
+        :param dt_minimum:
+        :return:
+        """
+        s = 0
+        alpha = 0
+        return s, alpha
 
     def CH_NS_addXi_Solver_T1stOrder(self):
         pde = self.pde
@@ -138,10 +141,11 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
 
             if nt % max([int(NT / 5), 1]) == 0:
                 print('    currt_t = %.4e' % currt_t)
-                uh_l2err = self.space.integralalg.L2_error(pde.zero_func[..., 0], uh)
-                v0_l2err_NS = self.vspace.integralalg.L2_error(pde.zero_func[..., 0], vel0)
-                v1_l2err_NS = self.vspace.integralalg.L2_error(pde.zero_func[..., 0], vel1)
-                ph_l2err = self.space.integralalg.L2_error(pde.zero_func[..., 0], ph)
+
+                uh_l2err = self.space.integralalg.L2_error(pde.zero_func, uh)
+                v0_l2err_NS = self.vspace.integralalg.L2_error(pde.zero_func, vel0)
+                v1_l2err_NS = self.vspace.integralalg.L2_error(pde.zero_func, vel1)
+                ph_l2err = self.space.integralalg.L2_error(pde.zero_func, ph)
                 vel_l2err = np.sqrt(v0_l2err_NS**2 + v1_l2err_NS**2)
                 if np.isnan(uh_l2err) | np.isnan(vel_l2err) | np.isnan(ph_l2err):
                     print('Some error is nan: breaking the program')

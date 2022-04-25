@@ -163,6 +163,7 @@ class CoCurrentFlowTrueSolution:
 
     @cartesian
     def zero_func(self, p):
-        return np.zeros(p.shape, dtype=np.float)
+        pshape = p.shape
+        return np.zeros(pshape[:-1], dtype=np.float)
 
 
