@@ -27,7 +27,7 @@ from PrintLogger import make_print_to_file
 from to_show import show_error_table
 
 # --- logging --- #
-# make_print_to_file(filename='FEM_CH_NS_Var_addXi_CoCurrent', setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
+make_print_to_file(filename='FEM_CH_NS_Var_addXi_CoCurrent', setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
 
 # --- begin setting --- #
 d = 2  # the dimension
@@ -36,8 +36,8 @@ n = 2  # the number of refine mesh
 
 # |--- time and mesh setting
 t0 = 0.
-T = 1
-dt_space = [1.e-4, ]
+T = 5
+dt_space = [5.e-4, ]
 dt_min = min(dt_space)
 time_scheme = 1  # 1 stands for 1st-order time-scheme; 2 is the 2nd-order time-scheme
 
@@ -47,7 +47,7 @@ rho1 = 1.e-0
 nu0 = 1.e-2
 nu1 = 6 * nu0
 sigma = 0.
-eta = 5e-4
+eta = 5e-3
 epsilon = 3./(2*np.sqrt(2))*sigma*eta
 
 pdePars = {'m': 1e-5, 'epsilon': epsilon, 'eta': eta, 'dt_min': dt_min, 'timeScheme': '1stOrder'}  # value of parameters
@@ -80,7 +80,7 @@ filename = './CoCurrentFlowMesh/val0_at_0' + '_' + daytime + '-' + hourtime
 np.save(filename + '.npy', val0_at_0)
 
 plt.figure()
-plt.plot(val0_at_0[:, 0], val0_at_0[:, 1])
+plt.plot(val0_at_0[:, 1], val0_at_0[:, 0])
 plt.xlabel("time")
 plt.ylabel("V")
 plt.savefig(filename + '.png')
