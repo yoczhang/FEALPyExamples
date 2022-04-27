@@ -26,6 +26,7 @@ from fealpy.boundarycondition import DirichletBC
 # from fealpy.functionspace import LagrangeFiniteElementSpace
 # from sym_diff_basis import compute_basis
 from FEM_CH_NS_Model2d import FEM_CH_NS_Model2d
+import matplotlib.pyplot as plt
 
 
 class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
@@ -51,7 +52,7 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
         self.auxVel0_part1 = self.vspace.function()
         self.auxVel1_part1 = self.vspace.function()
 
-        self.grad_mu_val = np.empty((2,2))  # 此项在 `update_mu_and_Xi()` 中更新.
+        self.grad_mu_val = np.empty((2, 2))  # 此项在 `update_mu_and_Xi()` 中更新.
         self.rho_bar_n = 0.  # 此项在 `decoupled_NS_addXi_Solver_T1stOrder()` 中更新: 为了获得第 n 时间层的取值 (在 `update_mu_and_Xi()` 会用到).
         self.nu_bar_n = 0.  # 此项在 `decoupled_NS_addXi_Solver_T1stOrder()` 中更新: 为了获得第 n 时间层的取值 (在 `update_mu_and_Xi()` 会用到).
         self.R_n = 1.  # 此项在 `update_mu_and_Xi()` 中更新.
@@ -125,10 +126,13 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
 
         # # time-looping
         print('    # ------------ begin the time-looping ------------ #')
+        v_ip_coord = self.vspace.interpolation_points()  # (vNdof,2)
+        val0_at_0 = np.zeros([len(self.vPeriodicDof0) + 2, 2], dtype=np.float)
+        filename_basic = ('./CoCurrentFlowOutput/' + 'CCF_T(' + str(self.pde.T) + ')_dt(' + ('%.e' % dt) + ')_eta('
+                          + ('%.e' % self.pde.eta) + ')')
         for nt in range(NT - 1):
             currt_t = timemesh[nt]
             next_t = currt_t + dt
-
             self.decoupled_NS_addXi_Solver_T1stOrder(vel0, vel1, ph, uh, next_t)
             Xi = self.update_mu_and_Xi(uh, next_t)
 
@@ -139,9 +143,21 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
             vel1[:] = self.vel1_part0[:] + Xi * self.vel1_part1[:]
             # print('    end of one-looping')
 
-            if nt % max([int(NT / NT), 1]) == 0:
+            if nt % max([int(NT / 50), 1]) == 0:
                 print('    currt_t = %.4e' % currt_t)
+                filename = filename_basic + '_nt(' + str(nt) + ')'
+                val0_at_0[1:-1, 1] = vel0[self.vPeriodicDof0]
+                val0_at_0[1:-1, 0] = v_ip_coord[self.vPeriodicDof0, 1]
+                val0_at_0[0, 0] = -1.
+                val0_at_0[-1, 0] = 1.
 
+                plt.figure()
+                plt.plot(val0_at_0[:, 0], val0_at_0[:, 1])
+                plt.xlabel("Y")
+                plt.ylabel("axial velocity")
+                plt.savefig(filename + '.png')
+
+                # |--- compute errs
                 uh_l2err = self.space.integralalg.L2_error(pde.zero_func, uh)
                 v0_l2err_NS = self.vspace.integralalg.L2_error(pde.zero_func, vel0)
                 v1_l2err_NS = self.vspace.integralalg.L2_error(pde.zero_func, vel1)
@@ -152,12 +168,19 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
                     break
         print('    # ------------ end the time-looping ------------ #\n')
 
-        v_ip_coord = self.vspace.interpolation_points()  # (vNdof,2)
-        val0_at_0 = np.zeros([len(self.vPeriodicDof0)+2, 2], dtype=np.float)
-        val0_at_0[1:-1, 0] = vel0[self.vPeriodicDof0]
-        val0_at_0[1:-1, 1] = v_ip_coord[self.vPeriodicDof0, 1]
-        val0_at_0[0, 1] = -1.
-        val0_at_0[-1, 1] = 1.
+        filename = filename_basic + '_nt(' + str(NT - 1) + ')'
+        val0_at_0[1:-1, 1] = vel0[self.vPeriodicDof0]
+        val0_at_0[1:-1, 0] = v_ip_coord[self.vPeriodicDof0, 1]
+        val0_at_0[0, 0] = -1.
+        val0_at_0[-1, 0] = 1.
+
+        plt.figure()
+        plt.plot(val0_at_0[:, 0], val0_at_0[:, 1])
+        plt.xlabel("Y")
+        plt.ylabel("axial velocity")
+        plt.savefig(filename + '.png')
+        np.save(filename + '.npy', val0_at_0)
+
         return val0_at_0
 
     def get_init_pressure(self):

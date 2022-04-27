@@ -1,0 +1,77 @@
+
+# ------------ in FEM_CH_NS_Var_addXi_CapillaryWave code ------------ #
+# ------------ the initial parameters ------------ #
+p =  2
+t0 = 0.0000e+00,  T = 1.0000e+01
+dt_space =  [0.0005]
+domain box =  [0, 0.8, -1, 1]
+rho0 = 1.0000e+00,  rho1 = 1.0000e+00
+nu0 = 1.0000e-02,  nu1 = 6.0000e-02, 
+m = 1.0000e-05, sigma = 0.0000e+00,  eta = 5.0000e-03, 
+# #
+run serial_construct_matrix with time: 0.06044980099999997
+run serial_construct_matrix with time: 0.006489222999999988
+run serial_construct_matrix with time: 0.147605934
+run serial_construct_matrix with time: 0.017744234000000025
+    # #################################### #
+      Time 1st-order scheme
+    # #################################### #
+    # ------------ parameters ------------ #
+    s = 0.0000e+00,  alpha = 0.0000e+00,  m = 1.0000e-05,  epsilon = 0.0000e+00,  eta = 5.0000e-03
+    t0 = 0.0000e+00,  T = 1.0000e+01, dt = 5.0000e-04
+ 
+run serial_construct_matrix with time: 0.06022382999999998
+    # ------------ begin the time-looping ------------ #
+    currt_t = 0.0000e+00
+    currt_t = 2.0000e-01
+    currt_t = 4.0000e-01
+    currt_t = 6.0000e-01
+    currt_t = 8.0000e-01
+    currt_t = 1.0000e+00
+    currt_t = 1.2000e+00
+    currt_t = 1.4000e+00
+    currt_t = 1.6000e+00
+    currt_t = 1.8000e+00
+    currt_t = 2.0000e+00
+    currt_t = 2.2000e+00
+    currt_t = 2.4000e+00
+    currt_t = 2.6000e+00
+    currt_t = 2.8000e+00
+    currt_t = 3.0000e+00
+    currt_t = 3.2000e+00
+    currt_t = 3.4000e+00
+    currt_t = 3.6000e+00
+    currt_t = 3.8000e+00
+    currt_t = 4.0000e+00
+    currt_t = 4.2000e+00
+    currt_t = 4.4000e+00
+    currt_t = 4.6000e+00
+    currt_t = 4.8000e+00
+    currt_t = 5.0000e+00
+    currt_t = 5.2000e+00
+    currt_t = 5.4000e+00
+    currt_t = 5.6000e+00
+    currt_t = 5.8000e+00
+    currt_t = 6.0000e+00
+    currt_t = 6.2000e+00
+    currt_t = 6.4000e+00
+    currt_t = 6.6000e+00
+    currt_t = 6.8000e+00
+    currt_t = 7.0000e+00
+    currt_t = 7.2000e+00
+    currt_t = 7.4000e+00
+    currt_t = 7.6000e+00
+    currt_t = 7.8000e+00
+    currt_t = 8.0000e+00
+    currt_t = 8.2000e+00
+    currt_t = 8.4000e+00
+    currt_t = 8.6000e+00
+    currt_t = 8.8000e+00
+    currt_t = 9.0000e+00
+    currt_t = 9.2000e+00
+    currt_t = 9.4000e+00
+    currt_t = 9.6000e+00
+    currt_t = 9.8000e+00
+    # ------------ end the time-looping ------------ #
+
+end of the `FEM_CH_NS_Var_addXi_CocurrentFlow` code

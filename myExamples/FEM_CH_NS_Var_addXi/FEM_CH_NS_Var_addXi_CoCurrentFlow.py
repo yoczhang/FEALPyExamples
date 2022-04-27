@@ -26,8 +26,6 @@ from PrintLogger import make_print_to_file
 # from fealpy.tools.show import showmultirate, show_error_table
 from to_show import show_error_table
 
-# --- logging --- #
-make_print_to_file(filename='FEM_CH_NS_Var_addXi_CoCurrent', setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/Logs/")
 
 # --- begin setting --- #
 d = 2  # the dimension
@@ -36,7 +34,7 @@ n = 2  # the number of refine mesh
 
 # |--- time and mesh setting
 t0 = 0.
-T = 5
+T = 10
 dt_space = [5.e-4, ]
 dt_min = min(dt_space)
 time_scheme = 1  # 1 stands for 1st-order time-scheme; 2 is the 2nd-order time-scheme
@@ -57,6 +55,12 @@ pde.setPDEParameters(pdePars)
 pde.setPDEParameters(varCoeff)
 mesh = pde.mesh
 
+# --- logging --- #
+filename_basic = ('CCF_T(' + str(T) + ')_dt(' + ('%.e' % dt_space[0]) + ')_eta('
+                  + ('%.e' % eta) + ')')
+make_print_to_file(filename=filename_basic,
+                   setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/CoCurrentFlowOutput/")
+
 # # print some basic info
 # |--- print some basic info
 print('\n# ------------ in FEM_CH_NS_Var_addXi_CapillaryWave code ------------ #')
@@ -76,14 +80,14 @@ hourtime = datetime.datetime.now().strftime("%H%M%S")
 ccf = CoCurrentFlowModel2d(pde, mesh, p, dt_space[0])
 val0_at_0 = ccf.CH_NS_addXi_Solver_T1stOrder()
 
-filename = './CoCurrentFlowMesh/val0_at_0' + '_' + daytime + '-' + hourtime
-np.save(filename + '.npy', val0_at_0)
-
-plt.figure()
-plt.plot(val0_at_0[:, 1], val0_at_0[:, 0])
-plt.xlabel("time")
-plt.ylabel("V")
-plt.savefig(filename + '.png')
+# filename = './CoCurrentFlowOutput/val0_at_0' + '_' + daytime + '-' + hourtime
+# np.save(filename + '.npy', val0_at_0)
+#
+# plt.figure()
+# plt.plot(val0_at_0[:, 0], val0_at_0[:, 1])
+# plt.xlabel("time")
+# plt.ylabel("V")
+# plt.savefig(filename + '.png')
 
 
 print('end of the `FEM_CH_NS_Var_addXi_CocurrentFlow` code')
