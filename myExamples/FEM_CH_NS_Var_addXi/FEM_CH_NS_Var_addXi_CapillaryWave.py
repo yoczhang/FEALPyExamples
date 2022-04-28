@@ -103,5 +103,6 @@ plt.plot(time_position_Xi[:, 0], time_position_Xi[:, 1])
 plt.xlabel("time")
 plt.ylabel("H")
 plt.savefig(filename + '.png')
+plt.close()
 
 print('end of the `FEM_CH_NS_Var_addXi_CapillaryWave` code')

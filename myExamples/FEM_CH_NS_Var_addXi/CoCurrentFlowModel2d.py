@@ -156,6 +156,7 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
                 plt.xlabel("Y")
                 plt.ylabel("axial velocity")
                 plt.savefig(filename + '.png')
+                plt.close()
 
                 # |--- compute errs
                 uh_l2err = self.space.integralalg.L2_error(pde.zero_func, uh)
