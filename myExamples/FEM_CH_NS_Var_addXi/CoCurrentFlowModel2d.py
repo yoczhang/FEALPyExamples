@@ -181,6 +181,7 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
         plt.ylabel("axial velocity")
         plt.savefig(filename + '.png')
         np.save(filename + '.npy', val0_at_0)
+        plt.close()
 
         return val0_at_0
 
