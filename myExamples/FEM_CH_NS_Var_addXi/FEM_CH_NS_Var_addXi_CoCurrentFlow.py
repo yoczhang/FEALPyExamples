@@ -48,18 +48,19 @@ sigma = 0.
 eta = 5e-3
 epsilon = 3./(2*np.sqrt(2))*sigma*eta
 
+# --- logging --- #
+filename_basic = ('CCF_T(' + str(T) + ')_dt(' + ('%.e' % dt_space[0]) + ')_eta('
+                  + ('%.e' % eta) + ')')
+# make_print_to_file(filename=filename_basic,
+#                    setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/CoCurrentFlowOutput/")
+
+# |--- pde-parameters
 pdePars = {'m': 1e-5, 'epsilon': epsilon, 'eta': eta, 'dt_min': dt_min, 'timeScheme': '1stOrder'}  # value of parameters
 varCoeff = {'rho0': rho0, 'rho1': rho1, 'nu0': nu0, 'nu1': nu1}
 pde = CoCurrentFlowTrueSolution(t0, T, K=-0.01, r0=0.5, r1=1., nu0=nu0, nu1=nu1)  # create pde model
 pde.setPDEParameters(pdePars)
 pde.setPDEParameters(varCoeff)
 mesh = pde.mesh
-
-# --- logging --- #
-filename_basic = ('CCF_T(' + str(T) + ')_dt(' + ('%.e' % dt_space[0]) + ')_eta('
-                  + ('%.e' % eta) + ')')
-# make_print_to_file(filename=filename_basic,
-#                    setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/CoCurrentFlowOutput/")
 
 # # print some basic info
 # |--- print some basic info

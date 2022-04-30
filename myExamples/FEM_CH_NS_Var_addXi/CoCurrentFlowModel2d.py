@@ -79,6 +79,8 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
         self.VLM = 1. / self.dt * self.vel_MM + max(self.pde.nu0 / self.pde.rho0, self.pde.nu1 / self.pde.rho1) * self.vel_SM
         self.vOrgPeriodicM_NS = None
 
+        self.number_save = 150
+
     def set_CH_Coeff(self, dt_minimum=None):
         """
         This function is designed to pass the father-function in 'FEM_CH_NS_Model2d.py'
@@ -144,7 +146,7 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
             vel1[:] = self.vel1_part0[:] + Xi * self.vel1_part1[:]
             # print('    end of one-looping')
 
-            if nt % max([int(NT / 50), 1]) == 0:
+            if nt % max([int(NT / self.number_save), 1]) == 0:
                 print('    currt_t = %.4e' % currt_t)
                 filename = filename_basic + '_nt(' + str(nt) + ')'
                 val0_at_0[1:-1, 1] = vel0[self.vPeriodicDof0]
@@ -239,7 +241,7 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
             vel1[:] = self.vel1_part0[:] + Xi * self.vel1_part1[:]
             # print('    end of one-looping')
 
-            if nt % max([int(NT / 50), 1]) == 0:
+            if nt % max([int(NT / self.number_save), 1]) == 0:
                 print('    currt_t = %.4e' % currt_t)
                 filename = filename_basic + '_nt(' + str(nt) + ')'
                 val0_at_0[1:-1, 1] = vel0[self.vPeriodicDof0]
