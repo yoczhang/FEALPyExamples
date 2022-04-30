@@ -58,8 +58,8 @@ mesh = pde.mesh
 # --- logging --- #
 filename_basic = ('CCF_T(' + str(T) + ')_dt(' + ('%.e' % dt_space[0]) + ')_eta('
                   + ('%.e' % eta) + ')')
-make_print_to_file(filename=filename_basic,
-                   setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/CoCurrentFlowOutput/")
+# make_print_to_file(filename=filename_basic,
+#                    setpath="/Users/yczhang/Documents/FEALPy/FEALPyExamples/FEALPyExamples/myExamples/FEM_CH_NS_Var_addXi/CoCurrentFlowOutput/")
 
 # # print some basic info
 # |--- print some basic info
@@ -88,6 +88,7 @@ val0_at_0 = ccf.CH_NS_addXi_Solver_T1stOrder()
 # plt.xlabel("time")
 # plt.ylabel("V")
 # plt.savefig(filename + '.png')
+# plt.close()
 
 
 print('end of the `FEM_CH_NS_Var_addXi_CocurrentFlow` code')

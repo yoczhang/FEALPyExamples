@@ -24,7 +24,8 @@ nu0 = 0.01
 nu1 = 0.06
 r0 = 0.5
 r1 = 1.
-eta = 0.0005
+# eta = 0.0005
+eta = 5.e-4
 
 # 2D-par-setting
 n = 0
