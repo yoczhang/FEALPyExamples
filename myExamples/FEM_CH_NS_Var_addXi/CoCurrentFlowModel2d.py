@@ -19,6 +19,7 @@ add the solver for \\xi.
 
 import numpy as np
 from scipy.sparse import csr_matrix, spdiags, identity, eye, bmat
+import pickle
 # from fealpy.quadrature import FEMeshIntegralAlg
 from scipy.sparse.linalg import spsolve
 from fealpy.boundarycondition import DirichletBC
@@ -158,6 +159,9 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
                 plt.savefig(filename + '.png')
                 plt.close()
 
+                programData = {'nt': nt, 'uh': uh, 'vel0': vel0, 'vel1': vel1, 'ph': ph}
+                self.pickle_save_data(filename, programData)
+
                 # |--- compute errs
                 uh_l2err = self.space.integralalg.L2_error(pde.zero_func, uh)
                 v0_l2err_NS = self.vspace.integralalg.L2_error(pde.zero_func, vel0)
@@ -182,6 +186,9 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
         plt.savefig(filename + '.png')
         np.save(filename + '.npy', val0_at_0)
         plt.close()
+
+        programData = {'nt': NT-1, 'uh': uh, 'vel0': vel0, 'vel1': vel1, 'ph': ph}
+        self.pickle_save_data(filename, programData)
 
         return val0_at_0
 
@@ -209,6 +216,18 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
         :return: Updated uh_part*, wh_part*.
         """
         pass
+
+    def pickle_save_data(self, filename, data):
+        file_point = open(filename + '.pkl', 'wb')
+        file_point.write(pickle.dumps(data))
+        file_point.close()
+
+    def load_data(self, filename):
+        file_point = open(filename + '.pkl', 'rb')
+        data = pickle.loads(file_point.read())
+        file_point.close()
+
+        return data
 
     def decoupled_NS_addXi_Solver_T1stOrder(self, vel0, vel1, ph, uh, next_t):
         """
