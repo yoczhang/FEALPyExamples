@@ -34,7 +34,7 @@ n = 2  # the number of refine mesh
 
 # |--- time and mesh setting
 t0 = 0.
-T = 1
+T = 50
 dt_space = [5.e-4, ]
 dt_min = min(dt_space)
 time_scheme = 1  # 1 stands for 1st-order time-scheme; 2 is the 2nd-order time-scheme

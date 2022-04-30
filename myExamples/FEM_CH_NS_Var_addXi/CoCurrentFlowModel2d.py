@@ -189,7 +189,7 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
         np.save(filename + '.npy', val0_at_0)
         plt.close()
 
-        programData = {'nt': NT-1, 'uh': uh, 'vel0': vel0, 'vel1': vel1, 'ph': ph}
+        programData = {'nt': NT-1, 'uh': uh, 'vel0': vel0, 'vel1': vel1, 'ph': ph, 'val0_at_0': val0_at_0}
         self.pickle_save_data(filename, programData)
 
         return val0_at_0
@@ -256,7 +256,7 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
                 plt.savefig(filename + '.png')
                 plt.close()
 
-                programData = {'nt': nt, 'uh': uh, 'vel0': vel0, 'vel1': vel1, 'ph': ph}
+                programData = {'nt': nt, 'uh': uh, 'vel0': vel0, 'vel1': vel1, 'ph': ph, 'val0_at_0': val0_at_0}
                 self.pickle_save_data(filename, programData)
 
                 # |--- compute errs
@@ -284,7 +284,7 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
         np.save(filename + '.npy', val0_at_0)
         plt.close()
 
-        programData = {'nt': NT-1, 'uh': uh, 'vel0': vel0, 'vel1': vel1, 'ph': ph}
+        programData = {'nt': NT-1, 'uh': uh, 'vel0': vel0, 'vel1': vel1, 'ph': ph, 'val0_at_0': val0_at_0}
         self.pickle_save_data(filename, programData)
 
         return val0_at_0

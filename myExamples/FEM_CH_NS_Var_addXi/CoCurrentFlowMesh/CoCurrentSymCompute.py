@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ---
 # @Software: PyCharm
-# @File: symCompute.py
+# @File: CoCurrentSymCompute.py
 # @Author: Yongchao Zhang
 # @Institution: Northwest University, Xi'an, Shaanxi, China
 # @E-mail: yoczhang@126.com, yoczhang@nwu.edu.cn
@@ -25,7 +25,7 @@ nu1 = 0.06
 r0 = 0.5
 r1 = 1.
 # eta = 0.0005
-eta = 5.e-4
+eta = 5.e-3
 
 # 2D-par-setting
 n = 0
