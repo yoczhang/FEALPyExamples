@@ -159,6 +159,101 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
                 plt.savefig(filename + '.png')
                 plt.close()
 
+                programData = {'nt': nt, 'uh': uh, 'vel0': vel0, 'vel1': vel1, 'ph': ph, 'val0_at_0': val0_at_0}
+                self.pickle_save_data(filename, programData)
+
+                # |--- compute errs
+                uh_l2err = self.space.integralalg.L2_error(pde.zero_func, uh)
+                v0_l2err_NS = self.vspace.integralalg.L2_error(pde.zero_func, vel0)
+                v1_l2err_NS = self.vspace.integralalg.L2_error(pde.zero_func, vel1)
+                ph_l2err = self.space.integralalg.L2_error(pde.zero_func, ph)
+                vel_l2err = np.sqrt(v0_l2err_NS**2 + v1_l2err_NS**2)
+                if np.isnan(uh_l2err) | np.isnan(vel_l2err) | np.isnan(ph_l2err):
+                    print('Some error is nan: breaking the program')
+                    break
+        print('    # ------------ end the time-looping ------------ #\n')
+
+        filename = filename_basic + '_nt(' + str(NT - 1) + ')'
+        val0_at_0[1:-1, 1] = vel0[self.vPeriodicDof0]
+        val0_at_0[1:-1, 0] = v_ip_coord[self.vPeriodicDof0, 1]
+        val0_at_0[0, 0] = -1.
+        val0_at_0[-1, 0] = 1.
+
+        plt.figure()
+        plt.plot(val0_at_0[:, 0], val0_at_0[:, 1])
+        plt.xlabel("Y")
+        plt.ylabel("axial velocity")
+        plt.savefig(filename + '.png')
+        np.save(filename + '.npy', val0_at_0)
+        plt.close()
+
+        programData = {'nt': NT-1, 'uh': uh, 'vel0': vel0, 'vel1': vel1, 'ph': ph}
+        self.pickle_save_data(filename, programData)
+
+        return val0_at_0
+
+    def restart_CH_NS_addXi_Solver_T1stOrder(self, load_filename):
+        pde = self.pde
+        timemesh = self.timemesh
+        NT = len(timemesh)
+        dt = self.dt
+        uh = self.uh
+        wh = self.wh
+        vel0 = self.vel0
+        vel1 = self.vel1
+        ph = self.ph
+
+        print('    # #################################### #')
+        print('      Time 1st-order scheme')
+        print('    # #################################### #')
+
+        print('    # ------------ parameters ------------ #')
+        print('    s = %.4e,  alpha = %.4e,  m = %.4e,  epsilon = %.4e,  eta = %.4e'
+              % (self.s, self.alpha, self.pde.m, self.pde.epsilon, self.pde.eta))
+        print('    t0 = %.4e,  T = %.4e, dt = %.4e' % (timemesh[0], timemesh[-1], dt))
+        print(' ')
+
+        program_data = self.pickle_load_data(load_filename)
+        nt_ = program_data['nt']
+        uh[:] = program_data['uh'][:]
+        vel0[:] = program_data['vel0'][:]
+        vel1[:] = program_data['vel1'][:]
+        ph[:] = program_data['ph'][:]
+
+        # # time-looping
+        print('    # ------------ begin the time-looping ------------ #')
+        v_ip_coord = self.vspace.interpolation_points()  # (vNdof,2)
+        val0_at_0 = np.zeros([len(self.vPeriodicDof0) + 2, 2], dtype=np.float)
+        filename_basic = ('./CoCurrentFlowOutput/' + 'CCF_T(' + str(self.pde.T) + ')_dt(' + ('%.e' % dt) + ')_eta('
+                          + ('%.e' % self.pde.eta) + ')')
+        for nt in range(nt_ + 1, NT - 1):
+            currt_t = timemesh[nt]
+            next_t = currt_t + dt
+            self.decoupled_NS_addXi_Solver_T1stOrder(vel0, vel1, ph, uh, next_t)
+            Xi = self.update_mu_and_Xi(uh, next_t)
+
+            # |--- update the values
+            wh[:] = self.wh_part0[:] + Xi * self.wh_part1[:]
+            ph[:] = self.ph_part0[:] + Xi * self.ph_part1[:]
+            vel0[:] = self.vel0_part0[:] + Xi * self.vel0_part1[:]
+            vel1[:] = self.vel1_part0[:] + Xi * self.vel1_part1[:]
+            # print('    end of one-looping')
+
+            if nt % max([int(NT / 50), 1]) == 0:
+                print('    currt_t = %.4e' % currt_t)
+                filename = filename_basic + '_nt(' + str(nt) + ')'
+                val0_at_0[1:-1, 1] = vel0[self.vPeriodicDof0]
+                val0_at_0[1:-1, 0] = v_ip_coord[self.vPeriodicDof0, 1]
+                val0_at_0[0, 0] = -1.
+                val0_at_0[-1, 0] = 1.
+
+                plt.figure()
+                plt.plot(val0_at_0[:, 0], val0_at_0[:, 1])
+                plt.xlabel("Y")
+                plt.ylabel("axial velocity")
+                plt.savefig(filename + '.png')
+                plt.close()
+
                 programData = {'nt': nt, 'uh': uh, 'vel0': vel0, 'vel1': vel1, 'ph': ph}
                 self.pickle_save_data(filename, programData)
 
@@ -222,7 +317,7 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
         file_point.write(pickle.dumps(data))
         file_point.close()
 
-    def load_data(self, filename):
+    def pickle_load_data(self, filename):
         file_point = open(filename + '.pkl', 'rb')
         data = pickle.loads(file_point.read())
         file_point.close()

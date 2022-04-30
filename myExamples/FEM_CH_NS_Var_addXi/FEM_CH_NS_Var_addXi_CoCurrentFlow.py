@@ -79,6 +79,7 @@ hourtime = datetime.datetime.now().strftime("%H%M%S")
 
 ccf = CoCurrentFlowModel2d(pde, mesh, p, dt_space[0])
 val0_at_0 = ccf.CH_NS_addXi_Solver_T1stOrder()
+# val0_at_0 = ccf.restart_CH_NS_addXi_Solver_T1stOrder('./CoCurrentFlowOutput/CCF_T(1)_dt(5e-04)_eta(5e-03)_nt(160)')
 
 # filename = './CoCurrentFlowOutput/val0_at_0' + '_' + daytime + '-' + hourtime
 # np.save(filename + '.npy', val0_at_0)
