@@ -371,14 +371,14 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
         vel0_domain1_f = lambdify([y, KK], vel0_domain1, "numpy")
 
         # |--- setting the demarcation point
-        dem_point0, = np.nonzero(abs(x_coord - r0) < 1.e-9)
-        dem_point1, = np.nonzero(abs(x_coord - (-r0)) < 1.e-9)
+        dem_point0, = np.nonzero(abs(x_coord - (-r0)) < 1.e-9)
+        dem_point1, = np.nonzero(abs(x_coord - r0) < 1.e-9)
 
         if (any(dem_point0) and any(dem_point1)) is False:
             raise ValueError("There is no `dem_point0` or `dem_point1`")
-        x_domain1_0 = x_coord[:dem_point0]
-        x_domain0 = x_coord[dem_point0:dem_point1]
-        x_domain1_1 = x_coord[dem_point1:]
+        x_domain1_0 = x_coord[:dem_point0[0]]
+        x_domain0 = x_coord[dem_point0[0]:dem_point1[0]]
+        x_domain1_1 = x_coord[dem_point1[0]:]
 
         K = pde.K
         y_domain1_0 = vel0_domain1_f(x_domain1_0, K)
