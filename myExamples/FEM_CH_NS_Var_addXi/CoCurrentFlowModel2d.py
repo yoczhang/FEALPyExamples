@@ -18,6 +18,7 @@ add the solver for \\xi.
 
 
 import numpy as np
+from sympy import symbols, tanh, lambdify
 from scipy.sparse import csr_matrix, spdiags, identity, eye, bmat
 import pickle
 # from fealpy.quadrature import FEMeshIntegralAlg
@@ -323,8 +324,23 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
         file_point = open(filename + '.pkl', 'rb')
         data = pickle.loads(file_point.read())
         file_point.close()
-
         return data
+
+    def plot_true_solution(self):
+        K = symbols('K')
+        t, x, y, pi = symbols('t x y pi')
+        epsilon, m = symbols('epsilon m')
+
+        pde = self.pde
+
+        rho0 = pde.rho0
+        rho1 = pde.rho1
+        nu0 = pde.nu0
+        nu1 = pde.nu1
+        r0 = pde.r0
+        r1 = pde.r1
+        eta = pde.eta
+
 
     def decoupled_NS_addXi_Solver_T1stOrder(self, vel0, vel1, ph, uh, next_t):
         """

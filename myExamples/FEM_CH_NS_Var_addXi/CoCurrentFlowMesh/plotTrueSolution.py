@@ -11,7 +11,7 @@
 # ---
 
 
-from sympy import symbols, cos, sin, diff, exp, tanh, lambdify
+from sympy import symbols, tanh, lambdify
 import numpy as np
 import matplotlib  # 为了解决画图时采用 GUI (plt.show()) 的形式时, python3.8 崩溃的情况.
 matplotlib.use("TkAgg")  # 为了解决画图时采用 GUI (plt.show()) 的形式时, python3.8 崩溃的情况.
@@ -74,5 +74,5 @@ yy = np.concatenate([np.concatenate([y_domain1_0, y_domain0]), y_domain1_1])
 # plt.savefig('./truesolution' + '.png')
 # plt.close()
 
-print('end of the file')
+print('end of the plot-true-solution file')
 

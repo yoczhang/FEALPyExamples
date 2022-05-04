@@ -87,8 +87,8 @@ val0_at_0 = ccf.CH_NS_addXi_Solver_T1stOrder()
 #
 # plt.figure()
 # plt.plot(val0_at_0[:, 0], val0_at_0[:, 1])
-# plt.xlabel("time")
-# plt.ylabel("V")
+# plt.xlabel("Y")
+# plt.ylabel("axial velocity")
 # plt.savefig(filename + '.png')
 # plt.close()
 
