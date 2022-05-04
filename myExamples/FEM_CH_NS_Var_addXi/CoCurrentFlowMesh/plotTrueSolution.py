@@ -67,12 +67,16 @@ y_domain1_1 = vel0_domain1_f(x_domain1_1, kk)
 xx = np.concatenate([np.concatenate([x_domain1_0, x_domain0]), x_domain1_1])
 yy = np.concatenate([np.concatenate([y_domain1_0, y_domain0]), y_domain1_1])
 
-# plt.figure()
-# plt.plot(xx, yy)
-# plt.xlabel("time")
-# plt.ylabel("V")
+plt.figure()
+plt.plot(xx, yy, color='r', linewidth=0.6, label='True')
+plt.plot(xx, yy+0.01, color='b', linewidth=0.6, label='Test')  # to-test
+plt.xlabel("Y")
+plt.ylabel("axial velocity")
+plt.legend(loc=4, fontsize='8')
 # plt.savefig('./truesolution' + '.png')
-# plt.close()
+plt.show()
+plt.close()
+
 
 print('end of the plot-true-solution file')
 

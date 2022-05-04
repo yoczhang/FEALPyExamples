@@ -154,11 +154,14 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
                 val0_at_0[1:-1, 0] = v_ip_coord[self.vPeriodicDof0, 1]
                 val0_at_0[0, 0] = -1.
                 val0_at_0[-1, 0] = 1.
+                true_solution = self.plot_true_solution(val0_at_0[:, 0])
 
                 plt.figure()
-                plt.plot(val0_at_0[:, 0], val0_at_0[:, 1])
+                plt.plot(val0_at_0[:, 0], val0_at_0[:, 1], color='b', linewidth=0.6, label='Numerical')
+                plt.plot(val0_at_0[:, 0], true_solution, color='r', linewidth=0.6, label='True')
                 plt.xlabel("Y")
                 plt.ylabel("axial velocity")
+                plt.legend(loc=4, fontsize='8')
                 plt.savefig(filename + '.png')
                 plt.close()
 
@@ -181,13 +184,15 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
         val0_at_0[1:-1, 0] = v_ip_coord[self.vPeriodicDof0, 1]
         val0_at_0[0, 0] = -1.
         val0_at_0[-1, 0] = 1.
+        true_solution = self.plot_true_solution(val0_at_0[:, 0])
 
         plt.figure()
-        plt.plot(val0_at_0[:, 0], val0_at_0[:, 1])
+        plt.plot(val0_at_0[:, 0], val0_at_0[:, 1], color='b', linewidth=0.6, label='Numerical')
+        plt.plot(val0_at_0[:, 0], true_solution, color='r', linewidth=0.6, label='True')
         plt.xlabel("Y")
         plt.ylabel("axial velocity")
+        plt.legend(loc=4, fontsize='8')
         plt.savefig(filename + '.png')
-        np.save(filename + '.npy', val0_at_0)
         plt.close()
 
         programData = {'nt': NT-1, 'uh': uh, 'vel0': vel0, 'vel1': vel1, 'ph': ph, 'val0_at_0': val0_at_0}
@@ -249,11 +254,14 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
                 val0_at_0[1:-1, 0] = v_ip_coord[self.vPeriodicDof0, 1]
                 val0_at_0[0, 0] = -1.
                 val0_at_0[-1, 0] = 1.
+                true_solution = self.plot_true_solution(val0_at_0[:, 0])
 
                 plt.figure()
-                plt.plot(val0_at_0[:, 0], val0_at_0[:, 1])
+                plt.plot(val0_at_0[:, 0], val0_at_0[:, 1], color='b', linewidth=0.6, label='Numerical')
+                plt.plot(val0_at_0[:, 0], true_solution, color='r', linewidth=0.6, label='True')
                 plt.xlabel("Y")
                 plt.ylabel("axial velocity")
+                plt.legend(loc=4, fontsize='8')
                 plt.savefig(filename + '.png')
                 plt.close()
 
@@ -276,13 +284,15 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
         val0_at_0[1:-1, 0] = v_ip_coord[self.vPeriodicDof0, 1]
         val0_at_0[0, 0] = -1.
         val0_at_0[-1, 0] = 1.
+        true_solution = self.plot_true_solution(val0_at_0[:, 0])
 
         plt.figure()
-        plt.plot(val0_at_0[:, 0], val0_at_0[:, 1])
+        plt.plot(val0_at_0[:, 0], val0_at_0[:, 1], color='b', linewidth=0.6, label='Numerical')
+        plt.plot(val0_at_0[:, 0], true_solution, color='r', linewidth=0.6, label='True')
         plt.xlabel("Y")
         plt.ylabel("axial velocity")
+        plt.legend(loc=4, fontsize='8')
         plt.savefig(filename + '.png')
-        np.save(filename + '.npy', val0_at_0)
         plt.close()
 
         programData = {'nt': NT-1, 'uh': uh, 'vel0': vel0, 'vel1': vel1, 'ph': ph, 'val0_at_0': val0_at_0}
@@ -326,13 +336,12 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
         file_point.close()
         return data
 
-    def plot_true_solution(self):
-        K = symbols('K')
+    def plot_true_solution(self, x_coord):
+        KK = symbols('K')
         t, x, y, pi = symbols('t x y pi')
         epsilon, m = symbols('epsilon m')
 
         pde = self.pde
-
         rho0 = pde.rho0
         rho1 = pde.rho1
         nu0 = pde.nu0
@@ -341,6 +350,42 @@ class CoCurrentFlowModel2d(FEM_CH_NS_Model2d):
         r1 = pde.r1
         eta = pde.eta
 
+        # |--- 2D-par-setting
+        n = 0
+        R = y / r1
+        nu_hat = nu1 / nu0
+        delta = r0 / r1
+        C = (n + 3.) / 2
+
+        # |--- CH
+        u = -tanh((y - r0) / (np.sqrt(2) * eta))
+        rho = (rho0 + rho1) / 2 + (rho0 - rho1) / 2 * u
+        nu = (nu0 + nu1) / 2 + (nu0 - nu1) / 2 * u
+
+        # |--- NS
+        vel_bar = KK * r1 ** 2 / (nu1 * (n + 1) * (n + 3)) * (delta ** (n + 3) * (nu_hat - 1) + 1)
+        vel0_domain0 = vel_bar * C * (1 - delta ** 2 + nu_hat * (delta ** 2 - R ** 2)) / (delta ** (n + 3) * (nu_hat - 1) + 1)
+        vel0_domain1 = vel_bar * C * (1 - R ** 2) / (delta ** (n + 3) * (nu_hat - 1) + 1)
+
+        vel0_domain0_f = lambdify([y, KK], vel0_domain0, "numpy")
+        vel0_domain1_f = lambdify([y, KK], vel0_domain1, "numpy")
+
+        # |--- setting the demarcation point
+        dem_point0, = np.nonzero(abs(x_coord - r0) < 1.e-9)
+        dem_point1, = np.nonzero(abs(x_coord - (-r0)) < 1.e-9)
+
+        if (any(dem_point0) and any(dem_point1)) is False:
+            raise ValueError("There is no `dem_point0` or `dem_point1`")
+        x_domain1_0 = x_coord[:dem_point0]
+        x_domain0 = x_coord[dem_point0:dem_point1]
+        x_domain1_1 = x_coord[dem_point1:]
+
+        K = pde.K
+        y_domain1_0 = vel0_domain1_f(x_domain1_0, K)
+        y_domain0 = vel0_domain0_f(x_domain0, K)
+        y_domain1_1 = vel0_domain1_f(x_domain1_1, K)
+        yy = np.concatenate([np.concatenate([y_domain1_0, y_domain0]), y_domain1_1])
+        return yy
 
     def decoupled_NS_addXi_Solver_T1stOrder(self, vel0, vel1, ph, uh, next_t):
         """
