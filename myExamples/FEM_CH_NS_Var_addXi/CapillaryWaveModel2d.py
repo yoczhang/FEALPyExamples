@@ -82,10 +82,8 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         # |--- NS: setting algebraic system for periodic boundary condition
         self.plsm = 1. / min(self.pde.rho0, self.pde.rho1) * self.StiffMatrix
         self.pPeriodicM_NS = None
-
         self.auxVLM = 1. / self.dt * self.vel_MM
         self.vAuxPeriodicM_NS = None
-
         self.VLM = 1. / self.dt * self.vel_MM + max(self.pde.nu0 / self.pde.rho0, self.pde.nu1 / self.pde.rho1) * self.vel_SM
         self.vOrgPeriodicM_NS = None
 
