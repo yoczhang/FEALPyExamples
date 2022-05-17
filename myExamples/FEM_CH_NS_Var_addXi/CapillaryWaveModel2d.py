@@ -972,7 +972,7 @@ class CapillaryWaveModel2d(FEM_CH_NS_Model2d):
         """
         periodicDof0 = self.periodicDof0
         #   |___ 需要注意的是, periodicDof0[0] 到 periodicDof0[-1] 的顺序必须是使得
-        #   |___ self.dof.interpolation_points()[periodicDof0, 1] 从小达到的顺序, 这个过程我们已经在 set_boundaryDofs() 中实现了.
+        #   |___ self.dof.interpolation_points()[periodicDof0, 1] 从小到大的顺序, 这个过程我们已经在 set_boundaryDofs() 中实现了.
 
         uh_p = uh[periodicDof0]
         zero_dof = periodicDof0[abs(uh_p - 0.) < 1e-8]
