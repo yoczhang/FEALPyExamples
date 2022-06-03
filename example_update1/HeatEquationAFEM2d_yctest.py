@@ -49,7 +49,7 @@ parser.add_argument('--nt',
                     help='时间剖分段数，默认剖分 100 段.')
 
 parser.add_argument('--tol',
-                    default=0.03, type=float,
+                    default=1e-5, type=float,
                     help='自适应加密停止阈值，默认设定为 0.05.')
 
 parser.add_argument('--rtheta',
@@ -76,7 +76,6 @@ c = pde.diffusionCoefficient
 tmesh = UniformTimeLine(0, 1, nt)  # 均匀时间剖分
 
 smesh = MF.boxmesh2d(domain, nx=ns, ny=ns, meshtype='tri')
-smesh = HalfEdgeMesh2d.from_mesh(smesh, NV=3)  # 三角形网格的单边数据结构
 
 # smesh.add_plot(plt)
 # plt.savefig('./test-' + str(0) + '.png')
@@ -102,7 +101,8 @@ i = 0
 #     plt.savefig('./test-' + str(i + 1) + '.png')
 #     plt.close()
 
-space = LagrangeFiniteElementSpace(smesh, p=1)
+p = 2
+space = LagrangeFiniteElementSpace(smesh, p=p)
 uh0 = space.interpolation(pde.init_value)
 
 for j in range(0, nt):
@@ -119,23 +119,19 @@ for j in range(0, nt):
         dt = tmesh.current_time_step_length()  # 时间步长
         G = M + dt * A  # 隐式迭代矩阵
 
-
         # t1 时间层的右端项
         @cartesian
         def source(p):
             return pde.source(p, t1)
 
-
         F = space.source_vector(source)
         F *= dt
         F += M @ uh0
-
 
         # t1 时间层的 Dirichlet 边界条件处理
         @cartesian
         def dirichlet(p):
             return pde.dirichlet(p, t1)
-
 
         bc = DirichletBC(space, dirichlet)
         GD, F = bc.apply(G, F, uh1)
@@ -150,21 +146,28 @@ for j in range(0, nt):
         else:
             # 加密并插值
             NN0 = smesh.number_of_nodes()
+            Ncell = smesh.number_of_cells()
             edge = smesh.entity('edge')
-            isMarkedCell = smesh.refine_marker(eta, rtheta, method='L2')
-            smesh.refine_triangle_rg(isMarkedCell)
+            # isMarkedCell = smesh.refine_marker(eta, rtheta, method='L2')
+            # options = smesh.adaptive_options(method='max', theta=0.7)
+            isMarkedCell = np.zeros((Ncell,), dtype=bool)
+            isMarkedCell[0:5] = True
+            c2d = space.cell_to_dof()
+            options = smesh.bisect_options(data={'uh': uh1[c2d]})
+            smesh.bisect(isMarkedCell=isMarkedCell, options=options)
+            # isMarkedCell = smesh.adaptive(eta, options)
+            # smesh.refine_triangle_rg(isMarkedCell)
             i += 1
             # smesh.add_plot(plt)
             # plt.savefig('./test-' + str(i + 1) + '.png')
             # plt.close()
-            space = LagrangeFiniteElementSpace(smesh, p=1)
+            space = LagrangeFiniteElementSpace(smesh, p=p)
             print('refinedof', space.number_of_global_dofs())
-            uh00 = space.function()
-            nn2e = smesh.newnode2edge
-            uh00[:NN0] = uh0
-            uh00[NN0:] = np.average(uh0[edge[nn2e]], axis=-1)
+            thedof, indices = np.unique(space.cell_to_dof().flatten(), return_index=True)
+            uh1_ = options['data']['uh'].flatten()
             uh0 = space.function()
-            uh0[:] = uh00
+            uh0[:] = uh1_[indices]
+
     # 粗化网格并插值
     isMarkedCell = smesh.refine_marker(eta, ctheta, 'COARSEN')
     smesh.coarsen_triangle_rg(isMarkedCell)
