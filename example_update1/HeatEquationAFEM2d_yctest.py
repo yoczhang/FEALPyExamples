@@ -142,7 +142,7 @@ for j in range(0, nt):
     isMarkedCell = mark(eta, theta=ctheta, method='COARSEN')
     c2d = space.cell_to_dof()
     options = {'data': {'uh': uh[c2d]}}
-    # smesh.coarsen(isMarkedCell, options=options)
+    smesh.coarsen(isMarkedCell=isMarkedCell, options=options)
     i += 1
 
     # plt.clf()
