@@ -73,7 +73,7 @@ c = pde.diffusionCoefficient
 tmesh = UniformTimeLine(0, 1, nt)  # 均匀时间剖分
 smesh = MF.boxmesh2d(domain, nx=ns, ny=ns, meshtype='tri')
 smesh.add_plot(plt)
-plt.show()
+# plt.show()
 plt.savefig('./test-' + str(0) + '.png')
 plt.close()
 
