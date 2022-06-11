@@ -11,6 +11,7 @@
 
 
 from fealpy.mesh import MeshFactory as MF
+import matplotlib.pyplot as plt
 import numpy as np
 
 
@@ -19,7 +20,7 @@ def boxmesh2d_rice(box, nx=10, ny=10):
     node = qmesh.entity('node')
     cell = qmesh.entity('cell')
 
-    isLeftCell = np.zeros((nx, ny), dtype=np.bool)
+    isLeftCell = np.zeros((nx, ny), dtype=bool)
     isLeftCell[0, 0::2] = True
     isLeftCell[1, 1::2] = True
     if nx > 2:
@@ -42,7 +43,19 @@ def boxmesh2d_rice(box, nx=10, ny=10):
 if __name__ == '__main__':
     box = [-1.5, 1.5, 0, 1]
     mesh = boxmesh2d_rice(box, nx=10 * 3, ny=10)
+    mesh.add_plot(plt)
+    plt.show()
+    # plt.savefig('mesh-0.png')
+    plt.close()
 
-    isMarkedCell = np.zeros(len(mesh.number_of_cells()), dtype=np.bool)
+    # |--- coarsen
+    isMarkedCell = np.zeros(mesh.number_of_cells(), dtype=bool)
     isMarkedCell[78] = True
+    mesh.coarsen(isMarkedCell=isMarkedCell)
+    mesh.add_plot(plt)
+    plt.show()
+    # plt.savefig('mesh-1.png')
+    plt.close()
+
+    print('end of the file')
 
