@@ -11,8 +11,10 @@
 
 
 from fealpy.mesh import MeshFactory as MF
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib  # 为了解决画图时采用 GUI (plt.show()) 的形式时, python3.8 崩溃的情况.
+matplotlib.use("TkAgg")  # 为了解决画图时采用 GUI (plt.show()) 的形式时, python3.8 崩溃的情况.
+import matplotlib.pyplot as plt
 
 
 def boxmesh2d_rice(box, nx=10, ny=10):
@@ -42,19 +44,20 @@ def boxmesh2d_rice(box, nx=10, ny=10):
 # |--- to test ---| #
 if __name__ == '__main__':
     box = [-1.5, 1.5, 0, 1]
-    mesh = boxmesh2d_rice(box, nx=10 * 3, ny=10)
-    mesh.add_plot(plt)
-    plt.show()
-    # plt.savefig('mesh-0.png')
+    mesh = boxmesh2d_rice(box, nx=4 * 3, ny=4)
+    ax = mesh.add_plot(plt)
+    mesh.find_cell(ax.axes, showindex=True)
+    # plt.show()
+    plt.savefig('mesh-0.png')
     plt.close()
 
     # |--- coarsen
     isMarkedCell = np.zeros(mesh.number_of_cells(), dtype=bool)
-    isMarkedCell[78] = True
+    isMarkedCell[42] = True
     mesh.coarsen(isMarkedCell=isMarkedCell)
     mesh.add_plot(plt)
-    plt.show()
-    # plt.savefig('mesh-1.png')
+    # plt.show()
+    plt.savefig('mesh-1.png')
     plt.close()
 
     print('end of the file')
