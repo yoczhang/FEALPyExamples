@@ -52,10 +52,14 @@ def post_error(pde, uh, space, recover=False):
     return eta
 
 
-n = int(sys.argv[1])
-p = int(sys.argv[2])
-maxit = int(sys.argv[3])
-theta = int(sys.argv[4])
+# n = int(sys.argv[1])
+# p = int(sys.argv[2])
+# maxit = int(sys.argv[3])
+# theta = int(sys.argv[4])
+n = 2
+p = 2
+maxit = 4
+theta = 0.3
 pde = Pde(100)
 mesh = pde.init_mesh(n=n)
 
