@@ -23,7 +23,7 @@ fig = plt.figure()
 plt.title("Score distribution")
 plt.ylabel("Number of people")  # 纵坐标label
 section = ['<60', '60-69', '70-79', '80-89', '>90']
-students = [20, 49, 57, 36, 3]
+students = [9, 45, 71, 30, 6]
 plt.bar(section, students)
 
 length = len(students)
