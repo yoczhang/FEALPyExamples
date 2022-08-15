@@ -17,10 +17,9 @@ import datetime
 
 
 def create_detail_day():
-    '''
-
-    :return:
-    '''
+    """
+    :return: the date
+    """
     # 年-月-日
     # daytime = datetime.datetime.now().strftime('day'+'%Y-%m-%d')
     # 年_月_日
@@ -51,6 +50,7 @@ def make_print_to_file(filename="Default.log", setpath='./'):
         def write(self, message):
             self.terminal.write(message)
             self.log.write(message)
+            self.log.flush()  # 缓冲区的内容及时更新到log文件中
 
         def flush(self):
             pass
