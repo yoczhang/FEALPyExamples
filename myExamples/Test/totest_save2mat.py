@@ -23,7 +23,7 @@ line_x = np.arange(12)
 line_u = line_x * 0.2
 
 savemat('LS.mat', {'line': (line_x, line_u), 'surf': [surf_x, surf_y, surf_u]})
-savemat('LS.mat', {'loss': [0.003, 0.342222, 0.005559]}, appendmat=True)
+# savemat('LS.mat', {'loss': [0.003, 0.342222, 0.005559]}, appendmat=True)
 
 
 print('end of the file')
