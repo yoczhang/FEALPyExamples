@@ -135,7 +135,7 @@ def py2tec(tdata, fname):
     with open(fname, 'w', encoding='utf-8') as fid:
         # title
         if 'title' in tdata:
-            fid.write('TITLE = "{:s}"\n'.format(title))
+            fid.write('TITLE = "{:s}"\n'.format(tdata['title']))
 
         # variables
         fid.write('VARIABLES = {:s}\n'.format(','.join(['"{:s}"'.format(i) for i in tdata['varnames']])))
