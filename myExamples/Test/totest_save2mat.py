@@ -22,7 +22,7 @@ surf_u = surf_x + surf_y
 line_x = np.arange(12)
 line_u = line_x * 0.2
 
-savemat('LS.mat', {'line': [line_x, line_u], 'surf': [surf_x, surf_y, surf_u]})
+savemat('LS.mat', {'line': (line_x, line_u), 'surf': [surf_x, surf_y, surf_u]})
 
 
 print('end of the file')
