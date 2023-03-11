@@ -53,7 +53,9 @@ if __name__ == '__main__':
 
     # |--- coarsen
     isMarkedCell = np.zeros(mesh.number_of_cells(), dtype=bool)
-    isMarkedCell[42] = True
+    # mk = [17, 42, 88, 67]
+    mk = [17, 67]
+    isMarkedCell[mk] = True
     mesh.coarsen(isMarkedCell=isMarkedCell)
     mesh.add_plot(plt)
     # plt.show()
