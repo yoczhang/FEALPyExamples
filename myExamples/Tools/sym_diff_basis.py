@@ -14,7 +14,7 @@ import numpy as np
 import math
 from fractions import Fraction
 from fealpy.functionspace.femdof import multi_index_matrix2d
-from fealpy.mesh import MeshFactory as MF
+from fealpy.mesh import TriangleMesh
 from fealpy.quadrature import FEMeshIntegralAlg
 from fealpy.functionspace import LagrangeFiniteElementSpace
 
@@ -212,7 +212,8 @@ class compute_basis:
 # if __name__ == '__main__':
 #     NN = 2
 #     box = [0, 1, 0, 1]
-#     mesh = MF.boxmesh2d(box, nx=NN, ny=NN, meshtype='tri')
+#     # mesh = MF.boxmesh2d(box, nx=NN, ny=NN, meshtype='tri')
+#     mesh = TriangleMesh.from_box(box, nx=NN, ny=NN)
 #     p = 3
 #     integralalg = FEMeshIntegralAlg(mesh, p + 2, cellmeasure=mesh.entity_measure('cell'))
 #     c_q = integralalg.cellintegrator
