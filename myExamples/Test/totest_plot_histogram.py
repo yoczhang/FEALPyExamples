@@ -20,16 +20,16 @@ from matplotlib.font_manager import FontProperties
 
 # font = FontProperties(fname="SimHei.ttf", size=14)
 fig = plt.figure()
-plt.title("Score distribution")
-plt.ylabel("Number of people")  # 纵坐标label
+plt.title("Score distribution", fontsize=10)
+plt.ylabel("Number of people", fontsize=10)  # 纵坐标label
 section = ['<60', '60-69', '70-79', '80-89', '>90']
-students = [2, 43, 32, 25, 4]
+students = [1, 8, 53, 70, 36]
 plt.bar(section, students)
 
 length = len(students)
 x1 = np.arange(length)
 
 for a, b in zip(x1, students):
-    plt.text(a, b + 0.1, '%.0f' % b, ha='center', va='bottom', fontsize=7)
+    plt.text(a, b + 0.1, '%.0f' % b, ha='center', va='bottom', fontsize=13)
 
 plt.show()
