@@ -11,7 +11,7 @@
 
 import numpy as np
 from fealpy.decorator import cartesian
-from fealpy.mesh.TriangleMesh import TriangleMesh
+from fealpy.mesh import TriangleMesh
 from numpy import pi, sin, cos, exp
 
 
@@ -25,23 +25,23 @@ class CahnHilliardData0:
             self.__dict__[k] = v
         return None
 
-    def space_mesh(self, n=4):
-        point = np.array([
-            (0, 0),
-            (2, 0),
-            (4, 0),
-            (0, 2),
-            (2, 2),
-            (4, 2)], dtype=np.float)
-        cell = np.array([
-            (3, 0, 4),
-            (1, 4, 0),
-            (2, 5, 1),
-            (4, 1, 5)], dtype=np.int)
-
-        mesh = TriangleMesh(point, cell)
-        mesh.uniform_refine(n)
-        return mesh
+    # def space_mesh(self, n=4):
+    #     point = np.array([
+    #         (0, 0),
+    #         (2, 0),
+    #         (4, 0),
+    #         (0, 2),
+    #         (2, 2),
+    #         (4, 2)], dtype=np.float)
+    #     cell = np.array([
+    #         (3, 0, 4),
+    #         (1, 4, 0),
+    #         (2, 5, 1),
+    #         (4, 1, 5)], dtype=np.int)
+    #
+    #     mesh = TriangleMesh(point, cell)
+    #     mesh.uniform_refine(n)
+    #     return mesh
 
     def time_mesh(self, dt):
         n = int(np.ceil((self.T - self.t0) / dt))

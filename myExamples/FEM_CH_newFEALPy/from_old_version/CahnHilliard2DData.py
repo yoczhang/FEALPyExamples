@@ -11,7 +11,7 @@
 
 import numpy as np
 from fealpy.decorator import cartesian
-from fealpy.mesh.TriangleMesh import TriangleMesh
+from fealpy.old.mesh import TriangleMesh
 from numpy import pi, sin, cos, exp
 
 
@@ -32,12 +32,12 @@ class CahnHilliardData0:
             (4, 0),
             (0, 2),
             (2, 2),
-            (4, 2)], dtype=np.float)
+            (4, 2)], dtype=np.float_)
         cell = np.array([
             (3, 0, 4),
             (1, 4, 0),
             (2, 5, 1),
-            (4, 1, 5)], dtype=np.int)
+            (4, 1, 5)], dtype=np.int_)
 
         mesh = TriangleMesh(point, cell)
         mesh.uniform_refine(n)
